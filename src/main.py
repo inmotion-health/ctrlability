@@ -84,6 +84,7 @@ def move_mouse(vec):
     # scale the vector to a cubic function for smoother movement
     log_vec = np.power(np.array(vec), 3)
 
+    # TODO: use size of current screen to avoid problems with multiple monitors
     log_vec *= screen_height
 
     # we need to compensate for a higher velocity in the y direction
