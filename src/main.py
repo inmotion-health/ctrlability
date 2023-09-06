@@ -1,5 +1,7 @@
 import mediapipe as mp
 from videosource import WebcamSource
+import pyautogui
+import numpy as np
 
 mp_drawing = mp.solutions.drawing_utils
 mp_holistic = mp.solutions.holistic
@@ -44,22 +46,54 @@ def get_distances(results):
     head_top = results.face_landmarks.landmark[10]
     head_bottom = results.face_landmarks.landmark[152]
 
-    left_should = results.pose_landmarks.landmark[6]
-    right_should = results.pose_landmarks.landmark[5]
     nose = results.face_landmarks.landmark[4]
-
-    shoulder_distance = abs(left_should.x - right_should.x)
-
-    avg_should_height = (left_should.y + right_should.y) / 2
 
     head_width = abs(left_ear.x - right_ear.x)
     head_height = abs(head_top.y - head_bottom.y)
 
     distance_left = (nose.x - left_ear.x) / head_width
-    distance_top = (nose.y - head_top.y) / head_height
+    distance_bottom = -1 * (nose.y - head_bottom.y) / head_height
+
+    return distance_left, distance_bottom
 
 
-    return distance_left, distance_top
+def get_direction(results):
+    distance_left, distance_bottom = get_distances(results)
+
+    # threshold for the distance to the center of the screen after which the mouse will move
+    X_THRESHOLD = 0.05
+    Y_THRESHOLD = 0.03
+
+    # normalize the distance to the center of the screen
+    x_pos = (distance_left - 0.5) * 2
+    y_pos = (distance_bottom - 0.5) * 2
+
+    vec = [x_pos, y_pos]
+
+    mouse_can_move = abs(x_pos) > X_THRESHOLD or abs(y_pos) > Y_THRESHOLD
+
+    if mouse_can_move:
+        return vec
+
+
+def move_mouse(vec):
+    if vec is None:
+        return
+    screen_width, screen_height = pyautogui.size()
+
+    # scale the vector to a cubic function for smoother movement
+    log_vec = np.power(np.array(vec), 3)
+
+    log_vec *= screen_height
+
+    # we need to compensate for a higher velocity in the y direction
+    VELOCITY_COMPENSATION = 4
+
+    v_x = log_vec[0]
+    v_y = -1 * log_vec[1] * VELOCITY_COMPENSATION  # y is inverted
+
+    # TODO: don't cross the screen border
+    pyautogui.moveRel(v_x, v_y, duration=0.1)
 
 
 def main():
@@ -77,27 +111,8 @@ def main():
             )
 
             if values_exist:
-                distance_left, distance_top = get_distances(
-                    results
-                )
-
-                X_THRESHOLD = 0.1
-                center = 0.5
-
-                if distance_left < center - X_THRESHOLD:
-                    print(f"left - {distance_left}")
-                elif center - X_THRESHOLD < distance_left < center + X_THRESHOLD:
-                    print(f"center - {distance_left}")
-                elif center + X_THRESHOLD < distance_left:
-                    print(f"right - {distance_left}")
-
-                Y_THRESHOLD = 0.05
-                if distance_top < center - Y_THRESHOLD:
-                    print(f"top - {distance_top}")
-                elif center - Y_THRESHOLD < distance_top < center + Y_THRESHOLD:
-                    print(f"center - {distance_top}")
-                elif center + Y_THRESHOLD < distance_top:
-                    print(f"bottom - {distance_top}")
+                vec = get_direction(results)
+                move_mouse(vec)
 
             add_landmarks_to_frame(frame, results)
 
