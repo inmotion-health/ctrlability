@@ -8,114 +8,120 @@ mp_holistic = mp.solutions.holistic
 mp_face_mesh_connections = mp.solutions.face_mesh_connections
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=3)
 
+class MouseCtrl:
+    def __init__(self):
+        self._screen_width, self._screen_height = pyautogui.size()
+        self._screen_center = (self._screen_width / 2, self._screen_height / 2)
 
-def add_landmarks_to_frame(frame, results):
-    mp_drawing.draw_landmarks(
-        frame,
-        results.face_landmarks,
-        connections=mp_face_mesh_connections.FACEMESH_TESSELATION,
-        landmark_drawing_spec=drawing_spec,
-        connection_drawing_spec=drawing_spec,
-    )
-    mp_drawing.draw_landmarks(
-        frame,
-        results.left_hand_landmarks,
-        mp_holistic.HAND_CONNECTIONS,
-        landmark_drawing_spec=drawing_spec,
-        connection_drawing_spec=drawing_spec,
-    )
-    mp_drawing.draw_landmarks(
-        frame,
-        results.right_hand_landmarks,
-        mp_holistic.HAND_CONNECTIONS,
-        landmark_drawing_spec=drawing_spec,
-        connection_drawing_spec=drawing_spec,
-    )
-    mp_drawing.draw_landmarks(
-        frame,
-        results.pose_landmarks,
-        mp_holistic.POSE_CONNECTIONS,
-        landmark_drawing_spec=drawing_spec,
-        connection_drawing_spec=drawing_spec,
-    )
+    def move_mouse(self, vec):
+        if vec is None:
+            return
 
+        # scale the vector to a cubic function for smoother movement
+        log_vec = np.power(np.array(vec), 3)
 
-def get_distances(results):
-    left_ear = results.face_landmarks.landmark[93]
-    right_ear = results.face_landmarks.landmark[323]
-    head_top = results.face_landmarks.landmark[10]
-    head_bottom = results.face_landmarks.landmark[152]
+        log_vec *= self._screen_height
 
-    nose = results.face_landmarks.landmark[4]
+        # we need to compensate for a higher velocity in the y direction
+        VELOCITY_COMPENSATION = 4
 
-    head_width = abs(left_ear.x - right_ear.x)
-    head_height = abs(head_top.y - head_bottom.y)
+        v_x = log_vec[0]
+        v_y = -1 * log_vec[1] * VELOCITY_COMPENSATION  # y is inverted
+        
+        # TODO: don't cross the screen border
+        pyautogui.moveRel(v_x, v_y, duration=0.1)
+    
+    def left_click(self):
+        pyautogui.click()
+    
+    def right_click(self):
+        pyautogui.rightClick()
+   
 
-    distance_left = (nose.x - left_ear.x) / head_width
-    distance_bottom = -1 * (nose.y - head_bottom.y) / head_height
+class FaceLandmarkProcessing:
+    def __init__(self, frame, face_landmarks):
+        self.frame = frame
+        self.face_landmarks = face_landmarks
+        
+        self.left_ear = face_landmarks.landmark[93]
+        self.right_ear = face_landmarks.landmark[323]
+        self.head_top = face_landmarks.landmark[10]
+        self.head_bottom = face_landmarks.landmark[152]
+        self.mouth_top = face_landmarks.landmark[12]
+        self.mouth_bottom = face_landmarks.landmark[15]
+        self.eye_brow_center = face_landmarks.landmark[9]
+        
+        self.nose = self.face_landmarks.landmark[4]
+        
+        self.head_width = abs(self.left_ear.x - self.right_ear.x)
+        self.head_height = abs(self.head_top.y - self.head_bottom.y)
 
-    return distance_left, distance_bottom
+    def get_distances(self):
+        distance_left = (self.nose.x - self.left_ear.x) / self.head_width
+        distance_bottom = -1 * (self.nose.y - self.head_bottom.y) / self.head_height
+            
+        return distance_left, distance_bottom
 
+    def get_direction(self):
+        distance_left, distance_bottom = self.get_distances()
 
-def get_direction(results):
-    distance_left, distance_bottom = get_distances(results)
+        # threshold for the distance to the center of the screen after which the mouse will move
+        X_THRESHOLD = 0.05
+        Y_THRESHOLD = 0.03
 
-    # threshold for the distance to the center of the screen after which the mouse will move
-    X_THRESHOLD = 0.05
-    Y_THRESHOLD = 0.03
+        # normalize the distance to the center of the screen
+        x_pos = (distance_left - 0.5) * 2
+        y_pos = (distance_bottom - 0.5) * 2
 
-    # normalize the distance to the center of the screen
-    x_pos = (distance_left - 0.5) * 2
-    y_pos = (distance_bottom - 0.5) * 2
+        vec = [x_pos, y_pos]
 
-    vec = [x_pos, y_pos]
+        mouse_can_move = abs(x_pos) > X_THRESHOLD or abs(y_pos) > Y_THRESHOLD
 
-    mouse_can_move = abs(x_pos) > X_THRESHOLD or abs(y_pos) > Y_THRESHOLD
+        if mouse_can_move:
+            return vec
 
-    if mouse_can_move:
-        return vec
-
-
-def move_mouse(vec):
-    if vec is None:
-        return
-    screen_width, screen_height = pyautogui.size()
-
-    # scale the vector to a cubic function for smoother movement
-    log_vec = np.power(np.array(vec), 3)
-
-    log_vec *= screen_height
-
-    # we need to compensate for a higher velocity in the y direction
-    VELOCITY_COMPENSATION = 4
-
-    v_x = log_vec[0]
-    v_y = -1 * log_vec[1] * VELOCITY_COMPENSATION  # y is inverted
-
-    # TODO: don't cross the screen border
-    pyautogui.moveRel(v_x, v_y, duration=0.1)
+    def draw_landmarks(self):
+        mp_drawing.draw_landmarks(
+            self.frame,
+            self.face_landmarks,
+            connections=mp_face_mesh_connections.FACEMESH_TESSELATION,
+            landmark_drawing_spec=drawing_spec,
+            connection_drawing_spec=drawing_spec,
+        )
+    
+    def get_mouth_open(self):
+        distance = (self.mouth_bottom.y - self.mouth_top.y) / self.head_height
+        print (distance)
+        if distance > 0.08:
+            return True
+        else:
+            return False
+    
+    def get_eye_brow_up(self):
+        distance = (self.eye_brow_center.y - self.head_top.y) / self.head_height
+        return distance
 
 
 def main():
     source = WebcamSource()
-
+    mouseCtrl = MouseCtrl()
+                
     with mp_holistic.Holistic(
         min_detection_confidence=0.5, min_tracking_confidence=0.5
     ) as holistic:
         for idx, (frame, frame_rgb) in enumerate(source):
             results = holistic.process(frame_rgb)
 
-            values_exist = (
-                results.face_landmarks is not None
-                and results.pose_landmarks is not None
-            )
-
-            if values_exist:
-                vec = get_direction(results)
-                move_mouse(vec)
-
-            add_landmarks_to_frame(frame, results)
-
+            if results.face_landmarks is not None:
+                face = FaceLandmarkProcessing(frame, results.face_landmarks)
+                face.draw_landmarks()
+                mouseCtrl.move_mouse(face.get_direction())
+                    
+                if face.get_mouth_open():
+                   print ("Mouth Open") 
+                   mouseCtrl.left_click()
+                # TODO Right Click   
+                #print (face.get_eye_brow_up())
             source.show(frame)
 
 
