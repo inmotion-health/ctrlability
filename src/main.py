@@ -16,20 +16,27 @@ class MouseCtrl:
     def move_mouse(self, vec):
         if vec is None:
             return
+    
+        # threshold for the distance to the center of the screen after which the mouse will move
+        X_THRESHOLD = 0.05
+        Y_THRESHOLD = 0.03
+           
+        mouse_can_move = abs(vec[0]) > X_THRESHOLD or abs(vec[1]) > Y_THRESHOLD
 
-        # scale the vector to a cubic function for smoother movement
-        log_vec = np.power(np.array(vec), 3)
+        if mouse_can_move:
+            # scale the vector to a cubic function for smoother movement
+            log_vec = np.power(np.array(vec), 3)
 
-        log_vec *= self._screen_height
+            log_vec *= self._screen_height
 
-        # we need to compensate for a higher velocity in the y direction
-        VELOCITY_COMPENSATION = 4
+            # we need to compensate for a higher velocity in the y direction
+            VELOCITY_COMPENSATION = 4
 
-        v_x = log_vec[0]
-        v_y = -1 * log_vec[1] * VELOCITY_COMPENSATION  # y is inverted
-        
-        # TODO: don't cross the screen border
-        pyautogui.moveRel(v_x, v_y, duration=0.1)
+            v_x = log_vec[0]
+            v_y = -1 * log_vec[1] * VELOCITY_COMPENSATION  # y is inverted
+            
+            # TODO: don't cross the screen border
+            pyautogui.moveRel(v_x, v_y, duration=0.1)
     
     def left_click(self):
         pyautogui.click()
@@ -65,20 +72,14 @@ class FaceLandmarkProcessing:
     def get_direction(self):
         distance_left, distance_bottom = self.get_distances()
 
-        # threshold for the distance to the center of the screen after which the mouse will move
-        X_THRESHOLD = 0.05
-        Y_THRESHOLD = 0.03
-
         # normalize the distance to the center of the screen
         x_pos = (distance_left - 0.5) * 2
         y_pos = (distance_bottom - 0.5) * 2
 
         vec = [x_pos, y_pos]
+        
+        return vec
 
-        mouse_can_move = abs(x_pos) > X_THRESHOLD or abs(y_pos) > Y_THRESHOLD
-
-        if mouse_can_move:
-            return vec
 
     def draw_landmarks(self):
         mp_drawing.draw_landmarks(
@@ -91,7 +92,6 @@ class FaceLandmarkProcessing:
     
     def get_mouth_open(self):
         distance = (self.mouth_bottom.y - self.mouth_top.y) / self.head_height
-        print (distance)
         if distance > 0.08:
             return True
         else:
@@ -100,7 +100,6 @@ class FaceLandmarkProcessing:
     def get_eye_brow_up(self):
         distance = (self.eye_brow_center.y - self.head_top.y) / self.head_height
         return distance
-
 
 def main():
     source = WebcamSource()
