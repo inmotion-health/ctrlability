@@ -37,7 +37,7 @@ class MouseCtrl:
             v_y = -1 * log_vec[1] * VELOCITY_COMPENSATION  # y is inverted
 
             # TODO: don't cross the screen border
-            pyautogui.moveRel(v_x, v_y, duration=0.1)
+            pyautogui.moveRel(v_x, v_y)
 
     def left_click(self):
         pyautogui.click()
