@@ -2,6 +2,7 @@ import mediapipe as mp
 from videosource import WebcamSource
 import pyautogui
 import numpy as np
+import time
 
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0.0
@@ -18,6 +19,9 @@ class MouseCtrl:
     def __init__(self):
         self._screen_width, self._screen_height = pyautogui.size()
         self._screen_center = (self._screen_width / 2, self._screen_height / 2)
+
+    def set_center(self):
+        pyautogui.moveTo(self._screen_center[0], self._screen_center[1])
 
     def move_mouse(self, vec):
         if vec is None:
@@ -47,6 +51,10 @@ class MouseCtrl:
     def left_click(self):
         pyautogui.click()
 
+    def double_click(self):
+        # pyautogui.doubleClick()
+        pyautogui.click(clicks=2, interval=0.25)
+
     def right_click(self):
         pyautogui.rightClick()
 
@@ -62,7 +70,9 @@ class FaceLandmarkProcessing:
         self.head_bottom = face_landmarks.landmark[152]
         self.mouth_top = face_landmarks.landmark[12]
         self.mouth_bottom = face_landmarks.landmark[15]
-        self.eye_brow_center = face_landmarks.landmark[9]
+        self.mouth_left = face_landmarks.landmark[61]
+        self.mouth_right = face_landmarks.landmark[291]
+        # self.eye_brow_center = face_landmarks.landmark[9]
 
         self.nose = self.face_landmarks.landmark[4]
 
@@ -95,21 +105,26 @@ class FaceLandmarkProcessing:
             connection_drawing_spec=drawing_spec,
         )
 
-    def get_mouth_open(self):
+    def is_mouth_open(self):
         distance = (self.mouth_bottom.y - self.mouth_top.y) / self.head_height
-        if distance > 0.08:
+        if distance > 0.1:
             return True
         else:
             return False
 
-    def get_eye_brow_up(self):
-        distance = (self.eye_brow_center.y - self.head_top.y) / self.head_height
-        return distance
+    def is_mouth_small(self):
+        distance = (self.mouth_right.x - self.mouth_left.x) / self.head_width
+        if distance < 0.35:
+            return True
+        else:
+            return False
 
 
 def main():
     source = WebcamSource()
     mouseCtrl = MouseCtrl()
+
+    mouseCtrl.set_center()
 
     with mp_holistic.Holistic(
         min_detection_confidence=0.5, min_tracking_confidence=0.5
@@ -122,11 +137,14 @@ def main():
                 face.draw_landmarks()
                 mouseCtrl.move_mouse(face.get_direction())
 
-                if face.get_mouth_open():
-                    print("Mouth Open")
+                if face.is_mouth_open():
+                    print("left Click")
                     mouseCtrl.left_click()
-                # TODO Right Click
-                # print (face.get_eye_brow_up())
+
+                if face.is_mouth_small():
+                    print("right Click")
+                    mouseCtrl.right_click()
+
             source.show(frame)
 
 
