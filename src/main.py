@@ -1,13 +1,16 @@
 import mediapipe as mp
 from videosource import WebcamSource
+import platform
 import pyautogui
+import macmouse
 import numpy as np
 import time
 import libctrlability
 
+
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0.0
-pyautogui.DARWIN_CATCH_UP_TIME = 0.0
+pyautogui.DARWIN_CATCH_UP_TIME = 0.00
 
 
 mp_drawing = mp.solutions.drawing_utils
@@ -20,6 +23,9 @@ class MouseCtrl:
     def __init__(self):
         self._screen_width, self._screen_height = pyautogui.size()
         self._screen_center = (self._screen_width / 2, self._screen_height / 2)
+        self.mouse_left_clicks = 0
+        self.freezed_mouse_pos = False
+        self.right_mouse_clicked = False
 
     def set_center(self):
         pyautogui.moveTo(self._screen_center[0], self._screen_center[1])
@@ -53,14 +59,19 @@ class MouseCtrl:
         pyautogui.click()
 
     def double_click(self):
-        # pyautogui.doubleClick()
-        pyautogui.click(clicks=2, interval=0.25)
+        if platform.system() == "Darwin":
+            macmouse.double_click()
+        else:
+            pyautogui.doubleClick()
 
     def right_click(self):
         pyautogui.rightClick()
+        self.right_mouse_clicked = True
 
 
 class FaceLandmarkProcessing:
+    mouth_open_state = False
+
     def __init__(self, frame, face_landmarks):
         self.frame = frame
         self.face_landmarks = face_landmarks
@@ -111,11 +122,12 @@ class FaceLandmarkProcessing:
         if distance > 0.1:
             return True
         else:
+            FaceLandmarkProcessing.mouth_open_state = False
             return False
 
     def is_mouth_small(self):
         distance = (self.mouth_right.x - self.mouth_left.x) / self.head_width
-        if distance < 0.35:
+        if distance < 0.32:
             return True
         else:
             return False
@@ -124,6 +136,10 @@ class FaceLandmarkProcessing:
 def main():
     source = WebcamSource()
     mouseCtrl = MouseCtrl()
+    # VirtualKeyboardApp().run()
+
+    last_left_click = 0  # convert to ms
+    # last_double_click = time.time() * 1000  # convert to ms
 
     libctrlability.hello()
 
@@ -138,15 +154,43 @@ def main():
             if results.face_landmarks is not None:
                 face = FaceLandmarkProcessing(frame, results.face_landmarks)
                 face.draw_landmarks()
-                mouseCtrl.move_mouse(face.get_direction())
+
+                if mouseCtrl.freezed_mouse_pos == False:
+                    mouseCtrl.move_mouse(face.get_direction())
 
                 if face.is_mouth_open():
-                    print("left Click")
-                    mouseCtrl.left_click()
+                    current_time = time.time() * 1000  # convert to ms
+
+                    if mouseCtrl.freezed_mouse_pos == False:
+                        mouseCtrl.freezed_mouse_pos = True
+
+                    if (
+                        FaceLandmarkProcessing.mouth_open_state == False
+                        and mouseCtrl.mouse_left_clicks == 0
+                    ):
+                        mouseCtrl.left_click()
+                        last_left_click = current_time
+                        mouseCtrl.mouse_left_clicks = 1
+                        FaceLandmarkProcessing.mouth_open_state = True
+
+                    if (
+                        FaceLandmarkProcessing.mouth_open_state == True
+                        and mouseCtrl.mouse_left_clicks == 1
+                        and (current_time - last_left_click) > 500
+                    ):
+                        mouseCtrl.double_click()
+                        last_left_click = time.time() * 1000
+                        mouseCtrl.mouse_left_clicks = 0
+                else:
+                    FaceLandmarkProcessing.mouth_open_state = False
+                    mouseCtrl.mouse_left_clicks = 0
+                    mouseCtrl.freezed_mouse_pos = False
 
                 if face.is_mouth_small():
-                    print("right Click")
-                    mouseCtrl.right_click()
+                    if mouseCtrl.right_mouse_clicked == False:
+                        mouseCtrl.right_click()
+                else:
+                    mouseCtrl.right_mouse_clicked = False
 
             source.show(frame)
 
