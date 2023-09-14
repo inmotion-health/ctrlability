@@ -3,6 +3,7 @@ from videosource import WebcamSource
 import pyautogui
 import numpy as np
 import time
+import libctrlability
 
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0.0
@@ -123,6 +124,8 @@ class FaceLandmarkProcessing:
 def main():
     source = WebcamSource()
     mouseCtrl = MouseCtrl()
+
+    libctrlability.hello()
 
     mouseCtrl.set_center()
 

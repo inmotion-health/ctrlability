@@ -1,0 +1,14 @@
+---
+BasedOnStyle: Google
+AlignConsecutiveAssignments: 'Consecutive'
+AlignConsecutiveMacros: true
+IndentWidth: 4
+AccessModifierOffset: -4
+ColumnLimit: 120
+IndentPPDirectives: BeforeHash
+AllowShortFunctionsOnASingleLine: Empty
+SortIncludes: true
+
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 1
