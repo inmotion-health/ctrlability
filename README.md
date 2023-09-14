@@ -16,6 +16,7 @@ To build the project, run the following commands:
 
 ```bash
 pip install -r requirements.txt
+conan profile detect
 sh build.sh
 ```
 
