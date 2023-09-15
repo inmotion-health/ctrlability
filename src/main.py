@@ -26,6 +26,7 @@ class MouseCtrl:
         self.mouse_left_clicks = 0
         self.freezed_mouse_pos = False
         self.right_mouse_clicked = False
+        self.last_left_click_ms = 0
 
     def set_center(self):
         pyautogui.moveTo(self._screen_center[0], self._screen_center[1])
@@ -47,13 +48,36 @@ class MouseCtrl:
             log_vec *= self._screen_height
 
             # we need to compensate for a higher velocity in the y direction
-            VELOCITY_COMPENSATION = 4
+            VELOCITY_COMPENSATION_X = 0.5
+            VELOCITY_COMPENSATION_Y = 5
 
-            v_x = log_vec[0]
-            v_y = -1 * log_vec[1] * VELOCITY_COMPENSATION  # y is inverted
+            v_x = log_vec[0] * VELOCITY_COMPENSATION_X
+            v_y = -1 * log_vec[1] * VELOCITY_COMPENSATION_Y  # y is inverted
 
-            # TODO: don't cross the screen border
-            pyautogui.moveRel(v_x, v_y)
+            x, y = pyautogui.position()
+            # Calculate the new position after the relative move
+            new_x = x + v_x
+            new_y = y + v_y
+
+            # check if new position is on screen
+            if 0 <= new_x < self._screen_width and 0 <= new_y < self._screen_height:
+                pyautogui.moveRel(v_x, v_y)
+            else:
+                # Adjust new_x and new_y if they would be off screen
+                if new_x < 0:
+                    new_x = 0
+                elif new_x >= self._screen_width:
+                    new_x = self._screen_width - 1
+
+                if new_y < 0:
+                    new_y = 0
+                elif new_y >= self._screen_height:
+                    new_y = self._screen_height - 1
+
+                # Move to the adjusted position with a smooth transition
+                pyautogui.moveTo(
+                    new_x, new_y, duration=1, tween=pyautogui.easeInOutQuad
+                )
 
     def left_click(self):
         pyautogui.click()
@@ -136,10 +160,8 @@ class FaceLandmarkProcessing:
 def main():
     source = WebcamSource()
     mouseCtrl = MouseCtrl()
-    # VirtualKeyboardApp().run()
 
-    last_left_click = 0  # convert to ms
-    # last_double_click = time.time() * 1000  # convert to ms
+    mouseCtrl.last_left_click_ms = 0
 
     libctrlability.hello()
 
@@ -156,6 +178,7 @@ def main():
                 face.draw_landmarks()
 
                 if mouseCtrl.freezed_mouse_pos == False:
+                    # mouseCtrl.check_mouse_on_screen()
                     mouseCtrl.move_mouse(face.get_direction())
 
                 if face.is_mouth_open():
@@ -169,17 +192,17 @@ def main():
                         and mouseCtrl.mouse_left_clicks == 0
                     ):
                         mouseCtrl.left_click()
-                        last_left_click = current_time
+                        mouseCtrl.last_left_click_ms = current_time
                         mouseCtrl.mouse_left_clicks = 1
                         FaceLandmarkProcessing.mouth_open_state = True
 
                     if (
                         FaceLandmarkProcessing.mouth_open_state == True
                         and mouseCtrl.mouse_left_clicks == 1
-                        and (current_time - last_left_click) > 500
+                        and (current_time - mouseCtrl.last_left_click_ms) > 500
                     ):
                         mouseCtrl.double_click()
-                        last_left_click = time.time() * 1000
+                        mouseCtrl.last_left_click_ms = time.time() * 1000
                         mouseCtrl.mouse_left_clicks = 0
                 else:
                     FaceLandmarkProcessing.mouth_open_state = False
