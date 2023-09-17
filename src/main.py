@@ -1,8 +1,7 @@
 import sys
 import cv2
 import mediapipe as mp
-from PySide2.QtWidgets import QApplication, QMainWindow, QLabel
-from PySide2.QtGui import QImage, QPixmap, QKeySequence
+from PySide2.QtGui import QImage, QPixmap, QKeySequence, QIcon
 from PySide2.QtCore import QTimer, QThread, Signal, Qt
 from PySide2.QtWidgets import (
     QApplication,
@@ -17,6 +16,8 @@ from PySide2.QtWidgets import (
     QMenuBar,
     QMenu,
     QShortcut,
+    QSystemTrayIcon,
+    QAction,
 )
 from PySide2.QtGui import QGuiApplication
 from qt_material import apply_stylesheet, list_themes
@@ -27,7 +28,6 @@ import numpy as np
 import time
 import platform
 from videosource import WebcamSource
-
 
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0.0
@@ -178,6 +178,34 @@ class FaceLandmarkProcessing:
             return True
         else:
             return False
+
+
+class SystemTrayApp(QSystemTrayIcon):
+    def __init__(self, icon, parent=None):
+        super(SystemTrayApp, self).__init__(icon, parent)
+        self.setToolTip("Virtual Keyboard Access")
+
+        # Create the menu
+        self.menu = QMenu(parent)
+
+        # Create an action for opening the virtual keyboard
+        self.open_keyboard_action = QAction("Open Virtual Keyboard", self)
+        self.open_keyboard_action.triggered.connect(self.open_virtual_keyboard)
+
+        # Add the action to the menu
+        self.menu.addAction(self.open_keyboard_action)
+
+        # Add a quit action to the menu
+        self.quit_action = QAction("Quit", self)
+        self.quit_action.triggered.connect(app.quit)
+        self.menu.addAction(self.quit_action)
+
+        # Set the context menu for the system tray
+        self.setContextMenu(self.menu)
+
+    def open_virtual_keyboard(self):
+        # Code to open the virtual keyboard
+        print("Virtual Keyboard opened!")
 
 
 class MediaPipeThread(QThread):
@@ -393,6 +421,14 @@ if __name__ == "__main__":
     app.setApplicationName("CTRLABILITY")  # Set the application name
     # setup stylesheet
     apply_stylesheet(app, theme="dark_teal.xml")
+
+    # Ensure the app doesn't exit when the window is closed
+    app.setQuitOnLastWindowClosed(False)
+
+    # Setup the system tray icon
+    icon = QIcon("./assets/minimize.png")  # Replace with the path to your icon
+    tray = SystemTrayApp(icon)
+    tray.show()
 
     mainWin = MediaPipeApp(app)
     mainWin.show()
