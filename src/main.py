@@ -1,11 +1,32 @@
+import sys
+import cv2
 import mediapipe as mp
-from videosource import WebcamSource
-import platform
+from PySide2.QtWidgets import QApplication, QMainWindow, QLabel
+from PySide2.QtGui import QImage, QPixmap, QKeySequence
+from PySide2.QtCore import QTimer, QThread, Signal, Qt
+from PySide2.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QLabel,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QCheckBox,
+    QSlider,
+    QWidget,
+    QMenuBar,
+    QMenu,
+    QShortcut,
+)
+from PySide2.QtGui import QGuiApplication
+from qt_material import apply_stylesheet, list_themes
+
 import pyautogui
 import macmouse
 import numpy as np
 import time
-import libctrlability
+import platform
+from videosource import WebcamSource
 
 
 pyautogui.FAILSAFE = False
@@ -16,10 +37,12 @@ pyautogui.DARWIN_CATCH_UP_TIME = 0.00
 mp_drawing = mp.solutions.drawing_utils
 mp_holistic = mp.solutions.holistic
 mp_face_mesh_connections = mp.solutions.face_mesh_connections
-drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=3)
+drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 
 class MouseCtrl:
+    AUTO_MODE = False
+
     def __init__(self):
         self._screen_width, self._screen_height = pyautogui.size()
         self._screen_center = (self._screen_width / 2, self._screen_height / 2)
@@ -157,66 +180,220 @@ class FaceLandmarkProcessing:
             return False
 
 
-def main():
-    source = WebcamSource()
-    mouseCtrl = MouseCtrl()
+class MediaPipeThread(QThread):
+    signalFrame = Signal(QImage)
 
-    mouseCtrl.last_left_click_ms = 0
+    def run(self):
+        # cap = cv2.VideoCapture(0)
+        holistic = mp.solutions.holistic.Holistic()
 
-    libctrlability.hello()
+        self.mouseCtrl = MouseCtrl()
+        self.mouseCtrl.last_left_click_ms = 0
+        self.mouseCtrl.set_center()
 
-    mouseCtrl.set_center()
+        self.source = WebcamSource()
 
-    with mp_holistic.Holistic(
-        min_detection_confidence=0.5, min_tracking_confidence=0.5
-    ) as holistic:
-        for idx, (frame, frame_rgb) in enumerate(source):
-            results = holistic.process(frame_rgb)
+        with mp_holistic.Holistic(
+            min_detection_confidence=0.5, min_tracking_confidence=0.5
+        ) as holistic:
+            for idx, (frame, frame_rgb) in enumerate(self.source):
+                results = holistic.process(frame_rgb)
 
-            if results.face_landmarks is not None:
-                face = FaceLandmarkProcessing(frame, results.face_landmarks)
-                face.draw_landmarks()
+                if results.face_landmarks is not None:
+                    face = FaceLandmarkProcessing(frame_rgb, results.face_landmarks)
+                    face.draw_landmarks()
 
-                if mouseCtrl.freezed_mouse_pos == False:
-                    # mouseCtrl.check_mouse_on_screen()
-                    mouseCtrl.move_mouse(face.get_direction())
+                    if MouseCtrl.AUTO_MODE == True:
+                        if self.mouseCtrl.freezed_mouse_pos == False:
+                            # mouseCtrl.check_mouse_on_screen()
+                            self.mouseCtrl.move_mouse(face.get_direction())
 
-                if face.is_mouth_open():
-                    current_time = time.time() * 1000  # convert to ms
+                        if face.is_mouth_open():
+                            current_time = time.time() * 1000  # convert to ms
 
-                    if mouseCtrl.freezed_mouse_pos == False:
-                        mouseCtrl.freezed_mouse_pos = True
+                            if self.mouseCtrl.freezed_mouse_pos == False:
+                                self.mouseCtrl.freezed_mouse_pos = True
 
-                    if (
-                        FaceLandmarkProcessing.mouth_open_state == False
-                        and mouseCtrl.mouse_left_clicks == 0
-                    ):
-                        mouseCtrl.left_click()
-                        mouseCtrl.last_left_click_ms = current_time
-                        mouseCtrl.mouse_left_clicks = 1
-                        FaceLandmarkProcessing.mouth_open_state = True
+                            if (
+                                FaceLandmarkProcessing.mouth_open_state == False
+                                and self.mouseCtrl.mouse_left_clicks == 0
+                            ):
+                                self.mouseCtrl.left_click()
+                                self.mouseCtrl.last_left_click_ms = current_time
+                                self.mouseCtrl.mouse_left_clicks = 1
+                                FaceLandmarkProcessing.mouth_open_state = True
 
-                    if (
-                        FaceLandmarkProcessing.mouth_open_state == True
-                        and mouseCtrl.mouse_left_clicks == 1
-                        and (current_time - mouseCtrl.last_left_click_ms) > 500
-                    ):
-                        mouseCtrl.double_click()
-                        mouseCtrl.last_left_click_ms = time.time() * 1000
-                        mouseCtrl.mouse_left_clicks = 0
-                else:
-                    FaceLandmarkProcessing.mouth_open_state = False
-                    mouseCtrl.mouse_left_clicks = 0
-                    mouseCtrl.freezed_mouse_pos = False
+                            if (
+                                FaceLandmarkProcessing.mouth_open_state == True
+                                and self.mouseCtrl.mouse_left_clicks == 1
+                                and (current_time - self.mouseCtrl.last_left_click_ms)
+                                > 500
+                            ):
+                                self.mouseCtrl.double_click()
+                                self.mouseCtrl.last_left_click_ms = time.time() * 1000
+                                self.mouseCtrl.mouse_left_clicks = 0
+                        else:
+                            FaceLandmarkProcessing.mouth_open_state = False
+                            self.mouseCtrl.mouse_left_clicks = 0
+                            self.mouseCtrl.freezed_mouse_pos = False
 
-                if face.is_mouth_small():
-                    if mouseCtrl.right_mouse_clicked == False:
-                        mouseCtrl.right_click()
-                else:
-                    mouseCtrl.right_mouse_clicked = False
+                        if face.is_mouth_small():
+                            if self.mouseCtrl.right_mouse_clicked == False:
+                                self.mouseCtrl.right_click()
+                        else:
+                            self.mouseCtrl.right_mouse_clicked = False
 
-            source.show(frame)
+                # source.show(frame)
+                height, width, channel = frame_rgb.shape
+                bytesPerLine = 3 * width
+                qImg = QImage(
+                    frame_rgb.data, width, height, bytesPerLine, QImage.Format_RGB888
+                )
+
+                self.signalFrame.emit(qImg)
+
+        holistic.close()
+        self.source.release()
+
+
+class MediaPipeApp(QMainWindow):
+    def __init__(self, app):
+        super().__init__()
+        self.app = app  # Store the QApplication reference here
+
+        self.setWindowTitle("CTRLABILITY")
+        # Setup Menu Bar
+        self.setupMenuBar()
+        self.mouseCtrl = MouseCtrl()
+
+        self.initUI()
+
+    def initUI(self):
+        main_layout = QHBoxLayout()
+
+        # Webcam display area (equivalent to BorderLayout::Center)
+        self.label = QLabel(self)
+        main_layout.addWidget(self.label)
+
+        # Settings area (equivalent to BorderLayout::East)
+        settings_layout = QVBoxLayout()
+
+        # Create a QVBoxLayout for the buttons, labels, and sliders
+        grouped_layout = QVBoxLayout()
+
+        # Create the checkbox
+        self.tracking_checkbox = QCheckBox("Tracking", self)
+        # Connect the checkbox's state change signal to the callback
+        self.tracking_checkbox.stateChanged.connect(self.tracking_callback)
+        grouped_layout.addWidget(self.tracking_checkbox)
+
+        # Create a shortcut for the 'T' key
+        self.shortcut = QShortcut(QKeySequence(Qt.Key_T), self)
+        self.shortcut.activated.connect(self.toggle_tracking_by_shortcut)
+
+        # Adding buttons to the grouped layout
+        self.buttons = []
+        for i in range(4):
+            btn = QPushButton(f"Button {i+1}", self)
+            self.buttons.append(btn)
+            grouped_layout.addWidget(btn)
+
+        # Adding labels and sliders just below the buttons
+        self.sliders = []
+        for i in range(4):
+            lbl = QLabel(f"Slider {i+1}", self)
+            slider = QSlider(Qt.Horizontal, self)
+            slider.valueChanged.connect(
+                self.slider_callback
+            )  # Connect the callback to valueChanged signal
+            self.sliders.append(slider)
+            grouped_layout.addWidget(lbl)
+            grouped_layout.addWidget(slider)
+
+        # Add the grouped layout to settings layout
+        settings_layout.addLayout(grouped_layout)
+
+        # Push the remaining space to the bottom
+        settings_layout.addStretch()
+
+        main_layout.addLayout(settings_layout)
+
+        central_widget = QWidget()
+        central_widget.setLayout(main_layout)
+        self.setCentralWidget(central_widget)
+
+        # Use a QTimer to delay the centering by 2000 milliseconds
+        QTimer.singleShot(2000, self.center_on_screen)
+
+        # Start the MediaPipe processing thread.
+        self.thread = MediaPipeThread()
+        self.thread.signalFrame.connect(self.update_frame)
+        self.thread.start()
+
+    def setupMenuBar(self):
+        menubar = QMenuBar(self)
+        self.setMenuBar(menubar)
+
+        themeMenu = QMenu("Themes", self)
+        menubar.addMenu(themeMenu)
+
+        for theme in list_themes():
+            themeMenu.addAction(
+                theme, lambda theme_name=theme: self.applyTheme(theme_name)
+            )
+
+    def applyTheme(self, theme_name):
+        apply_stylesheet(self.app, theme=theme_name)  # apply the chosen theme
+
+    def center_on_screen(self):
+        screen = QApplication.primaryScreen().geometry()  # Get screen geometry
+        window = self.geometry()  # Get window geometry
+        self.move(
+            (screen.width() - window.width()) / 2,
+            (screen.height() - window.height()) / 2,
+        )
+
+    def tracking_callback(self, state):
+        if state == 0:
+            print("Tracking is off.")
+            MouseCtrl.AUTO_MODE = False
+
+        elif state == 2:
+            print("Tracking is on.")
+            MouseCtrl.AUTO_MODE = True
+            pyautogui.moveTo(pyautogui.size()[0] / 2, pyautogui.size()[1] / 2)
+
+    def toggle_tracking_by_shortcut(self):
+        current_state = self.tracking_checkbox.isChecked()
+        self.tracking_checkbox.setChecked(not current_state)
+
+    def slider_callback(self, value):
+        sender = self.sender()  # Find out which slider sent the signal
+        index = self.sliders.index(sender) + 1  # Get the slider number (1-based)
+        print(f"Slider {index} value changed to: {value}")
+
+    def update_frame(self, qImg):
+        pixmap = QPixmap.fromImage(qImg)
+        self.label.setPixmap(pixmap)
+
+    def closeEvent(self, event):
+        self.thread.terminate()
+        event.accept()
 
 
 if __name__ == "__main__":
-    main()
+    # ToDo: fix in deplyment: currently developlemt hack to show application name in menu bar
+    if sys.platform == "darwin":
+        from Foundation import NSBundle
+
+        app_info = NSBundle.mainBundle().infoDictionary()
+        app_info["CFBundleName"] = "CTRLABILITY"
+
+    app = QApplication(sys.argv)
+    app.setApplicationName("CTRLABILITY")  # Set the application name
+    # setup stylesheet
+    apply_stylesheet(app, theme="dark_teal.xml")
+
+    mainWin = MediaPipeApp(app)
+    mainWin.show()
+    sys.exit(app.exec_())

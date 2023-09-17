@@ -3,3 +3,6 @@ PyAutoGUI >= 0.9.54
 macmouse >= 0.7.4
 conan >= 2.0.0
 nbstripout >= 0.6.0
+PySide2 >= 5.15.2.1
+pyobjc-framework-Cocoa >= 9.2
+qt-material >= 2.14
