@@ -1,9 +1,9 @@
 import sys
 import cv2
 import mediapipe as mp
-from PySide2.QtGui import QImage, QPixmap, QKeySequence, QIcon
-from PySide2.QtCore import QTimer, QThread, Signal, Qt
-from PySide2.QtWidgets import (
+from PySide6.QtGui import QImage, QPixmap, QKeySequence, QIcon, QShortcut, QAction
+from PySide6.QtCore import QTimer, QThread, Signal, Qt
+from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QLabel,
@@ -15,11 +15,9 @@ from PySide2.QtWidgets import (
     QWidget,
     QMenuBar,
     QMenu,
-    QShortcut,
     QSystemTrayIcon,
-    QAction,
 )
-from PySide2.QtGui import QGuiApplication
+from PySide6.QtGui import QGuiApplication
 from qt_material import apply_stylesheet, list_themes
 
 import pyautogui
