@@ -22,11 +22,14 @@ from PySide6.QtGui import QGuiApplication
 from qt_material import apply_stylesheet, list_themes
 
 import pyautogui
+
 if platform.system() == "Darwin":
     import macmouse
 import numpy as np
 import time
-from videosource import WebcamSource
+import platform
+
+import imageio
 
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0.0
@@ -218,12 +221,17 @@ class MediaPipeThread(QThread):
         self.mouseCtrl.last_left_click_ms = 0
         self.mouseCtrl.set_center()
 
-        self.source = WebcamSource()
+        self.reader = imageio.get_reader("<video0>")
+
+        print("im here")
 
         with mp_holistic.Holistic(
             min_detection_confidence=0.5, min_tracking_confidence=0.5
         ) as holistic:
-            for idx, (frame, frame_rgb) in enumerate(self.source):
+            for frame_rgb in self.reader:
+                # Downsize the frame
+                frame_rgb = cv2.resize(frame_rgb, (0, 0), fx=0.5, fy=0.5)
+
                 results = holistic.process(frame_rgb)
 
                 if results.face_landmarks is not None:
