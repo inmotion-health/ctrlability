@@ -1,3 +1,4 @@
+import platform
 import sys
 import cv2
 import mediapipe as mp
@@ -21,10 +22,10 @@ from PySide6.QtGui import QGuiApplication
 from qt_material import apply_stylesheet, list_themes
 
 import pyautogui
-import macmouse
+if platform.system() == "Darwin":
+    import macmouse
 import numpy as np
 import time
-import platform
 from videosource import WebcamSource
 
 pyautogui.FAILSAFE = False
