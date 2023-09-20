@@ -425,9 +425,9 @@ if __name__ == "__main__":
     app.setQuitOnLastWindowClosed(False)
 
     # Setup the system tray icon
-    icon = QIcon("./assets/minimize.png")  # Replace with the path to your icon
-    tray = SystemTrayApp(icon)
-    tray.show()
+    # icon = QIcon("./assets/minimize.png")  # Replace with the path to your icon
+    # tray = SystemTrayApp(icon)
+    # tray.show()
 
     mainWin = MediaPipeApp(app)
     mainWin.show()
