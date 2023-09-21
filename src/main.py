@@ -329,7 +329,7 @@ class MediaPipeApp(QMainWindow):
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(self)
-        webcam_dict = VideoSourceProvider.get_list()
+        webcam_dict = VideoSourceProvider.get_available_vidsources()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
         grouped_layout.addWidget(self.webcam_combo_box)

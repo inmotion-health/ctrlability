@@ -50,7 +50,7 @@ def _parse_output(lines):
     return video_devices
 
 
-def get_list():
+def get_available_vidsources():
     # Run the ffmpeg command and capture its output
     output = _run_ffmpeg()
 
