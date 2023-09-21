@@ -329,7 +329,7 @@ class MediaPipeApp(QMainWindow):
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(self)
-        webcam_dict = VideoSourceProvider.get_list()
+        webcam_dict = VideoSourceProvider.get_available_vidsources()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
         self.webcam_combo_box.setFixedWidth(250)
@@ -467,4 +467,4 @@ if __name__ == "__main__":
 
     mainWin = MediaPipeApp(app)
     mainWin.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
