@@ -1,6 +1,5 @@
 import sys
 import mediapipe as mp
-import pyautogui
 
 from PySide6.QtGui import (
     QImage,
@@ -27,7 +26,7 @@ from PySide6.QtWidgets import (
     QComboBox,
 )
 from qt_material import apply_stylesheet, list_themes
-import VideoSourceProvider
+import video.VideoSourceProvider
 import MouseController
 from MediaPipeThread import MediaPipeThread
 
@@ -86,7 +85,7 @@ class MediaPipeApp(QMainWindow):
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(self)
-        webcam_dict = VideoSourceProvider.get_available_vidsources()
+        webcam_dict = video.VideoSourceProvider.get_available_vidsources()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
         self.webcam_combo_box.setFixedWidth(250)

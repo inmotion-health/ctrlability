@@ -1,7 +1,7 @@
 import cv2
 import imageio
 
-import VideoSourceResolutionProvider
+import video.VideoSourceResolutionProvider
 
 
 class VideoSource:
@@ -33,7 +33,7 @@ class VideoSource:
     def change_camera(self, camera_id):
         self._camera_id = camera_id
 
-        resolution = VideoSourceResolutionProvider.find_best_resolution(camera_id)
+        resolution = video.VideoSourceResolutionProvider.find_best_resolution(camera_id)
 
         print(f"Using resolution {resolution} for camera {camera_id}.")
 

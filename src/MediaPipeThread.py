@@ -1,5 +1,5 @@
 from FaceLandmarkProcessing import FaceLandmarkProcessing
-from VideoSource import VideoSource
+from video.VideoSource import VideoSource
 import MouseController
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QImage
