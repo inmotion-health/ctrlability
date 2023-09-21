@@ -10,7 +10,7 @@ pyautogui.PAUSE = 0.0
 pyautogui.DARWIN_CATCH_UP_TIME = 0.00
 
 
-class MouseCtrl:
+class MouseController:
     AUTO_MODE = False
 
     def __init__(self):

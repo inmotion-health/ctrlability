@@ -1,6 +1,6 @@
 from FaceLandmarkProcessing import FaceLandmarkProcessing
 from VideoSource import VideoSource
-from MouseControl import MouseCtrl
+from MouseControl import MouseController
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QImage
 import mediapipe as mp
@@ -17,7 +17,7 @@ class MediaPipeThread(QThread):
         self.webcam_source = VideoSource(camera_id, 1280, 720)
 
     def run(self):
-        self.mouseCtrl = MouseCtrl()
+        self.mouseCtrl = MouseController()
         self.mouseCtrl.last_left_click_ms = 0
         self.mouseCtrl.set_center()
 
@@ -31,7 +31,7 @@ class MediaPipeThread(QThread):
                     face = FaceLandmarkProcessing(frame_rgb, results.face_landmarks)
                     face.draw_landmarks()
 
-                    if MouseCtrl.AUTO_MODE == True:
+                    if MouseController.AUTO_MODE == True:
                         if self.mouseCtrl.frozen_mouse_pos == False:
                             self.mouseCtrl.move_mouse(face.get_direction())
 

@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
 )
 from qt_material import apply_stylesheet, list_themes
 import VideoSourceProvider
-from MouseControl import MouseCtrl
+from MouseControl import MouseController
 from MediaPipeThread import MediaPipeThread
 
 
@@ -68,7 +68,7 @@ class MediaPipeApp(QMainWindow):
         self.setWindowTitle("CTRLABILITY")
         # Setup Menu Bar
         self.setupMenuBar()
-        self.mouseCtrl = MouseCtrl()
+        self.mouseCtrl = MouseController()
 
         self.initUI()
 
@@ -177,11 +177,11 @@ class MediaPipeApp(QMainWindow):
     def tracking_callback(self, state):
         if state == 0:
             print("Tracking is off.")
-            MouseCtrl.AUTO_MODE = False
+            MouseController.AUTO_MODE = False
 
         elif state == 2:
             print("Tracking is on.")
-            MouseCtrl.AUTO_MODE = True
+            MouseController.AUTO_MODE = True
             pyautogui.moveTo(pyautogui.size()[0] / 2, pyautogui.size()[1] / 2)
 
     def toggle_tracking_by_shortcut(self):
