@@ -100,9 +100,7 @@ class MouseCtrl:
                     new_y = self._screen_height - 1
 
                 # Move to the adjusted position with a smooth transition
-                pyautogui.moveTo(
-                    new_x, new_y, duration=1, tween=pyautogui.easeInOutQuad
-                )
+                pyautogui.moveTo(new_x, new_y)
 
     def left_click(self):
         pyautogui.click()
@@ -221,16 +219,14 @@ class MediaPipeThread(QThread):
         self.mouseCtrl.last_left_click_ms = 0
         self.mouseCtrl.set_center()
 
-        self.reader = imageio.get_reader("<video0>")
-
-        print("im here")
+        self.reader = imageio.get_reader("<video0>", size=(1280, 720))
 
         with mp_holistic.Holistic(
             min_detection_confidence=0.5, min_tracking_confidence=0.5
         ) as holistic:
             for frame_rgb in self.reader:
-                # Downsize the frame
-                frame_rgb = cv2.resize(frame_rgb, (0, 0), fx=0.5, fy=0.5)
+                # flip frame
+                frame_rgb = cv2.flip(frame_rgb, 1)
 
                 results = holistic.process(frame_rgb)
 
