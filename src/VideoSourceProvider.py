@@ -33,10 +33,7 @@ def _parse_output(lines):
         # Extract the lines that contain the video devices
         video_lines = lines[start_index + 1 : end_index]
 
-        # Initialize an empty dictionary to store the video devices
         video_devices = {}
-
-        # Define the regex pattern to match the ID and name
         pattern = re.compile(r"(\d+)\.\s(.+)")
 
         # Iterate over the video lines
@@ -51,10 +48,7 @@ def _parse_output(lines):
 
 
 def get_available_vidsources():
-    # Run the ffmpeg command and capture its output
     output = _run_ffmpeg()
-
-    # Split the output into lines
     lines = output.split("\n")
 
     return _parse_output(lines)

@@ -33,31 +33,22 @@ def _run_ffmpeg(camera_id):
 
 
 def _parse_output(output):
-    # Define the regex pattern to match the resolution
     pattern = re.compile(r"(\d+x\d+)@\[\d+\.\d+\s+\d+\.\d+\]fps")
-
-    # Find all matches in the output
     matches = pattern.findall(output)
 
     return matches
 
 
 def _parse_into_tuples(matches):
-    # Define the regex pattern to match the resolution
     pattern = re.compile(r"(\d+)x(\d+)")
-
-    # Initialize an empty list to store the resolutions
     resolutions = []
 
-    # Iterate over the matches
     for match in matches:
-        # Find all matches in the match
         resolution = pattern.findall(match)
 
         # Convert the resolution to a tuple of ints
         resolution = tuple(map(int, resolution[0]))
 
-        # Append the resolution to the list
         resolutions.append(resolution)
 
     return resolutions
