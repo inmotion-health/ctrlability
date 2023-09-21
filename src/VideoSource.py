@@ -37,6 +37,4 @@ class VideoSource:
 
         print(f"Using resolution {resolution} for camera {camera_id}.")
 
-        self.reader = imageio.get_reader(
-            f"<video{camera_id}>", size=(resolution[0], resolution[1])
-        )
+        self.reader = imageio.get_reader(f"<video{camera_id}>", size=(resolution[0], resolution[1]))
