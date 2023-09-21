@@ -2,8 +2,15 @@ import platform
 import sys
 import cv2
 import mediapipe as mp
-from PySide6.QtGui import QImage, QPixmap, QKeySequence, QIcon, QShortcut, QAction
-from PySide6.QtCore import QTimer, QThread, Signal, Qt
+from PySide6.QtGui import (
+    QImage,
+    QPixmap,
+    QKeySequence,
+    QIcon,
+    QShortcut,
+    QAction,
+)
+from PySide6.QtCore import QTimer, QThread, Signal, Qt, Slot
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -17,6 +24,7 @@ from PySide6.QtWidgets import (
     QMenuBar,
     QMenu,
     QSystemTrayIcon,
+    QComboBox,
 )
 from PySide6.QtGui import QGuiApplication
 from qt_material import apply_stylesheet, list_themes
@@ -24,6 +32,7 @@ from qt_material import apply_stylesheet, list_themes
 import pyautogui
 
 from VideoSource import VideoSource
+import VideoSourceProvider
 
 if platform.system() == "Darwin":
     import macmouse
@@ -288,6 +297,10 @@ class MediaPipeThread(QThread):
         holistic.close()
         self.source.release()
 
+    def change_camera(self, camera_id):
+        self.camera_id = camera_id
+        self.webcam_source.change_camera(camera_id)
+
 
 class MediaPipeApp(QMainWindow):
     def __init__(self, app):
@@ -313,6 +326,16 @@ class MediaPipeApp(QMainWindow):
 
         # Create a QVBoxLayout for the buttons, labels, and sliders
         grouped_layout = QVBoxLayout()
+
+        # Create a QComboBox to liste the connected webcames
+        self.webcam_combo_box = QComboBox(self)
+        webcam_dict = VideoSourceProvider.get_list()
+        for key, value in webcam_dict.items():
+            self.webcam_combo_box.addItem(value)
+        grouped_layout.addWidget(self.webcam_combo_box)
+
+        # Connect the activated signal to our custom slot
+        self.webcam_combo_box.currentIndexChanged.connect(self.on_select_camsource)
 
         # Create the checkbox
         self.tracking_checkbox = QCheckBox("Tracking", self)
@@ -385,6 +408,12 @@ class MediaPipeApp(QMainWindow):
             (screen.width() - window.width()) / 2,
             (screen.height() - window.height()) / 2,
         )
+
+    @Slot(int)
+    def on_select_camsource(self, index):
+        """Slot that is called when an item in the QComboBox is selected."""
+        print(f"Selected index: {index}")
+        self.thread.change_camera(index)
 
     def tracking_callback(self, state):
         if state == 0:

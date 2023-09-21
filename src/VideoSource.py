@@ -28,3 +28,9 @@ class VideoSource:
 
     def __del__(self):
         self.reader.close()
+
+    def change_camera(self, camera_id):
+        self._camera_id = camera_id
+        self.reader = imageio.get_reader(
+            f"<video{camera_id}>", size=(self.width, self.height)
+        )

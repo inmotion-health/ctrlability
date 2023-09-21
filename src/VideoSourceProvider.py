@@ -42,13 +42,15 @@ def _parse_output(lines):
         # Iterate over the video lines
         for line in video_lines:
             match = re.search(r"\[(\d+)\] (.+)", line)
-            if match:
+            if match and "Capture screen" not in match.group(2):
                 device_id = int(match.group(1))
                 device_name = match.group(2)
                 video_devices[device_id] = device_name
 
+    return video_devices
 
-def get_list(self):
+
+def get_list():
     # Run the ffmpeg command and capture its output
     output = _run_ffmpeg()
 
