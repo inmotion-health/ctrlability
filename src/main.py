@@ -332,6 +332,7 @@ class MediaPipeApp(QMainWindow):
         webcam_dict = VideoSourceProvider.get_list()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
+        self.webcam_combo_box.setFixedWidth(250)
         grouped_layout.addWidget(self.webcam_combo_box)
 
         # Connect the activated signal to our custom slot
@@ -454,7 +455,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setApplicationName("CTRLABILITY")  # Set the application name
     # setup stylesheet
-    apply_stylesheet(app, theme="dark_teal.xml")
+    apply_stylesheet(app, theme="light_blue.xml")
 
     # Ensure the app doesn't exit when the window is closed
     app.setQuitOnLastWindowClosed(False)
