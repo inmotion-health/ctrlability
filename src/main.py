@@ -466,4 +466,4 @@ if __name__ == "__main__":
 
     mainWin = MediaPipeApp(app)
     mainWin.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
