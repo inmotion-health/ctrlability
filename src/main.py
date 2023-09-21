@@ -23,6 +23,8 @@ from qt_material import apply_stylesheet, list_themes
 
 import pyautogui
 
+from VideoSource import VideoSource
+
 if platform.system() == "Darwin":
     import macmouse
 import numpy as np
@@ -211,23 +213,23 @@ class SystemTrayApp(QSystemTrayIcon):
 class MediaPipeThread(QThread):
     signalFrame = Signal(QImage)
 
+    def __init__(self, camera_id=0):
+        super().__init__()
+        self.camera_id = camera_id
+
+        self.webcam_source = VideoSource(camera_id, 1280, 720)
+
     def run(self):
-        # cap = cv2.VideoCapture(0)
         holistic = mp.solutions.holistic.Holistic()
 
         self.mouseCtrl = MouseCtrl()
         self.mouseCtrl.last_left_click_ms = 0
         self.mouseCtrl.set_center()
 
-        self.reader = imageio.get_reader("<video0>", size=(1280, 720))
-
         with mp_holistic.Holistic(
             min_detection_confidence=0.5, min_tracking_confidence=0.5
         ) as holistic:
-            for frame_rgb in self.reader:
-                # flip frame
-                frame_rgb = cv2.flip(frame_rgb, 1)
-
+            for frame_rgb in self.webcam_source:
                 results = holistic.process(frame_rgb)
 
                 if results.face_landmarks is not None:

@@ -13,7 +13,7 @@ class VideoSourceProvider:
             output = e.output.decode("utf-8")
         return output
 
-    def parse_output(lines):
+    def _parse_output(lines):
         # Find the line that contains 'AVFoundation video devices'
         start_index = next(
             (i for i, line in enumerate(lines) if "AVFoundation video devices" in line),
@@ -54,4 +54,4 @@ class VideoSourceProvider:
         # Split the output into lines
         lines = output.split("\n")
 
-        return self.parse_output(lines)
+        return self._parse_output(lines)
