@@ -1,6 +1,5 @@
 import sys
 import mediapipe as mp
-import time
 import pyautogui
 
 from PySide6.QtGui import (
@@ -11,7 +10,7 @@ from PySide6.QtGui import (
     QShortcut,
     QAction,
 )
-from PySide6.QtCore import QTimer, QThread, Signal, Qt, Slot
+from PySide6.QtCore import QTimer, Qt, Slot
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -28,17 +27,9 @@ from PySide6.QtWidgets import (
     QComboBox,
 )
 from qt_material import apply_stylesheet, list_themes
-
-from MouseControl import MouseCtrl
-from FaceLandmarkProcessing import FaceLandmarkProcessing
-from VideoSource import VideoSource
 import VideoSourceProvider
-
-pyautogui.FAILSAFE = False
-pyautogui.PAUSE = 0.0
-pyautogui.DARWIN_CATCH_UP_TIME = 0.00
-
-mp_holistic = mp.solutions.holistic
+from MouseControl import MouseCtrl
+from MediaPipeThread import MediaPipeThread
 
 
 class SystemTrayApp(QSystemTrayIcon):
@@ -67,89 +58,6 @@ class SystemTrayApp(QSystemTrayIcon):
     def open_virtual_keyboard(self):
         # Code to open the virtual keyboard
         print("Virtual Keyboard opened!")
-
-
-class MediaPipeThread(QThread):
-    signalFrame = Signal(QImage)
-
-    def __init__(self, camera_id=0):
-        super().__init__()
-        self.camera_id = camera_id
-
-        self.webcam_source = VideoSource(camera_id, 1280, 720)
-
-    def run(self):
-        holistic = mp.solutions.holistic.Holistic()
-
-        self.mouseCtrl = MouseCtrl()
-        self.mouseCtrl.last_left_click_ms = 0
-        self.mouseCtrl.set_center()
-
-        with mp_holistic.Holistic(
-            min_detection_confidence=0.5, min_tracking_confidence=0.5
-        ) as holistic:
-            for frame_rgb in self.webcam_source:
-                results = holistic.process(frame_rgb)
-
-                if results.face_landmarks is not None:
-                    face = FaceLandmarkProcessing(frame_rgb, results.face_landmarks)
-                    face.draw_landmarks()
-
-                    if MouseCtrl.AUTO_MODE == True:
-                        if self.mouseCtrl.frozen_mouse_pos == False:
-                            # mouseCtrl.check_mouse_on_screen()
-                            self.mouseCtrl.move_mouse(face.get_direction())
-
-                        if face.is_mouth_open():
-                            current_time = time.time() * 1000  # convert to ms
-
-                            if self.mouseCtrl.frozen_mouse_pos == False:
-                                self.mouseCtrl.frozen_mouse_pos = True
-
-                            if (
-                                FaceLandmarkProcessing.mouth_open_state == False
-                                and self.mouseCtrl.mouse_left_clicks == 0
-                            ):
-                                self.mouseCtrl.left_click()
-                                self.mouseCtrl.last_left_click_ms = current_time
-                                self.mouseCtrl.mouse_left_clicks = 1
-                                FaceLandmarkProcessing.mouth_open_state = True
-
-                            if (
-                                FaceLandmarkProcessing.mouth_open_state == True
-                                and self.mouseCtrl.mouse_left_clicks == 1
-                                and (current_time - self.mouseCtrl.last_left_click_ms)
-                                > 500
-                            ):
-                                self.mouseCtrl.double_click()
-                                self.mouseCtrl.last_left_click_ms = time.time() * 1000
-                                self.mouseCtrl.mouse_left_clicks = 0
-                        else:
-                            FaceLandmarkProcessing.mouth_open_state = False
-                            self.mouseCtrl.mouse_left_clicks = 0
-                            self.mouseCtrl.frozen_mouse_pos = False
-
-                        if face.is_mouth_small():
-                            if self.mouseCtrl.right_mouse_clicked == False:
-                                self.mouseCtrl.right_click()
-                        else:
-                            self.mouseCtrl.right_mouse_clicked = False
-
-                # source.show(frame)
-                height, width, channel = frame_rgb.shape
-                bytesPerLine = 3 * width
-                qImg = QImage(
-                    frame_rgb.data, width, height, bytesPerLine, QImage.Format_RGB888
-                )
-
-                self.signalFrame.emit(qImg)
-
-        holistic.close()
-        self.source.release()
-
-    def change_camera(self, camera_id):
-        self.camera_id = camera_id
-        self.webcam_source.change_camera(camera_id)
 
 
 class MediaPipeApp(QMainWindow):

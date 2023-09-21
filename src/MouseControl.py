@@ -5,6 +5,10 @@ import numpy as np
 if platform.system() == "Darwin":
     import macmouse
 
+pyautogui.FAILSAFE = False
+pyautogui.PAUSE = 0.0
+pyautogui.DARWIN_CATCH_UP_TIME = 0.00
+
 
 class MouseCtrl:
     AUTO_MODE = False
