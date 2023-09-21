@@ -76,6 +76,3 @@ def find_best_resolution(camera_id):
         return resolutions[0]
 
     return _720_resolutions[0]
-
-
-print(find_best_resolution(camera_id=0))
