@@ -1,6 +1,5 @@
 import sys
 import mediapipe as mp
-import pyautogui
 
 from PySide6.QtGui import (
     QImage,
@@ -28,8 +27,8 @@ from PySide6.QtWidgets import (
     QTabWidget,
 )
 from qt_material import apply_stylesheet, list_themes
-import VideoSourceProvider
-from MouseControl import MouseController
+import video.VideoSourceProvider
+import MouseController
 from MediaPipeThread import MediaPipeThread
 
 
@@ -87,7 +86,7 @@ class WebCamTabView(QObject):
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(main)
-        webcam_dict = VideoSourceProvider.get_available_vidsources()
+        webcam_dict = video.VideoSourceProvider.get_available_vidsources()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
         self.webcam_combo_box.setFixedWidth(250)
@@ -114,9 +113,7 @@ class WebCamTabView(QObject):
         for i in range(4):
             lbl = QLabel(f"Slider {i+1}", main)
             slider = QSlider(Qt.Horizontal, main)
-            slider.valueChanged.connect(
-                self.slider_callback
-            )  # Connect the callback to valueChanged signal
+            slider.valueChanged.connect(self.slider_callback)  # Connect the callback to valueChanged signal
             self.sliders.append(slider)
             grouped_layout.addWidget(lbl)
             grouped_layout.addWidget(slider)
@@ -145,12 +142,12 @@ class WebCamTabView(QObject):
     def tracking_callback(self, state):
         if state == 0:
             print("Tracking is off.")
-            MouseController.AUTO_MODE = False
+            MouseController.set_tracking_mode(True)
 
         elif state == 2:
             print("Tracking is on.")
-            MouseController.AUTO_MODE = True
-            pyautogui.moveTo(pyautogui.size()[0] / 2, pyautogui.size()[1] / 2)
+            MouseController.set_tracking_mode(True)
+            MouseController.set_cursor_center()
 
     def slider_callback(self, value):
         sender = self.sender()  # Find out which slider sent the signal
@@ -164,9 +161,7 @@ class MediaPipeApp(QMainWindow):
         self.app = app  # Store the QApplication reference here
 
         self.setWindowTitle("CTRLABILITY")
-        # Setup Menu Bar
         self.setupMenuBar()
-        self.mouseCtrl = MouseController()
 
         self.initUI()
 
@@ -253,9 +248,7 @@ class MediaPipeApp(QMainWindow):
         menubar.addMenu(themeMenu)
 
         for theme in list_themes():
-            themeMenu.addAction(
-                theme, lambda theme_name=theme: self.applyTheme(theme_name)
-            )
+            themeMenu.addAction(theme, lambda theme_name=theme: self.applyTheme(theme_name))
 
     def applyTheme(self, theme_name):
         apply_stylesheet(self.app, theme=theme_name)  # apply the chosen theme

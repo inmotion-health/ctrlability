@@ -1,7 +1,7 @@
 import cv2
 import imageio
 
-import VideoSourceResolutionProvider
+import video.VideoSourceResolutionProvider
 
 
 class VideoSource:
@@ -33,11 +33,8 @@ class VideoSource:
     def change_camera(self, camera_id):
         self._camera_id = camera_id
 
-        resolution = VideoSourceResolutionProvider.find_best_resolution(camera_id)
-        if resolution is None:
-            resolution = (640, 480)
+        resolution = video.VideoSourceResolutionProvider.find_best_resolution(camera_id)
+
         print(f"Using resolution {resolution} for camera {camera_id}.")
 
-        self.reader = imageio.get_reader(
-            f"<video{camera_id}>", size=(resolution[0], resolution[1])
-        )
+        self.reader = imageio.get_reader(f"<video{camera_id}>", size=(resolution[0], resolution[1]))
