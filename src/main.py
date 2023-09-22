@@ -134,7 +134,7 @@ class WebCamTabView(QObject):
     def tracking_callback(self, state):
         if state == 0:
             print("Tracking is off.")
-            MouseController.set_tracking_mode(True)
+            MouseController.set_tracking_mode(False)
 
         elif state == 2:
             print("Tracking is on.")
