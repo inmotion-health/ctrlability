@@ -141,6 +141,10 @@ class WebCamTabView(QObject):
             MouseController.set_tracking_mode(True)
             MouseController.set_cursor_center()
 
+    def toggle_tracking(self):
+        current_state = self.tracking_checkbox.isChecked()
+        self.tracking_checkbox.setChecked(not current_state)
+
     def slider_callback(self, value):
         sender = self.sender()  # Find out which slider sent the signal
         index = self.sliders.index(sender) + 1  # Get the slider number (1-based)
@@ -235,11 +239,9 @@ class MediaPipeApp(QMainWindow):
 
     def toggle_tracking_by_shortcut(self):
         if self.tab_widget.currentIndex() == 0:
-            current_state = self.webcam_tab_view1.tracking_checkbox.isChecked()
-            self.webcam_tab_view1.tracking_checkbox.setChecked(not current_state)
+            self.webcam_tab_view1.toggle_tracking()
         elif self.tab_widget.currentIndex() == 1:
-            current_state = self.webcam_tab_view2.tracking_checkbox.isChecked()
-            self.webcam_tab_view2.tracking_checkbox.setChecked(not current_state)
+            self.webcam_tab_view2.toggle_tracking()
 
     def setupMenuBar(self):
         menubar = QMenuBar(self)
