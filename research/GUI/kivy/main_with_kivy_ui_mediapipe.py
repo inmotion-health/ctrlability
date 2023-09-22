@@ -14,7 +14,8 @@ import pyautogui
 import macmouse
 import numpy as np
 import time
-import libctrlability
+
+# import libctrlability
 import cv2
 
 pyautogui.FAILSAFE = False

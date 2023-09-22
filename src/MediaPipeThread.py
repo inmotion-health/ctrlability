@@ -1,22 +1,27 @@
 from FaceLandmarkProcessing import FaceLandmarkProcessing
 from VideoSource import VideoSource
 from MouseControl import MouseController
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import Signal, QObject, Slot
 from PySide6.QtGui import QImage
 import mediapipe as mp
 import time
 
 
-class MediaPipeThread(QThread):
+class MediaPipeThread(QObject):
+    started = Signal()
+    finished = Signal()
     signalFrame = Signal(QImage)
 
     def __init__(self, camera_id=0):
         super().__init__()
         self.camera_id = camera_id
-
         self.webcam_source = VideoSource(camera_id, 1280, 720)
 
-    def run(self):
+    def on_variable_changed(self):
+        print("Variable in UIObject changed! Processing in WorkerObject...")
+
+    def process(self):
+        self.started.emit()
         self.mouseCtrl = MouseController()
         self.mouseCtrl.last_left_click_ms = 0
         self.mouseCtrl.set_center()
@@ -77,7 +82,8 @@ class MediaPipeThread(QThread):
                 )
 
                 self.signalFrame.emit(qImg)
+        self.finished.emit()
 
-    def change_camera(self, camera_id):
+    def handle_cam_index_change(self, camera_id):
         self.camera_id = camera_id
         self.webcam_source.change_camera(camera_id)

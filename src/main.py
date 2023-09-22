@@ -10,7 +10,7 @@ from PySide6.QtGui import (
     QShortcut,
     QAction,
 )
-from PySide6.QtCore import QTimer, Qt, Slot
+from PySide6.QtCore import QTimer, Qt, Slot, QThread, Signal, QObject
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
     QMenu,
     QSystemTrayIcon,
     QComboBox,
+    QTabWidget,
 )
 from qt_material import apply_stylesheet, list_themes
 import VideoSourceProvider
@@ -60,24 +61,23 @@ class SystemTrayApp(QSystemTrayIcon):
         print("Virtual Keyboard opened!")
 
 
-class MediaPipeApp(QMainWindow):
-    def __init__(self, app):
+class WebCamTabView(QObject):
+    cam_index_changed = Signal(int)
+
+    def __init__(self, main):
         super().__init__()
-        self.app = app  # Store the QApplication reference here
+        self._cam_index = 0
+        self.webCamWidget = QWidget()
 
-        self.setWindowTitle("CTRLABILITY")
-        # Setup Menu Bar
-        self.setupMenuBar()
-        self.mouseCtrl = MouseController()
+        # Create a shortcut for the 'T' key
+        self.shortcut = QShortcut(QKeySequence(Qt.Key_T), main)
+        self.shortcut.activated.connect(self.toggle_tracking_by_shortcut)
 
-        self.initUI()
-
-    def initUI(self):
-        main_layout = QHBoxLayout()
+        self.webCamLayoutView = QHBoxLayout()
 
         # Webcam display area (equivalent to BorderLayout::Center)
-        self.label = QLabel(self)
-        main_layout.addWidget(self.label)
+        self.label = QLabel(main)
+        self.webCamLayoutView.addWidget(self.label)
 
         # Settings area (equivalent to BorderLayout::East)
         settings_layout = QVBoxLayout()
@@ -86,7 +86,7 @@ class MediaPipeApp(QMainWindow):
         grouped_layout = QVBoxLayout()
 
         # Create a QComboBox to liste the connected webcames
-        self.webcam_combo_box = QComboBox(self)
+        self.webcam_combo_box = QComboBox(main)
         webcam_dict = VideoSourceProvider.get_available_vidsources()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
@@ -97,27 +97,23 @@ class MediaPipeApp(QMainWindow):
         self.webcam_combo_box.currentIndexChanged.connect(self.on_select_camsource)
 
         # Create the checkbox
-        self.tracking_checkbox = QCheckBox("Tracking", self)
+        self.tracking_checkbox = QCheckBox("Tracking", main)
         # Connect the checkbox's state change signal to the callback
         self.tracking_checkbox.stateChanged.connect(self.tracking_callback)
         grouped_layout.addWidget(self.tracking_checkbox)
 
-        # Create a shortcut for the 'T' key
-        self.shortcut = QShortcut(QKeySequence(Qt.Key_T), self)
-        self.shortcut.activated.connect(self.toggle_tracking_by_shortcut)
-
         # Adding buttons to the grouped layout
         self.buttons = []
         for i in range(4):
-            btn = QPushButton(f"Button {i+1}", self)
+            btn = QPushButton(f"Button {i+1}", main)
             self.buttons.append(btn)
             grouped_layout.addWidget(btn)
 
         # Adding labels and sliders just below the buttons
         self.sliders = []
         for i in range(4):
-            lbl = QLabel(f"Slider {i+1}", self)
-            slider = QSlider(Qt.Horizontal, self)
+            lbl = QLabel(f"Slider {i+1}", main)
+            slider = QSlider(Qt.Horizontal, main)
             slider.valueChanged.connect(
                 self.slider_callback
             )  # Connect the callback to valueChanged signal
@@ -131,19 +127,123 @@ class MediaPipeApp(QMainWindow):
         # Push the remaining space to the bottom
         settings_layout.addStretch()
 
-        main_layout.addLayout(settings_layout)
+        self.webCamLayoutView.addLayout(settings_layout)
+        self.webCamWidget.setLayout(self.webCamLayoutView)
 
-        central_widget = QWidget()
-        central_widget.setLayout(main_layout)
-        self.setCentralWidget(central_widget)
+    def updateWebcamFrame(self, pixmap):
+        self.label.setPixmap(pixmap)
+
+    @Slot(int)
+    def on_select_camsource(self, index):
+        self._cam_index = index
+        self.cam_index_changed.emit(self._cam_index)
+
+    def toggle_tracking_by_shortcut(self):
+        current_state = self.tracking_checkbox.isChecked()
+        self.tracking_checkbox.setChecked(not current_state)
+
+    def tracking_callback(self, state):
+        if state == 0:
+            print("Tracking is off.")
+            MouseController.AUTO_MODE = False
+
+        elif state == 2:
+            print("Tracking is on.")
+            MouseController.AUTO_MODE = True
+            pyautogui.moveTo(pyautogui.size()[0] / 2, pyautogui.size()[1] / 2)
+
+    def slider_callback(self, value):
+        sender = self.sender()  # Find out which slider sent the signal
+        index = self.sliders.index(sender) + 1  # Get the slider number (1-based)
+        print(f"Slider {index} value changed to: {value}")
+
+
+class MediaPipeApp(QMainWindow):
+    def __init__(self, app):
+        super().__init__()
+        self.app = app  # Store the QApplication reference here
+
+        self.setWindowTitle("CTRLABILITY")
+        # Setup Menu Bar
+        self.setupMenuBar()
+        self.mouseCtrl = MouseController()
+
+        self.initUI()
+
+    def initUI(self):
+        # Create the QTabWidget
+        tab_widget = QTabWidget()
+
+        # First tab for Video Processing
+        tab1 = QWidget()
+        tab1_layout = QVBoxLayout(tab1)
+        self.webcam_tab_view1 = WebCamTabView(self)
+        tab1_layout.addWidget(self.webcam_tab_view1.webCamWidget)
+        tab_widget.addTab(tab1, "Video Processing 1")
+
+        # Second tab for Video Processing
+        tab2 = QWidget()
+        tab2_layout = QVBoxLayout(tab2)
+        self.webcam_tab_view2 = WebCamTabView(self)
+        tab2_layout.addWidget(self.webcam_tab_view2.webCamWidget)
+        tab_widget.addTab(tab2, "Video Processing 2")
+
+        self.setCentralWidget(tab_widget)
 
         # Use a QTimer to delay the centering by 2000 milliseconds
-        QTimer.singleShot(2000, self.center_on_screen)
+        QTimer.singleShot(4000, self.center_on_screen)
 
-        # Start the MediaPipe processing thread.
-        self.thread = MediaPipeThread()
-        self.thread.signalFrame.connect(self.update_frame)
-        self.thread.start()
+        # Setup Threads for First Video Processing
+        self.thread1 = QThread()
+        self.worker1 = MediaPipeThread(0)
+        self.worker1.moveToThread(self.thread1)
+        self.setup_connections(self.thread1, self.worker1)
+
+        self.thread2 = QThread()
+        self.worker2 = MediaPipeThread(0)
+        self.worker2.moveToThread(self.thread2)
+        self.setup_connections(self.thread2, self.worker2)
+
+        self.thread1.start()
+        self.thread2.start()
+
+        # call cam1_changed when cam_index_changed signal is emitted
+        self.webcam_tab_view1.cam_index_changed.connect(self.cam1_changed)
+
+        # call cam2_changed when cam_index_changed signal is emitted
+        self.webcam_tab_view2.cam_index_changed.connect(self.cam2_changed)
+
+    @Slot(int)
+    def cam1_changed(self, index):
+        self.worker1.handle_cam_index_change(index)
+
+    @Slot(int)
+    def cam2_changed(self, index):
+        self.worker2.handle_cam_index_change(index)
+
+    # setup video processing threads
+    def setup_connections(self, thread, worker):
+        worker.finished.connect(self.on_finished)
+        worker.signalFrame.connect(self.on_progress)
+        thread.started.connect(worker.process)
+
+    # cleanup video processing threads
+    def on_finished(self):
+        if not self.thread1.isRunning() and not self.thread2.isRunning():
+            self.thread1.quit()
+            self.thread2.quit()
+            self.thread1.wait()
+            self.thread2.wait()
+
+    # when a frame is processed, update the webcam frame
+    def on_progress(self, qImg):
+        sender = self.sender()
+        if sender == self.worker1:
+            pixmap = QPixmap.fromImage(qImg)
+            self.webcam_tab_view1.updateWebcamFrame(pixmap)
+        elif sender == self.worker2:
+            pixmap = QPixmap.fromImage(qImg)
+            self.webcam_tab_view2.updateWebcamFrame(pixmap)
 
     def setupMenuBar(self):
         menubar = QMenuBar(self)
@@ -168,37 +268,9 @@ class MediaPipeApp(QMainWindow):
             (screen.height() - window.height()) / 2,
         )
 
-    @Slot(int)
-    def on_select_camsource(self, index):
-        """Slot that is called when an item in the QComboBox is selected."""
-        print(f"Selected index: {index}")
-        self.thread.change_camera(index)
-
-    def tracking_callback(self, state):
-        if state == 0:
-            print("Tracking is off.")
-            MouseController.AUTO_MODE = False
-
-        elif state == 2:
-            print("Tracking is on.")
-            MouseController.AUTO_MODE = True
-            pyautogui.moveTo(pyautogui.size()[0] / 2, pyautogui.size()[1] / 2)
-
-    def toggle_tracking_by_shortcut(self):
-        current_state = self.tracking_checkbox.isChecked()
-        self.tracking_checkbox.setChecked(not current_state)
-
-    def slider_callback(self, value):
-        sender = self.sender()  # Find out which slider sent the signal
-        index = self.sliders.index(sender) + 1  # Get the slider number (1-based)
-        print(f"Slider {index} value changed to: {value}")
-
-    def update_frame(self, qImg):
-        pixmap = QPixmap.fromImage(qImg)
-        self.label.setPixmap(pixmap)
-
     def closeEvent(self, event):
-        self.thread.terminate()
+        self.thread1.terminate()
+        self.thread2.terminate()
         event.accept()
 
 
