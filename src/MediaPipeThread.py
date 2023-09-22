@@ -31,7 +31,6 @@ class MediaPipeThread(QObject):
 
     def process(self):
         self.started.emit()
-        MouseController.set_cursor_center()
 
         with mp.solutions.holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
             for frame_rgb in self.webcam_source:

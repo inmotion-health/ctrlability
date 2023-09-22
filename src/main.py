@@ -68,10 +68,6 @@ class WebCamTabView(QObject):
         self._cam_index = 0
         self.webCamWidget = QWidget()
 
-        # Create a shortcut for the 'T' key
-        self.shortcut = QShortcut(QKeySequence(Qt.Key_T), main)
-        self.shortcut.activated.connect(self.toggle_tracking_by_shortcut)
-
         self.webCamLayoutView = QHBoxLayout()
 
         # Webcam display area (equivalent to BorderLayout::Center)
@@ -135,10 +131,6 @@ class WebCamTabView(QObject):
         self._cam_index = index
         self.cam_index_changed.emit(self._cam_index)
 
-    def toggle_tracking_by_shortcut(self):
-        current_state = self.tracking_checkbox.isChecked()
-        self.tracking_checkbox.setChecked(not current_state)
-
     def tracking_callback(self, state):
         if state == 0:
             print("Tracking is off.")
@@ -163,27 +155,28 @@ class MediaPipeApp(QMainWindow):
         self.setWindowTitle("CTRLABILITY")
         self.setupMenuBar()
 
-        self.initUI()
-
-    def initUI(self):
         # Create the QTabWidget
-        tab_widget = QTabWidget()
+        self.tab_widget = QTabWidget()
 
         # First tab for Video Processing
         tab1 = QWidget()
         tab1_layout = QVBoxLayout(tab1)
         self.webcam_tab_view1 = WebCamTabView(self)
         tab1_layout.addWidget(self.webcam_tab_view1.webCamWidget)
-        tab_widget.addTab(tab1, "Video Processing 1")
+        self.tab_widget.addTab(tab1, "Video Processing 1")
 
         # Second tab for Video Processing
         tab2 = QWidget()
         tab2_layout = QVBoxLayout(tab2)
         self.webcam_tab_view2 = WebCamTabView(self)
         tab2_layout.addWidget(self.webcam_tab_view2.webCamWidget)
-        tab_widget.addTab(tab2, "Video Processing 2")
+        self.tab_widget.addTab(tab2, "Video Processing 2")
 
-        self.setCentralWidget(tab_widget)
+        self.setCentralWidget(self.tab_widget)
+
+        # Create a shortcut for the 'T' key
+        self.shortcut = QShortcut(QKeySequence(Qt.Key_T), self)
+        self.shortcut.activated.connect(self.toggle_tracking_by_shortcut)
 
         # Use a QTimer to delay the centering by 2000 milliseconds
         QTimer.singleShot(4000, self.center_on_screen)
@@ -204,7 +197,6 @@ class MediaPipeApp(QMainWindow):
 
         # call cam1_changed when cam_index_changed signal is emitted
         self.webcam_tab_view1.cam_index_changed.connect(self.cam1_changed)
-
         # call cam2_changed when cam_index_changed signal is emitted
         self.webcam_tab_view2.cam_index_changed.connect(self.cam2_changed)
 
@@ -233,12 +225,21 @@ class MediaPipeApp(QMainWindow):
     # when a frame is processed, update the webcam frame
     def on_progress(self, qImg):
         sender = self.sender()
+
         if sender == self.worker1:
             pixmap = QPixmap.fromImage(qImg)
             self.webcam_tab_view1.updateWebcamFrame(pixmap)
         elif sender == self.worker2:
             pixmap = QPixmap.fromImage(qImg)
             self.webcam_tab_view2.updateWebcamFrame(pixmap)
+
+    def toggle_tracking_by_shortcut(self):
+        if self.tab_widget.currentIndex() == 0:
+            current_state = self.webcam_tab_view1.tracking_checkbox.isChecked()
+            self.webcam_tab_view1.tracking_checkbox.setChecked(not current_state)
+        elif self.tab_widget.currentIndex() == 1:
+            current_state = self.webcam_tab_view2.tracking_checkbox.isChecked()
+            self.webcam_tab_view2.tracking_checkbox.setChecked(not current_state)
 
     def setupMenuBar(self):
         menubar = QMenuBar(self)
@@ -265,6 +266,7 @@ class MediaPipeApp(QMainWindow):
         self.thread1.terminate()
         self.thread2.terminate()
         event.accept()
+        self.app.quit()
 
 
 if __name__ == "__main__":

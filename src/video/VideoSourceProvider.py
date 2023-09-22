@@ -39,9 +39,7 @@ def _parse_output(lines):
         # Iterate over the video lines
         for line in video_lines:
             match = re.search(r"\[(\d+)\] (.+)", line)
-            if match and "Capture screen" not in match.group(
-                2
-            ):  # Ignore screen capture devices
+            if match and "Capture screen" not in match.group(2):  # Ignore screen capture devices
                 device_id = int(match.group(1))
                 device_name = match.group(2)
                 video_devices[device_id] = device_name
