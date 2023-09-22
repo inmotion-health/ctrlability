@@ -29,9 +29,6 @@ class MediaPipeThread(QObject):
         MouseController.reset_mouse_left_clicks()
         MouseController.unfreeze_mouse_pos()
 
-    def on_variable_changed(self):
-        print("Variable in UIObject changed! Processing in WorkerObject...")
-
     def process(self):
         self.started.emit()
         MouseController.set_cursor_center()
@@ -86,3 +83,7 @@ class MediaPipeThread(QObject):
                 MouseController.right_click()
         else:
             self.reset_everything()
+
+    def handle_cam_index_change(self, camera_id):
+        self.camera_id = camera_id
+        self.webcam_source.change_camera(camera_id)

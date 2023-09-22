@@ -34,6 +34,8 @@ class VideoSource:
         self._camera_id = camera_id
 
         resolution = video.VideoSourceResolutionProvider.find_best_resolution(camera_id)
+        if resolution is None:
+            resolution = (640, 480)
 
         print(f"Using resolution {resolution} for camera {camera_id}.")
 
