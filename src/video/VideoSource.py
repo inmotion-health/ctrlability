@@ -6,6 +6,7 @@ import video.VideoSourceResolutionProvider
 
 class VideoSource:
     def __init__(self, camera_id, width, height):
+        self.reader = None
         self.width = width
         self.height = height
 
@@ -32,11 +33,19 @@ class VideoSource:
 
     def change_camera(self, camera_id):
         self._camera_id = camera_id
+        resolution, fps = video.VideoSourceResolutionProvider.find_best_resolution(camera_id)
 
-        resolution = video.VideoSourceResolutionProvider.find_best_resolution(camera_id)
-        if resolution is None:
-            resolution = (640, 480)
+        if resolution is None:  # Fallback to 720p @ 30 FPS, which is the default for most webcams
+            resolution = ((1280, 720), 30)
 
-        print(f"Using resolution {resolution} for camera {camera_id}.")
+        print(f"Using resolution {resolution} and FPS: {fps} for camera {camera_id}.")
 
-        self.reader = imageio.get_reader(f"<video{camera_id}>", size=(resolution[0], resolution[1]))
+        # let's pass the framerate directly to ffmpeg to avoid issues with higher frame-rates on macOS
+        self.reader = imageio.get_reader(
+            f"<video{camera_id}>",
+            size=(resolution[0], resolution[1]),
+            input_params=[
+                "-framerate",
+                f"{fps}",
+            ],
+        )

@@ -33,7 +33,7 @@ def _run_ffmpeg(camera_id):
 
 
 def _parse_output(output):
-    pattern = re.compile(r"(\d+x\d+)@\[\d+\.\d+\s+\d+\.\d+\]fps")
+    pattern = re.compile(r"(\d+x\d+)@\[\d+\.\d+\s+(\d+\.\d+)\]fps")
     matches = pattern.findall(output)
 
     return matches
@@ -44,12 +44,13 @@ def _parse_into_tuples(matches):
     resolutions = []
 
     for match in matches:
-        resolution = pattern.findall(match)
+        resolution = pattern.findall(match[0])
 
         # Convert the resolution to a tuple of ints
         resolution = tuple(map(int, resolution[0]))
+        fps = round(float(match[1]))
 
-        resolutions.append(resolution)
+        resolutions.append((resolution, fps))
 
     return resolutions
 
@@ -61,9 +62,12 @@ def find_best_resolution(camera_id):
         return None
 
     # find 720p resolutions
-    _720_resolutions = [t for t in resolutions if t[1] == 720]
+    _720_resolutions = [t for t in resolutions if t[0][1] == 720]
 
     if len(_720_resolutions) == 0:
         return resolutions[0]
 
-    return _720_resolutions[0]
+    resolution = _720_resolutions[0][0]
+    fps = _720_resolutions[0][1]
+
+    return (resolution, fps)
