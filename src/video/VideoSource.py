@@ -1,7 +1,7 @@
 import cv2
 import imageio
 
-import video.VideoSourceResolutionProvider
+import VideoSourceResolutionProvider
 
 
 class VideoSource:
@@ -33,7 +33,7 @@ class VideoSource:
 
     def change_camera(self, camera_id):
         self._camera_id = camera_id
-        resolution, fps = video.VideoSourceResolutionProvider.find_best_resolution(camera_id)
+        resolution, fps = VideoSourceResolutionProvider.find_best_resolution(camera_id)
 
         if resolution is None:  # Fallback to 720p @ 30 FPS, which is the default for most webcams
             resolution = ((1280, 720), 30)
