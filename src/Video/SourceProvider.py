@@ -1,5 +1,6 @@
 import re
 import subprocess
+import logging as log
 
 
 def _run_ffmpeg():
@@ -44,7 +45,7 @@ def _parse_output(lines):
                 device_name = match.group(2)
                 video_devices[device_id] = device_name
 
-        print(video_devices)
+        log.debug(f"Found video devices: {video_devices}")
     return video_devices
 
 

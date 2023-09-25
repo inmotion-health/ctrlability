@@ -61,7 +61,7 @@ class SystemTrayApp(QSystemTrayIcon):
 
     def open_virtual_keyboard(self):
         # Code to open the virtual keyboard
-        print("Virtual Keyboard opened!")
+        log.info("Virtual Keyboard opened!")
 
 
 class WebCamTabView(QObject):
@@ -137,11 +137,9 @@ class WebCamTabView(QObject):
 
     def tracking_callback(self, state):
         if state == 0:
-            print("Tracking is off.")
             MouseController.set_tracking_mode(False)
 
         elif state == 2:
-            print("Tracking is on.")
             MouseController.set_tracking_mode(True)
             MouseController.set_cursor_center()
 
@@ -152,7 +150,7 @@ class WebCamTabView(QObject):
     def slider_callback(self, value):
         sender = self.sender()  # Find out which slider sent the signal
         index = self.sliders.index(sender) + 1  # Get the slider number (1-based)
-        print(f"Slider {index} value changed to: {value}")
+        log.debug(f"Slider {index} value changed to: {value}")
 
 
 class MediaPipeApp(QMainWindow):

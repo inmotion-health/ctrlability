@@ -1,5 +1,6 @@
 import cv2
 import imageio
+import logging as log
 
 from Video.SourceResolutionProvider import find_best_resolution
 
@@ -38,7 +39,7 @@ class VideoSource:
         if resolution is None:  # Fallback to 720p @ 30 FPS, which is the default for most webcams
             resolution = ((1280, 720), 30)
 
-        print(f"Using resolution {resolution} and FPS: {fps} for camera {camera_id}.")
+        log.info(f"Using resolution {resolution} and FPS: {fps} for camera {camera_id}.")
 
         # let's pass the framerate directly to ffmpeg to avoid issues with higher frame-rates on macOS
         self.reader = imageio.get_reader(
