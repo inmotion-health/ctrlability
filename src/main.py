@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
     QTabWidget,
 )
 from qt_material import apply_stylesheet, list_themes
-import video.VideoSourceProvider
+import Video.SourceProvider
 import MouseController
 from MediaPipeThread import MediaPipeThread
 
@@ -82,7 +82,7 @@ class WebCamTabView(QObject):
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(main)
-        webcam_dict = video.VideoSourceProvider.get_available_vidsources()
+        webcam_dict = Video.SourceProvider.get_available_vidsources()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
         self.webcam_combo_box.setFixedWidth(250)
