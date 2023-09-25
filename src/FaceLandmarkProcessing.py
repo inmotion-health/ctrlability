@@ -4,11 +4,10 @@ mp_drawing = mp.solutions.drawing_utils
 
 mp_face_mesh_connections = mp.solutions.face_mesh_connections
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
+import logging as log
 
 
 class FaceLandmarkProcessing:
-    mouth_open_state = False
-
     def __init__(self, frame, face_landmarks):
         self.frame = frame
         self.face_landmarks = face_landmarks
@@ -59,7 +58,6 @@ class FaceLandmarkProcessing:
         if distance > 0.1:
             return True
         else:
-            FaceLandmarkProcessing.mouth_open_state = False
             return False
 
     def is_mouth_small(self):

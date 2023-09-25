@@ -5,6 +5,7 @@ from PySide6.QtCore import Signal, QObject, Slot
 from PySide6.QtGui import QImage
 import mediapipe as mp
 import time
+import logging as log
 
 
 class MediaPipeThread(QObject):
@@ -23,11 +24,6 @@ class MediaPipeThread(QObject):
     def change_camera(self, camera_id):
         self.camera_id = camera_id
         self.webcam_source.change_camera(camera_id)
-
-    def reset_everything(self):
-        self.is_keeping_mouth_open = False
-        MouseController.reset_mouse_left_clicks()
-        MouseController.unfreeze_mouse_pos()
 
     def process(self):
         self.started.emit()
@@ -69,19 +65,23 @@ class MediaPipeThread(QObject):
             mouth_open_time = current_time - MouseController.get_last_left_click_ms()
             is_long_open = mouth_open_time > 500
             is_already_clicked = MouseController.get_left_clicks() == 1
+            log.debug(
+                f"Mouth open time: {mouth_open_time}ms, is_long_open: {is_long_open}, is_already_clicked: {is_already_clicked}"
+            )
             if is_long_open and is_already_clicked:
-                MouseController.left_click()
-                MouseController.reset_mouse_left_clicks()
-
+                MouseController.double_click()
+                MouseController.release_left_click()
         else:
-            self.reset_everything()
+            self.is_keeping_mouth_open = False
+            MouseController.unfreeze_mouse_pos()
+            MouseController.release_left_click()
 
         if face.is_mouth_small():
             is_already_right_clicked = MouseController.get_right_click_state() == True
             if not is_already_right_clicked:
                 MouseController.right_click()
         else:
-            self.reset_everything()
+            MouseController.release_right_click()
 
     def handle_cam_index_change(self, camera_id):
         self.camera_id = camera_id

@@ -3,6 +3,8 @@ import pyautogui
 import platform
 import numpy as np
 
+import logging as log
+
 if platform.system() == "Darwin":
     import macmouse
 
@@ -31,6 +33,7 @@ class _state:
 
 def set_tracking_mode(state):
     _state.is_tracking = state
+    log.debug(f"Tracking mode set to {state}")
 
 
 def is_tracking_enabled():
@@ -41,11 +44,19 @@ def is_tracking_enabled():
 
 
 def freeze_mouse_pos():
+    if _state.is_mouse_frozen == True:
+        return
+
     _state.is_mouse_frozen = True
+    log.debug("Mouse position frozen")
 
 
 def unfreeze_mouse_pos():
+    if _state.is_mouse_frozen == False:
+        return
+
     _state.is_mouse_frozen = False
+    log.debug("Mouse position unfrozen")
 
 
 def is_mouse_frozen():
@@ -59,8 +70,9 @@ def get_left_clicks():
     return _state.left_click_count
 
 
-def reset_mouse_left_clicks():
+def release_left_click():
     _state.left_click_count = 0
+    _state.last_left_click_ms = 0
 
 
 def get_last_left_click_ms():
@@ -78,7 +90,7 @@ def get_right_click_state():
     return _state.is_right_mouse_clicked
 
 
-def reset_right_click_state():
+def release_right_click():
     _state.is_right_mouse_clicked = False
 
 
@@ -87,6 +99,7 @@ def reset_right_click_state():
 
 def set_cursor_center():
     pyautogui.moveTo(_state.screen_center[0], _state.screen_center[1])
+    log.debug("Cursor set to center of screen")
 
 
 def move_mouse(vec):
@@ -142,6 +155,8 @@ def move_mouse(vec):
 def left_click():
     pyautogui.click()
     _state.last_left_click_ms = time.time() * 1000
+    _state.left_click_count += 1
+    log.debug("Left click")
 
 
 def double_click():
@@ -151,8 +166,10 @@ def double_click():
         pyautogui.doubleClick()
 
     _state.last_left_click_ms = time.time() * 1000
+    log.debug("Double click")
 
 
 def right_click():
     pyautogui.rightClick()
     _state.is_right_mouse_clicked = True
+    log.debug("Right click")
