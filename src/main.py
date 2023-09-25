@@ -31,6 +31,10 @@ import Video.SourceProvider
 import MouseController
 from MediaPipeThread import MediaPipeThread
 
+import logging as log
+
+log.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s", level=log.DEBUG)
+
 
 class SystemTrayApp(QSystemTrayIcon):
     def __init__(self, icon, parent=None):
