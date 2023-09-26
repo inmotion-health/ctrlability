@@ -31,7 +31,7 @@ import logging as log
 from ctrlability.video.source_provider import get_available_vidsources
 from ctrlability.util.argparser import parse_arguments
 import ctrlability.mousectrl as mousectrl
-from ctrlability.MediaPipeThread import MediaPipeThread
+from ctrlability.mp_thread import MediaPipeThread
 
 
 class SystemTrayApp(QSystemTrayIcon):
