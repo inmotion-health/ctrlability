@@ -4,7 +4,6 @@ mp_drawing = mp.solutions.drawing_utils
 
 mp_face_mesh_connections = mp.solutions.face_mesh_connections
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
-import logging as log
 
 
 class FaceLandmarkProcessing:

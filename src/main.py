@@ -1,5 +1,4 @@
 import sys
-import mediapipe as mp
 
 from PySide6.QtGui import (
     QImage,
