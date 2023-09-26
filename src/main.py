@@ -27,13 +27,12 @@ from PySide6.QtWidgets import (
     QTabWidget,
 )
 from qt_material import apply_stylesheet, list_themes
+import logging as log
+
 import Video.SourceProvider
 import MouseController
 from MediaPipeThread import MediaPipeThread
-
-import logging as log
-
-log.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s", level=log.DEBUG)
+from Util.ArgumentParser import parse_arguments
 
 
 class SystemTrayApp(QSystemTrayIcon):
@@ -280,6 +279,8 @@ if __name__ == "__main__":
 
         app_info = NSBundle.mainBundle().infoDictionary()
         app_info["CFBundleName"] = "CTRLABILITY"
+
+    parse_arguments()
 
     app = QApplication(sys.argv)
     app.setApplicationName("CTRLABILITY")  # Set the application name
