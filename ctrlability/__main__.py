@@ -28,10 +28,10 @@ from PySide6.QtWidgets import (
 from qt_material import apply_stylesheet, list_themes
 import logging as log
 
-import Video.SourceProvider
-import MouseController
-from MediaPipeThread import MediaPipeThread
-from Util.ArgumentParser import parse_arguments
+from ctrlability.video.source_provider import get_available_vidsources
+from ctrlability.util.argparser import parse_arguments
+import ctrlability.mousectrl as mousectrl
+from ctrlability.MediaPipeThread import MediaPipeThread
 
 
 class SystemTrayApp(QSystemTrayIcon):
@@ -84,7 +84,7 @@ class WebCamTabView(QObject):
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(main)
-        webcam_dict = Video.SourceProvider.get_available_vidsources()
+        webcam_dict = get_available_vidsources()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
         self.webcam_combo_box.setFixedWidth(250)
@@ -135,11 +135,11 @@ class WebCamTabView(QObject):
 
     def tracking_callback(self, state):
         if state == 0:
-            MouseController.set_tracking_mode(False)
+            mousectrl.set_tracking_mode(False)
 
         elif state == 2:
-            MouseController.set_tracking_mode(True)
-            MouseController.set_cursor_center()
+            mousectrl.set_tracking_mode(True)
+            mousectrl.set_cursor_center()
 
     def toggle_tracking(self):
         current_state = self.tracking_checkbox.isChecked()

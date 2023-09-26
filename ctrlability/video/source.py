@@ -2,7 +2,7 @@ import cv2
 import imageio
 import logging as log
 
-from Video.SourceResolutionProvider import find_best_resolution
+from ctrlability.video.source_resolution_provider import find_best_resolution
 
 
 class VideoSource:
