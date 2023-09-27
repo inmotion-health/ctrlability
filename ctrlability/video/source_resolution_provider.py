@@ -1,16 +1,19 @@
 import subprocess
 import re
+from typing import List, Tuple, Optional
 
 from ctrlability.video.platforms import platform
 
+PREFERRED_HEIGHT = 720
 
-def get_available_resolutions(camera_id):
+
+def get_available_resolutions(camera_id: int) -> List[Tuple[Tuple[int, int], int]]:
     output = _run_ffmpeg(camera_id)
     resolutions = _parse_output(output)
     return _parse_into_tuples(resolutions)
 
 
-def _run_ffmpeg(camera_id):
+def _run_ffmpeg(camera_id: int) -> str:
     try:
         output = subprocess.check_output(
             [
@@ -34,42 +37,32 @@ def _run_ffmpeg(camera_id):
     return output
 
 
-def _parse_output(output):
+def _parse_output(output: str) -> List[Tuple[str, str]]:
     pattern = re.compile(r"(\d+x\d+)@\[\d+\.\d+\s+(\d+\.\d+)\]fps")
-    matches = pattern.findall(output)
-
-    return matches
+    return pattern.findall(output)
 
 
-def _parse_into_tuples(matches):
-    pattern = re.compile(r"(\d+)x(\d+)")
+def _parse_into_tuples(matches: List[Tuple[str, str]]) -> List[Tuple[Tuple[int, int], int]]:
     resolutions = []
 
-    for match in matches:
-        resolution = pattern.findall(match[0])
-
-        # Convert the resolution to a tuple of ints
-        resolution = tuple(map(int, resolution[0]))
-        fps = round(float(match[1]))
-
-        resolutions.append((resolution, fps))
+    for width_str, fps_str in matches:
+        width, height = map(int, width_str.split("x"))
+        fps = round(float(fps_str))
+        resolutions.append(((width, height), fps))
 
     return resolutions
 
 
-def find_best_resolution(camera_id):
+def find_best_resolution(camera_id: int) -> Optional[Tuple[Tuple[int, int], int]]:
     resolutions = get_available_resolutions(camera_id)
 
-    if len(resolutions) == 0:
-        return None
+    if not resolutions:
+        return None, None
 
-    # find 720p resolutions
-    _720_resolutions = [t for t in resolutions if t[0][1] == 720]
+    # Find 720p resolutions
+    _720_resolutions = [res for res in resolutions if res[0][1] == PREFERRED_HEIGHT]
 
-    if len(_720_resolutions) == 0:
-        return resolutions[0]
+    if not _720_resolutions:
+        return resolutions[0][0], resolutions[0][1]
 
-    resolution = _720_resolutions[0][0]
-    fps = _720_resolutions[0][1]
-
-    return (resolution, fps)
+    return _720_resolutions[0][0], _720_resolutions[0][1]
