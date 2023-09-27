@@ -5,6 +5,9 @@ import numpy as np
 from abc import ABC, abstractmethod
 import logging as log
 
+if platform.system() == "Darwin":
+    import macmouse
+
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0.0
 pyautogui.DARWIN_CATCH_UP_TIME = 0.00
@@ -23,15 +26,11 @@ class MouseActions(ABC):
 
 class MacMouseActions(MouseActions):
     def double_click(self):
-        import macmouse
-
         macmouse.double_click()
 
 
 class DefaultMouseActions(MouseActions):
     def double_click(self):
-        import pyautogui
-
         pyautogui.doubleClick()
 
 
