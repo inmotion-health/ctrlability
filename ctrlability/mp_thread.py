@@ -13,13 +13,16 @@ class MediaPipeThread(QObject):
     finished = Signal()
     signalFrame = Signal(QImage)
 
-    def __init__(self, camera_id=0):
+    def __init__(self, camera_id=0, name="mp_thread"):
         super().__init__()
         self.camera_id = camera_id
+        self.name = name
         self.webcam_source = VideoSource(camera_id, 1280, 720)
 
         # local state variables
         self.is_keeping_mouth_open = False
+
+        self.process_times = []
 
     def change_camera(self, camera_id):
         self.camera_id = camera_id
@@ -30,6 +33,8 @@ class MediaPipeThread(QObject):
 
         with mp.solutions.holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
             for frame_rgb in self.webcam_source:
+                current_time = time.time() * 1000  # convert to ms
+
                 results = holistic.process(frame_rgb)
 
                 if results.face_landmarks is not None:
@@ -42,6 +47,9 @@ class MediaPipeThread(QObject):
                 height, width, channel = frame_rgb.shape
                 bytesPerLine = 3 * width
                 qImg = QImage(frame_rgb.data, width, height, bytesPerLine, QImage.Format_RGB888)
+
+                time_taken = time.time() * 1000 - current_time
+                self.process_times.append(time_taken)
 
                 self.signalFrame.emit(qImg)
         self.finished.emit()
@@ -86,3 +94,6 @@ class MediaPipeThread(QObject):
     def handle_cam_index_change(self, camera_id):
         self.camera_id = camera_id
         self.webcam_source.change_camera(camera_id)
+
+    def terminate(self):
+        log.debug(f"Average processing time on {self.name}: {sum(self.process_times) / len(self.process_times)}ms")

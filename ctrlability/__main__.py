@@ -187,12 +187,12 @@ class MediaPipeApp(QMainWindow):
 
         # Setup Threads for First Video Processing
         self.thread1 = QThread()
-        self.worker1 = MediaPipeThread(0)
+        self.worker1 = MediaPipeThread(0, name="mp_thread1")
         self.worker1.moveToThread(self.thread1)
         self.setup_connections(self.thread1, self.worker1)
 
         self.thread2 = QThread()
-        self.worker2 = MediaPipeThread(0)
+        self.worker2 = MediaPipeThread(0, name="mp_thread2")
         self.worker2.moveToThread(self.thread2)
         self.setup_connections(self.thread2, self.worker2)
 
@@ -265,8 +265,12 @@ class MediaPipeApp(QMainWindow):
         )
 
     def closeEvent(self, event):
+        self.worker1.terminate()
+        self.worker2.terminate()
+
         self.thread1.terminate()
         self.thread2.terminate()
+
         event.accept()
         self.app.quit()
 
