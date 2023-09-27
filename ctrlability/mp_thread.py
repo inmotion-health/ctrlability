@@ -22,7 +22,8 @@ class MediaPipeThread(QObject):
         # local state variables
         self.is_keeping_mouth_open = False
 
-        self.process_times = []
+        self.process_times_running_sum = 0
+        self.process_times_count = 0
 
     def change_camera(self, camera_id):
         self.camera_id = camera_id
@@ -49,7 +50,8 @@ class MediaPipeThread(QObject):
                 qImg = QImage(frame_rgb.data, width, height, bytesPerLine, QImage.Format_RGB888)
 
                 time_taken = time.time() * 1000 - current_time
-                self.process_times.append(time_taken)
+                self.process_times_running_sum += time_taken
+                self.process_times_count += 1
 
                 self.signalFrame.emit(qImg)
         self.finished.emit()
@@ -96,4 +98,6 @@ class MediaPipeThread(QObject):
         self.webcam_source.change_camera(camera_id)
 
     def terminate(self):
-        log.debug(f"Average processing time on {self.name}: {sum(self.process_times) / len(self.process_times)}ms")
+        log.debug(
+            f"Average processing time on {self.name}: {self.process_times_running_sum / self.process_times_count}ms"
+        )
