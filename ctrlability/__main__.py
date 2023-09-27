@@ -30,7 +30,7 @@ import logging as log
 
 from ctrlability.video.source_provider import get_available_vidsources
 from ctrlability.util.argparser import parse_arguments
-import ctrlability.mousectrl as mousectrl
+from ctrlability.mousectrl import MouseCtrl
 from ctrlability.mp_thread import MediaPipeThread
 
 
@@ -135,11 +135,11 @@ class WebCamTabView(QObject):
 
     def tracking_callback(self, state):
         if state == 0:
-            mousectrl.set_tracking_mode(False)
+            MouseCtrl.set_tracking_mode(False)
 
         elif state == 2:
-            mousectrl.set_tracking_mode(True)
-            mousectrl.set_cursor_center()
+            MouseCtrl.set_tracking_mode(True)
+            MouseCtrl.set_cursor_center()
 
     def toggle_tracking(self):
         current_state = self.tracking_checkbox.isChecked()
