@@ -1,8 +1,8 @@
-setup: requirements.txt
+install: requirements.txt
 	pip install -r requirements.txt
 
 run:
 	python -m ctrlability
 
-debug:
+dev:
 	python -m ctrlability -log DEBUG

@@ -8,24 +8,18 @@ The project uses the combination of microphone and webcam to translate gestures,
 
 To read more, see the [project website](https://prototypefund.de/project/ctrlability-kontroller-fuer-menschen-mit-motorischen-einschraenkungen/) at the Prototype Fund.
 
-## Building
+## Usage
 
-To build the project you need to have a current C++ compiler and CMake installed. All other dependencies are downloaded and built automatically.
-
-To build the project, run the following commands:
+To use this project, you first need to install all our dependencies. You can do this by running the following make command:
 
 ```bash
-pip install -r requirements.txt
-conan profile detect
-sh build.sh
+pip install -r requirements.txt # or make install
 ```
 
-## Running
-
-To run the project, run the following command:
+Afterwards, you can start the application by running the following command:
 
 ```bash
-python /src/main.py
+python -m ctrlability # or make run
 ```
 
 ## License
