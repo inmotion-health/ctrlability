@@ -5,9 +5,6 @@ import numpy as np
 from abc import ABC, abstractmethod
 import logging as log
 
-if platform.system() == "Darwin":
-    import macmouse
-
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0.0
 pyautogui.DARWIN_CATCH_UP_TIME = 0.00
