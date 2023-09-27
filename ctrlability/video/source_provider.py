@@ -1,12 +1,13 @@
 import re
 import subprocess
 import logging as log
+from ctrlability.video.platforms import platform
 
 
 def _run_ffmpeg():
     try:
         output = subprocess.check_output(
-            ["ffmpeg", "-f", "avfoundation", "-list_devices", "true", "-i", ""],
+            ["ffmpeg", "-f", platform.get_video_format(), "-list_devices", "true", "-i", ""],
             stderr=subprocess.STDOUT,
         ).decode("utf-8")
     except subprocess.CalledProcessError as e:

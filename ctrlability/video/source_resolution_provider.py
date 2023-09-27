@@ -1,6 +1,8 @@
 import subprocess
 import re
 
+from ctrlability.video.platforms import platform
+
 
 def get_available_resolutions(camera_id):
     output = _run_ffmpeg(camera_id)
@@ -14,7 +16,7 @@ def _run_ffmpeg(camera_id):
             [
                 "ffmpeg",
                 "-f",
-                "avfoundation",
+                platform.get_video_format(),
                 "-video_size",
                 "123x456",
                 "-i",
