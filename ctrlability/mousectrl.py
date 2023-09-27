@@ -55,7 +55,7 @@ class _MouseCtrl:
 
     # MOUSE STATE
     ## TRACKING STATE
-    def set_tracking_mode(self, state):
+    def set_tracking_mode(self, state: bool):
         self.is_tracking_enabled = state
         log.debug(f"Tracking mode set to {state}")
 
