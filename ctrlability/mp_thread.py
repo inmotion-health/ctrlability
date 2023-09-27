@@ -1,4 +1,4 @@
-from ctrlability.FaceLandmarkProcessing import FaceLandmarkProcessing
+from ctrlability.landmark_processing.face import FaceLandmarkProcessing
 from ctrlability.video.source import VideoSource
 import ctrlability.mousectrl as mousectrl
 from PySide6.QtCore import Signal, QObject, Slot
