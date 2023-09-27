@@ -1,6 +1,6 @@
 # CTRLABILITY
 
-⚠️ **This project is still in development and not ready for use.**
+⚠️ **This project is still in development and not ready for use.** ⚠️
 
 Many traditional input methods for computers are inaccessible. People with motor disabilities can experience major hurdles when using mice, keyboards or game controllers. This often means that those affected are restricted in their digital participation - they cannot interact with or communicate via digital media like others.
 
@@ -21,6 +21,12 @@ Afterwards, you can start the application by running the following command:
 ```bash
 python -m ctrlability # or make run
 ```
+
+## Documentation
+
+This project is still in rapid and early development. As such, the documentation is not yet complete or may not be fully up to date. However, we are working on it. You can find the documentation in the [`docs`](docs) folder. The following documentation is currently available:
+
+1. [Command Line Arguments](docs/arguments.md)
 
 ## License
 
