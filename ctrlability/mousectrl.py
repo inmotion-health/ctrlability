@@ -2,7 +2,7 @@ import time
 import pyautogui
 import platform
 import numpy as np
-
+from abc import ABC, abstractmethod
 import logging as log
 
 if platform.system() == "Darwin":
@@ -18,8 +18,30 @@ VELOCITY_COMPENSATION_X = 0.5
 VELOCITY_COMPENSATION_Y = 5
 
 
+class MouseActions(ABC):
+    @abstractmethod
+    def double_click(self):
+        pass
+
+
+class MacMouseActions(MouseActions):
+    def double_click(self):
+        import macmouse
+
+        macmouse.double_click()
+
+
+class DefaultMouseActions(MouseActions):
+    def double_click(self):
+        import pyautogui
+
+        pyautogui.doubleClick()
+
+
 class _MouseCtrl:
-    def __init__(self):
+    def __init__(self, mouse_actions: MouseActions):
+        self.mouse_actions = mouse_actions
+
         self.is_tracking_enabled = False
 
         self.screen_width, self.screen_height = pyautogui.size()
@@ -39,14 +61,14 @@ class _MouseCtrl:
 
     ## FREEZE STATE
     def freeze_mouse_pos(self):
-        if self.is_mouse_frozen == True:
+        if self.is_mouse_frozen:
             return
 
         self.is_mouse_frozen = True
         log.debug("Mouse position frozen")
 
     def unfreeze_mouse_pos(self):
-        if self.is_mouse_frozen == False:
+        if not self.is_mouse_frozen:
             return
 
         self.is_mouse_frozen = False
@@ -87,10 +109,7 @@ class _MouseCtrl:
         log.debug("Left click")
 
     def double_click(self):
-        if platform.system() == "Darwin":
-            macmouse.double_click()
-        else:
-            pyautogui.doubleClick()
+        self.mouse_actions.double_click()
 
         self.last_left_click_ms = time.time() * 1000
         log.debug("Double click")
@@ -102,4 +121,9 @@ class _MouseCtrl:
 
 
 # Singleton instance
-MouseCtrl = _MouseCtrl()
+if platform.system() == "Darwin":
+    mouse_actions = MacMouseActions()
+else:
+    mouse_actions = DefaultMouseActions()
+
+MouseCtrl = _MouseCtrl(mouse_actions)
