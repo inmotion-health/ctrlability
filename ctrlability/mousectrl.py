@@ -12,6 +12,11 @@ pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0.0
 pyautogui.DARWIN_CATCH_UP_TIME = 0.00
 
+X_THRESHOLD = 0.05
+Y_THRESHOLD = 0.03
+VELOCITY_COMPENSATION_X = 0.5
+VELOCITY_COMPENSATION_Y = 5
+
 
 class _MouseCtrl:
     def __init__(self):
@@ -59,51 +64,20 @@ class _MouseCtrl:
         pyautogui.moveTo(self.screen_center[0], self.screen_center[1])
         log.debug("Cursor set to center of screen")
 
-    def move_mouse(self, vec):
-        if vec is None:
+    def move_mouse(self, vec: np.array) -> None:
+        if vec is None or (np.abs(vec) < [X_THRESHOLD, Y_THRESHOLD]).all():
             return
 
-        # threshold for the distance to the center of the screen after which the mouse will move
-        X_THRESHOLD = 0.05
-        Y_THRESHOLD = 0.03
+        log_vec = np.power(vec, 3) * self.screen_height
+        rel_move = log_vec * [VELOCITY_COMPENSATION_X, -VELOCITY_COMPENSATION_Y]  # y inverted
 
-        mouse_can_move = abs(vec[0]) > X_THRESHOLD or abs(vec[1]) > Y_THRESHOLD
+        x, y = pyautogui.position()
+        new_pos = np.array([x, y]) + rel_move
 
-        if mouse_can_move:
-            # scale the vector to a cubic function for smoother movement
-            log_vec = np.power(np.array(vec), 3)
+        # Clamp to screen dimensions
+        new_pos = np.clip(new_pos, [0, 0], [self.screen_width - 1, self.screen_height - 1])
 
-            log_vec *= self.screen_height
-
-            # we need to compensate for a higher velocity in the y direction
-            VELOCITY_COMPENSATION_X = 0.5
-            VELOCITY_COMPENSATION_Y = 5
-
-            v_x = log_vec[0] * VELOCITY_COMPENSATION_X
-            v_y = -1 * log_vec[1] * VELOCITY_COMPENSATION_Y  # y is inverted
-
-            x, y = pyautogui.position()
-            # Calculate the new position after the relative move
-            new_x = x + v_x
-            new_y = y + v_y
-
-            # check if new position is on screen
-            if 0 <= new_x < self.screen_width and 0 <= new_y < self.screen_height:
-                pyautogui.moveRel(v_x, v_y)
-            else:
-                # Adjust new_x and new_y if they would be off screen
-                if new_x < 0:
-                    new_x = 0
-                elif new_x >= self.screen_width:
-                    new_x = self.screen_width - 1
-
-                if new_y < 0:
-                    new_y = 0
-                elif new_y >= self.screen_height:
-                    new_y = self.screen_height - 1
-
-                # Move to the adjusted position with a smooth transition
-                pyautogui.moveTo(new_x, new_y)
+        pyautogui.moveTo(*new_pos)
 
     # MOUSE CLICKS
     def left_click(self):
