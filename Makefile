@@ -5,4 +5,4 @@ run:
 	python -m ctrlability
 
 dev:
-	python -m ctrlability -log DEBUG
+	python -m ctrlability --log DEBUG
