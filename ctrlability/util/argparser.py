@@ -4,7 +4,8 @@ import logging as log
 # Create the argument parser
 parser = argparse.ArgumentParser(description="CTRLABILITY - Controller for people with motor disabilities")
 parser.add_argument(
-    "-log",
+    "-l",
+    "--log",
     dest="log_level",
     choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     default="INFO",
