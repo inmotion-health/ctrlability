@@ -65,7 +65,7 @@ class MediaPipeThread(QObject):
             # accidental mouse movement
             MouseCtrl.freeze_mouse_pos()
 
-            first_time_open = self.is_keeping_mouth_open == False and MouseCtrl.get_left_clicks() == 0
+            first_time_open = self.is_keeping_mouth_open == False and MouseCtrl.left_click_count == 0
             if first_time_open:
                 MouseCtrl.left_click()
                 self.is_keeping_mouth_open = True
