@@ -113,7 +113,7 @@ class MediaPipeThread(QObject):
 
     def terminate(self):
         log.debug(
-            f"Average processing time on {self.name}: {self.process_times_running_sum / self.process_times_count}ms"
+            f"Average processing time on {self.name}: {self.process_times_running_sum / self.process_times_count if self.process_times_count else 0}ms"
         )
     
     def pause(self):
