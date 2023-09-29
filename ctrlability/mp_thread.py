@@ -24,6 +24,8 @@ class MediaPipeThread(QObject):
 
         self.process_times_running_sum = 0
         self.process_times_count = 0
+        
+        self.tracking_state = False
 
     def change_camera(self, camera_id):
         self.camera_id = camera_id
@@ -42,7 +44,7 @@ class MediaPipeThread(QObject):
                     face = FaceLandmarkProcessing(frame_rgb, results.face_landmarks)
                     face.draw_landmarks()  # TODO: refactor drawing out of landmark processing
 
-                    if MouseCtrl.is_tracking_enabled:
+                    if  self.tracking_state:
                         self.handle_mouse_events(face)
 
                 height, width, channel = frame_rgb.shape
@@ -96,6 +98,13 @@ class MediaPipeThread(QObject):
     def handle_cam_index_change(self, camera_id):
         self.camera_id = camera_id
         self.webcam_source.change_camera(camera_id)
+        
+    def handle_tracking_state_change(self, is_tracking_enabled):
+        self.tracking_state = is_tracking_enabled
+        #ToDO change implemetation of MouseCtrl.set_tracking_mode(True) will be never called
+        if is_tracking_enabled:            
+            MouseCtrl.set_cursor_center()
+
 
     def terminate(self):
         log.debug(

@@ -64,6 +64,7 @@ class SystemTrayApp(QSystemTrayIcon):
 
 class WebCamTabView(QObject):
     cam_index_changed = Signal(int)
+    tracking_state_changed = Signal(bool)
 
     def __init__(self, main):
         super().__init__()
@@ -81,6 +82,12 @@ class WebCamTabView(QObject):
 
         # Create a QVBoxLayout for the buttons, labels, and sliders
         grouped_layout = QVBoxLayout()
+        
+        # Create the checkbox
+        self.tracking_checkbox = QCheckBox("Tracking", main)
+        # Connect the checkbox's state change signal to the callback
+        self.tracking_checkbox.stateChanged.connect(self.tracking_callback)
+        grouped_layout.addWidget(self.tracking_checkbox)
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(main)
@@ -92,13 +99,7 @@ class WebCamTabView(QObject):
 
         # Connect the activated signal to our custom slot
         self.webcam_combo_box.currentIndexChanged.connect(self.on_select_camsource)
-
-        # Create the checkbox
-        self.tracking_checkbox = QCheckBox("Tracking", main)
-        # Connect the checkbox's state change signal to the callback
-        self.tracking_checkbox.stateChanged.connect(self.tracking_callback)
-        grouped_layout.addWidget(self.tracking_checkbox)
-
+        
         # Adding buttons to the grouped layout
         self.buttons = []
         for i in range(4):
@@ -133,15 +134,12 @@ class WebCamTabView(QObject):
         self._cam_index = index
         self.cam_index_changed.emit(self._cam_index)
 
+    @Slot(bool)
     def tracking_callback(self, state):
-        if state == 0:
-            MouseCtrl.set_tracking_mode(False)
-
-        elif state == 2:
-            MouseCtrl.set_tracking_mode(True)
-            MouseCtrl.set_cursor_center()
-
+        self.tracking_state_changed.emit(state)
+        
     def toggle_tracking(self):
+        #TODO: change implementation, that a mouse operation like (move cursor, left click, right click) can only be mapped from one view (configuration)
         current_state = self.tracking_checkbox.isChecked()
         self.tracking_checkbox.setChecked(not current_state)
 
@@ -203,6 +201,11 @@ class MediaPipeApp(QMainWindow):
         self.webcam_tab_view1.cam_index_changed.connect(self.cam1_changed)
         # call cam2_changed when cam_index_changed signal is emitted
         self.webcam_tab_view2.cam_index_changed.connect(self.cam2_changed)
+        
+        # call tracking_state1_changed when tracking_state_changed signal is emitted
+        self.webcam_tab_view1.tracking_state_changed.connect(self.tracking_state1_changed)
+        # call tracking_state2_changed when tracking_state_changed signal is emitted
+        self.webcam_tab_view2.tracking_state_changed.connect(self.tracking_state2_changed)
 
     @Slot(int)
     def cam1_changed(self, index):
@@ -211,7 +214,15 @@ class MediaPipeApp(QMainWindow):
     @Slot(int)
     def cam2_changed(self, index):
         self.worker2.handle_cam_index_change(index)
-
+        
+    @Slot(bool)
+    def tracking_state1_changed(self, state):
+        self.worker1.handle_tracking_state_change(state)
+    
+    @Slot(bool)
+    def tracking_state2_changed(self, state):
+        self.worker2.handle_tracking_state_change(state)
+    
     # setup video processing threads
     def setup_connections(self, thread, worker):
         worker.finished.connect(self.on_finished)
@@ -236,7 +247,7 @@ class MediaPipeApp(QMainWindow):
         elif sender == self.worker2:
             pixmap = QPixmap.fromImage(qImg)
             self.webcam_tab_view2.updateWebcamFrame(pixmap)
-
+            
     def toggle_tracking_by_shortcut(self):
         if self.tab_widget.currentIndex() == 0:
             self.webcam_tab_view1.toggle_tracking()
