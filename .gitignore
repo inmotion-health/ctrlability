@@ -35,3 +35,7 @@ venv.bak/
 CMakeCache.txt
 CMakeFiles/
 CMakeUserPresets.json
+
+# IDEs and editors
+/.idea
+/.vscode
