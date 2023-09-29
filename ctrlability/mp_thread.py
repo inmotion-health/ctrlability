@@ -25,6 +25,7 @@ class MediaPipeThread(QObject):
         self.process_times_running_sum = 0
         self.process_times_count = 0
         
+        self._continue_processing = True
         self.tracking_state = False
 
     def change_camera(self, camera_id):
@@ -33,29 +34,31 @@ class MediaPipeThread(QObject):
 
     def process(self):
         self.started.emit()
-
+        
         with mp.solutions.holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
             for frame_rgb in self.webcam_source:
-                current_time = time.time() * 1000  # convert to ms
+                
+                if self._continue_processing:                        
+                    current_time = time.time() * 1000  # convert to ms
 
-                results = holistic.process(frame_rgb)
+                    results = holistic.process(frame_rgb)
 
-                if results.face_landmarks is not None:
-                    face = FaceLandmarkProcessing(frame_rgb, results.face_landmarks)
-                    face.draw_landmarks()  # TODO: refactor drawing out of landmark processing
+                    if results.face_landmarks is not None:
+                        face = FaceLandmarkProcessing(frame_rgb, results.face_landmarks)
+                        face.draw_landmarks()  # TODO: refactor drawing out of landmark processing
 
-                    if  self.tracking_state:
-                        self.handle_mouse_events(face)
+                        if  self.tracking_state:
+                            self.handle_mouse_events(face)
 
-                height, width, channel = frame_rgb.shape
-                bytesPerLine = 3 * width
-                qImg = QImage(frame_rgb.data, width, height, bytesPerLine, QImage.Format_RGB888)
+                    height, width, channel = frame_rgb.shape
+                    bytesPerLine = 3 * width
+                    qImg = QImage(frame_rgb.data, width, height, bytesPerLine, QImage.Format_RGB888)
 
-                time_taken = time.time() * 1000 - current_time
-                self.process_times_running_sum += time_taken
-                self.process_times_count += 1
+                    time_taken = time.time() * 1000 - current_time
+                    self.process_times_running_sum += time_taken
+                    self.process_times_count += 1
 
-                self.signalFrame.emit(qImg)
+                    self.signalFrame.emit(qImg)
         self.finished.emit()
 
     def handle_mouse_events(self, face):
@@ -104,9 +107,17 @@ class MediaPipeThread(QObject):
         #ToDO change implemetation of MouseCtrl.set_tracking_mode(True) will be never called
         if is_tracking_enabled:            
             MouseCtrl.set_cursor_center()
-
+            
+    # def handle_process_state_change(self, is_process_enabled):
+    #     self.process_state = is_process_enabled
 
     def terminate(self):
         log.debug(
             f"Average processing time on {self.name}: {self.process_times_running_sum / self.process_times_count}ms"
         )
+    
+    def pause(self):
+        self._continue_processing = False
+    
+    def resume(self):
+        self._continue_processing = True

@@ -65,6 +65,7 @@ class SystemTrayApp(QSystemTrayIcon):
 class WebCamTabView(QObject):
     cam_index_changed = Signal(int)
     tracking_state_changed = Signal(bool)
+    process_state_changed = Signal(bool)    
 
     def __init__(self, main):
         super().__init__()
@@ -82,6 +83,12 @@ class WebCamTabView(QObject):
 
         # Create a QVBoxLayout for the buttons, labels, and sliders
         grouped_layout = QVBoxLayout()
+        
+         # Create the checkbox
+        self.process_checkbox = QCheckBox("Process", main)
+        # Connect the checkbox's state change signal to the callback
+        self.process_checkbox.stateChanged.connect(self.process_callback)
+        grouped_layout.addWidget(self.process_checkbox)
         
         # Create the checkbox
         self.tracking_checkbox = QCheckBox("Tracking", main)
@@ -133,10 +140,14 @@ class WebCamTabView(QObject):
     def on_select_camsource(self, index):
         self._cam_index = index
         self.cam_index_changed.emit(self._cam_index)
+    
+    @Slot(bool)
+    def process_callback(self, state):
+        self.process_state_changed.emit(state)
 
     @Slot(bool)
     def tracking_callback(self, state):
-        self.tracking_state_changed.emit(state)
+        self.tracking_state_changed.emit(state)   
         
     def toggle_tracking(self):
         #TODO: change implementation, that a mouse operation like (move cursor, left click, right click) can only be mapped from one view (configuration)
@@ -166,14 +177,14 @@ class MediaPipeApp(QMainWindow):
         self.webcam_tab_view1 = WebCamTabView(self)
         tab1_layout.addWidget(self.webcam_tab_view1.webCamWidget)
         self.tab_widget.addTab(tab1, "Video Processing 1")
-
+        
         # Second tab for Video Processing
         tab2 = QWidget()
         tab2_layout = QVBoxLayout(tab2)
         self.webcam_tab_view2 = WebCamTabView(self)
         tab2_layout.addWidget(self.webcam_tab_view2.webCamWidget)
         self.tab_widget.addTab(tab2, "Video Processing 2")
-
+        
         self.setCentralWidget(self.tab_widget)
 
         # Create a shortcut for the 'T' key
@@ -206,6 +217,16 @@ class MediaPipeApp(QMainWindow):
         self.webcam_tab_view1.tracking_state_changed.connect(self.tracking_state1_changed)
         # call tracking_state2_changed when tracking_state_changed signal is emitted
         self.webcam_tab_view2.tracking_state_changed.connect(self.tracking_state2_changed)
+        
+        # call process_state1_changed when process_state_changed signal is emitted
+        self.webcam_tab_view1.process_state_changed.connect(self.process_state1_changed)
+        # call process_state2_changed when process_state_changed signal is emitted
+        self.webcam_tab_view2.process_state_changed.connect(self.process_state2_changed)
+        
+        self.webcam_tab_view1.process_checkbox.setChecked(True)
+        self.worker1.resume()
+        self.webcam_tab_view2.process_checkbox.setChecked(False)
+        self.worker2.pause()
 
     @Slot(int)
     def cam1_changed(self, index):
@@ -222,6 +243,20 @@ class MediaPipeApp(QMainWindow):
     @Slot(bool)
     def tracking_state2_changed(self, state):
         self.worker2.handle_tracking_state_change(state)
+        
+    @Slot(bool)
+    def process_state1_changed(self, state):
+        if state:
+            self.worker1.resume()
+        else:
+            self.worker1.pause()
+    
+    @Slot(bool)
+    def process_state2_changed(self, state):
+        if state:
+            self.worker2.resume()
+        else:
+            self.worker2.pause()
     
     # setup video processing threads
     def setup_connections(self, thread, worker):
@@ -240,7 +275,7 @@ class MediaPipeApp(QMainWindow):
     # when a frame is processed, update the webcam frame
     def on_progress(self, qImg):
         sender = self.sender()
-
+               
         if sender == self.worker1:
             pixmap = QPixmap.fromImage(qImg)
             self.webcam_tab_view1.updateWebcamFrame(pixmap)
