@@ -18,7 +18,6 @@ class MediaPipeThread(QObject):
         self.camera_id = camera_id
         self.name = name
         self.webcam_source = VideoSource(camera_id, 1280, 720)
-
         # local state variables
         self.is_keeping_mouth_open = False
 
@@ -108,8 +107,10 @@ class MediaPipeThread(QObject):
         if is_tracking_enabled:            
             MouseCtrl.set_cursor_center()
             
-    # def handle_process_state_change(self, is_process_enabled):
-    #     self.process_state = is_process_enabled
+    def handle_cam_resolution_index_change(self, resolution_index):
+        print("resolution_index", resolution_index)
+        self.webcam_source.change_resolution(resolution_index)
+        print("after resolution_index", resolution_index)
 
     def terminate(self):
         log.debug(

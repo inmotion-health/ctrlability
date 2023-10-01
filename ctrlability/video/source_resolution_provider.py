@@ -4,7 +4,7 @@ from typing import List, Tuple, Optional
 
 from ctrlability.video.platforms import platform
 
-PREFERRED_HEIGHT = 720
+PREFERRED_HEIGHT = 480
 
 
 def get_available_resolutions(camera_id: int) -> List[Tuple[Tuple[int, int], int]]:
@@ -51,6 +51,11 @@ def _parse_into_tuples(matches: List[Tuple[str, str]]) -> List[Tuple[Tuple[int, 
         resolutions.append(((width, height), fps))
 
     return resolutions
+
+
+def set_preferred_height(height: int):
+    global PREFERRED_HEIGHT
+    PREFERRED_HEIGHT = height
 
 
 def find_best_resolution(camera_id: int) -> Optional[Tuple[Tuple[int, int], int]]:

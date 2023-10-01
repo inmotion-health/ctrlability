@@ -29,6 +29,7 @@ from qt_material import apply_stylesheet, list_themes
 import logging as log
 
 from ctrlability.video.source_provider import get_available_vidsources
+from ctrlability.video.source_resolution_provider import get_available_resolutions, set_preferred_height
 from ctrlability.util.argparser import parse_arguments
 from ctrlability.mousectrl import MouseCtrl
 from ctrlability.mp_thread import MediaPipeThread
@@ -65,7 +66,8 @@ class SystemTrayApp(QSystemTrayIcon):
 class WebCamTabView(QObject):
     cam_index_changed = Signal(int)
     tracking_state_changed = Signal(bool)
-    process_state_changed = Signal(bool)    
+    process_state_changed = Signal(bool)
+    cam_resolution_index_changed = Signal(int)
 
     def __init__(self, main):
         super().__init__()
@@ -83,13 +85,13 @@ class WebCamTabView(QObject):
 
         # Create a QVBoxLayout for the buttons, labels, and sliders
         grouped_layout = QVBoxLayout()
-        
-         # Create the checkbox
+
+        # Create the checkbox
         self.process_checkbox = QCheckBox("Process", main)
         # Connect the checkbox's state change signal to the callback
         self.process_checkbox.stateChanged.connect(self.process_callback)
         grouped_layout.addWidget(self.process_checkbox)
-        
+
         # Create the checkbox
         self.tracking_checkbox = QCheckBox("Tracking", main)
         # Connect the checkbox's state change signal to the callback
@@ -103,10 +105,18 @@ class WebCamTabView(QObject):
             self.webcam_combo_box.addItem(value)
         self.webcam_combo_box.setFixedWidth(250)
         grouped_layout.addWidget(self.webcam_combo_box)
-
         # Connect the activated signal to our custom slot
         self.webcam_combo_box.currentIndexChanged.connect(self.on_select_camsource)
-        
+
+        # Create a QComboBox to list the available resolutions
+        self.webcam_resolution_combo_box = QComboBox(main)
+        webcam_resolution_dict = get_available_resolutions(self._cam_index)
+        for item in webcam_resolution_dict:
+            self.webcam_resolution_combo_box.addItem(str(item[0]))
+        self.webcam_resolution_combo_box.setFixedWidth(250)
+        grouped_layout.addWidget(self.webcam_resolution_combo_box)
+        self.webcam_resolution_combo_box.currentIndexChanged.connect(self.on_select_cam_resolution)
+
         # Adding buttons to the grouped layout
         self.buttons = []
         for i in range(4):
@@ -139,18 +149,28 @@ class WebCamTabView(QObject):
     @Slot(int)
     def on_select_camsource(self, index):
         self._cam_index = index
+
+        # self.webcam_resolution_combo_box.clear()
+        # webcam_resolutions = get_available_resolutions(self._cam_index)
+        # for item in webcam_resolutions:
+        #     self.webcam_resolution_combo_box.addItem(str(item[0]))
         self.cam_index_changed.emit(self._cam_index)
-    
+
+    @Slot(int)
+    def on_select_cam_resolution(self, index):
+        self._cam_resolution_index = index
+        self.cam_resolution_index_changed.emit(self._cam_resolution_index)
+
     @Slot(bool)
     def process_callback(self, state):
         self.process_state_changed.emit(state)
 
     @Slot(bool)
     def tracking_callback(self, state):
-        self.tracking_state_changed.emit(state)   
-        
+        self.tracking_state_changed.emit(state)
+
     def toggle_tracking(self):
-        #TODO: change implementation, that a mouse operation like (move cursor, left click, right click) can only be mapped from one view (configuration)
+        # TODO: change implementation, that a mouse operation like (move cursor, left click, right click) can only be mapped from one view (configuration)
         current_state = self.tracking_checkbox.isChecked()
         self.tracking_checkbox.setChecked(not current_state)
 
@@ -177,14 +197,14 @@ class MediaPipeApp(QMainWindow):
         self.webcam_tab_view1 = WebCamTabView(self)
         tab1_layout.addWidget(self.webcam_tab_view1.webCamWidget)
         self.tab_widget.addTab(tab1, "Video Processing 1")
-        
+
         # Second tab for Video Processing
         tab2 = QWidget()
         tab2_layout = QVBoxLayout(tab2)
         self.webcam_tab_view2 = WebCamTabView(self)
         tab2_layout.addWidget(self.webcam_tab_view2.webCamWidget)
         self.tab_widget.addTab(tab2, "Video Processing 2")
-        
+
         self.setCentralWidget(self.tab_widget)
 
         # Create a shortcut for the 'T' key
@@ -212,17 +232,22 @@ class MediaPipeApp(QMainWindow):
         self.webcam_tab_view1.cam_index_changed.connect(self.cam1_changed)
         # call cam2_changed when cam_index_changed signal is emitted
         self.webcam_tab_view2.cam_index_changed.connect(self.cam2_changed)
-        
+
+        # call cam1_resolution_changed when cam_resolution_index_changed signal is emitted
+        self.webcam_tab_view1.cam_resolution_index_changed.connect(self.cam1_resolution_changed)
+        # all cam2_resolution_changed when cam_resolution_index_changed signal is emitted
+        self.webcam_tab_view2.cam_resolution_index_changed.connect(self.cam2_resolution_changed)
+
         # call tracking_state1_changed when tracking_state_changed signal is emitted
         self.webcam_tab_view1.tracking_state_changed.connect(self.tracking_state1_changed)
         # call tracking_state2_changed when tracking_state_changed signal is emitted
         self.webcam_tab_view2.tracking_state_changed.connect(self.tracking_state2_changed)
-        
+
         # call process_state1_changed when process_state_changed signal is emitted
         self.webcam_tab_view1.process_state_changed.connect(self.process_state1_changed)
         # call process_state2_changed when process_state_changed signal is emitted
         self.webcam_tab_view2.process_state_changed.connect(self.process_state2_changed)
-        
+
         self.webcam_tab_view1.process_checkbox.setChecked(True)
         self.worker1.resume()
         self.webcam_tab_view2.process_checkbox.setChecked(False)
@@ -235,29 +260,37 @@ class MediaPipeApp(QMainWindow):
     @Slot(int)
     def cam2_changed(self, index):
         self.worker2.handle_cam_index_change(index)
-        
+
+    @Slot(int)
+    def cam1_resolution_changed(self, index):
+        self.worker1.handle_cam_resolution_index_change(index)
+
+    @Slot(int)
+    def cam2_resolution_changed(self, index):
+        self.worker2.handle_cam_resolution_index_change(index)
+
     @Slot(bool)
     def tracking_state1_changed(self, state):
         self.worker1.handle_tracking_state_change(state)
-    
+
     @Slot(bool)
     def tracking_state2_changed(self, state):
         self.worker2.handle_tracking_state_change(state)
-        
+
     @Slot(bool)
     def process_state1_changed(self, state):
         if state:
             self.worker1.resume()
         else:
             self.worker1.pause()
-    
+
     @Slot(bool)
     def process_state2_changed(self, state):
         if state:
             self.worker2.resume()
         else:
             self.worker2.pause()
-    
+
     # setup video processing threads
     def setup_connections(self, thread, worker):
         worker.finished.connect(self.on_finished)
@@ -275,14 +308,14 @@ class MediaPipeApp(QMainWindow):
     # when a frame is processed, update the webcam frame
     def on_progress(self, qImg):
         sender = self.sender()
-               
+
         if sender == self.worker1:
             pixmap = QPixmap.fromImage(qImg)
             self.webcam_tab_view1.updateWebcamFrame(pixmap)
         elif sender == self.worker2:
             pixmap = QPixmap.fromImage(qImg)
             self.webcam_tab_view2.updateWebcamFrame(pixmap)
-            
+
     def toggle_tracking_by_shortcut(self):
         if self.tab_widget.currentIndex() == 0:
             self.webcam_tab_view1.toggle_tracking()
@@ -329,7 +362,11 @@ if __name__ == "__main__":
         app_info = NSBundle.mainBundle().infoDictionary()
         app_info["CFBundleName"] = "CTRLABILITY"
 
-    parse_arguments()
+    args = parse_arguments()
+    if args.resolution == "MIN":
+        set_preferred_height(480)
+    elif args.resolution == "MAX":
+        set_preferred_height(720)
 
     app = QApplication(sys.argv)
     app.setApplicationName("CTRLABILITY")  # Set the application name

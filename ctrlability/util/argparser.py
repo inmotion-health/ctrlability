@@ -12,6 +12,15 @@ parser.add_argument(
     help="Set the log level (default: INFO)",
 )
 
+parser.add_argument(
+    "-r",
+    "--resolution",
+    dest="resolution",
+    choices=["MIN", "MAX"],
+    default="MIN",
+    help="Set the resolution of the camera (default: 640 x 480)",
+)
+
 
 def parse_arguments():
     """Parse the arguments and set the log level"""
