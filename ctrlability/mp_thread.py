@@ -44,11 +44,12 @@ class MediaPipeThread(QObject):
         height, width, channel = probe_frame_rgb.shape
         bytesPerLine = 3 * width
         qImg = QImage(width, height, QImage.Format_RGB888)
+        img_data = np.frombuffer(qImg.bits(), np.uint8).reshape((qImg.height(), qImg.width(), 3))
 
         while True:
             if self.selected_mp_model == "Face":
                 with mp.solutions.face_mesh.FaceMesh(
-                    min_detection_confidence=0.5, min_tracking_confidence=0.5
+                    min_detection_confidence=0.5, min_tracking_confidence=0.5, static_image_mode=False, max_num_faces=1
                 ) as face_mesh:
                     for frame_rgb in self.webcam_source:
                         if self.break_loop == True:
@@ -69,7 +70,6 @@ class MediaPipeThread(QObject):
                                     self.handle_mouse_events(face)
 
                             # convert frame to QImage
-                            img_data = np.frombuffer(qImg.bits(), np.uint8).reshape((qImg.height(), qImg.width(), 3))
                             np.copyto(img_data, frame_rgb)
 
                             time_taken = time.time() * 1000 - current_time
@@ -79,7 +79,9 @@ class MediaPipeThread(QObject):
                             self.signalFrame.emit(qImg)
 
             elif self.selected_mp_model == "Hands":
-                with mp.solutions.hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+                with mp.solutions.hands.Hands(
+                    min_detection_confidence=0.5, min_tracking_confidence=0.5, static_image_mode=False
+                ) as hands:
                     for frame_rgb in self.webcam_source:
                         if self.break_loop:
                             self.break_loop = False
@@ -92,7 +94,6 @@ class MediaPipeThread(QObject):
                                 hand.draw_landmarks()
 
                         # convert frame to QImage
-                        img_data = np.frombuffer(qImg.bits(), np.uint8).reshape((qImg.height(), qImg.width(), 3))
                         np.copyto(img_data, frame_rgb)
 
                         self.signalFrame.emit(qImg)

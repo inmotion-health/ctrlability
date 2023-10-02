@@ -127,6 +127,7 @@ class WebCamTabView(QObject):
         self.webcam_resolution_combo_box.setFixedWidth(250)
         grouped_layout.addWidget(self.webcam_resolution_combo_box)
         self.webcam_resolution_combo_box.currentIndexChanged.connect(self.on_select_cam_resolution)
+        self.webcam_resolution_combo_box.setEnabled(False)
 
         # Adding buttons to the grouped layout
         self.buttons = []
