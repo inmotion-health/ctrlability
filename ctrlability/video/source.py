@@ -60,3 +60,7 @@ class VideoSource:
             size=(selected_resolution[0][0], selected_resolution[0][1]),
             input_params=["-framerate", f"{self.fps}", "-pix_fmt", "uyvy422"],
         )
+
+    def get_probe_frame(self) -> np.array:
+        frame = self.reader.get_next_data()
+        return self.flip(frame)

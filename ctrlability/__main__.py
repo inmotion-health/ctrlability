@@ -68,6 +68,7 @@ class WebCamTabView(QObject):
     tracking_state_changed = Signal(bool)
     process_state_changed = Signal(bool)
     cam_resolution_index_changed = Signal(int)
+    mp_model_changed = Signal(int)
 
     def __init__(self, main):
         super().__init__()
@@ -91,6 +92,16 @@ class WebCamTabView(QObject):
         # Connect the checkbox's state change signal to the callback
         self.process_checkbox.stateChanged.connect(self.process_callback)
         grouped_layout.addWidget(self.process_checkbox)
+
+        # Create a QComboBox to liste the available detection algorithms
+        self.mp_model_combo_box = QComboBox(main)
+        mp_models = ["Face", "Hands"]
+        for value in mp_models:
+            self.mp_model_combo_box.addItem(value)
+        self.mp_model_combo_box.setFixedWidth(250)
+        grouped_layout.addWidget(self.mp_model_combo_box)
+        # Connect the activated signal to our custom slot
+        self.mp_model_combo_box.currentIndexChanged.connect(self.on_select_mp_model)
 
         # Create the checkbox
         self.tracking_checkbox = QCheckBox("Tracking", main)
@@ -145,6 +156,12 @@ class WebCamTabView(QObject):
 
     def updateWebcamFrame(self, pixmap):
         self.label.setPixmap(pixmap)
+
+    @Slot(int)
+    def on_select_mp_model(self, index):
+        selected_text = self.mp_model_combo_box.currentText()
+        log.debug(f"Selected model: {selected_text}")
+        self.mp_model_changed.emit(index)
 
     @Slot(int)
     def on_select_camsource(self, index):
@@ -248,10 +265,25 @@ class MediaPipeApp(QMainWindow):
         # call process_state2_changed when process_state_changed signal is emitted
         self.webcam_tab_view2.process_state_changed.connect(self.process_state2_changed)
 
+        # call mp_model1_changed when mp_model_changed signal is emitted
+        self.webcam_tab_view1.mp_model_changed.connect(self.mp_model1_changed)
+        # call mp_model2_changed when mp_model_changed signal is emitted
+        self.webcam_tab_view2.mp_model_changed.connect(self.mp_model2_changed)
+
         self.webcam_tab_view1.process_checkbox.setChecked(True)
         self.worker1.resume()
         self.webcam_tab_view2.process_checkbox.setChecked(False)
         self.worker2.pause()
+
+    @Slot(int)
+    def mp_model1_changed(self, index):
+        name = self.webcam_tab_view1.mp_model_combo_box.currentText()
+        self.worker1.handle_model_changed(name)
+
+    @Slot(int)
+    def mp_model2_changed(self, index):
+        name = self.webcam_tab_view2.mp_model_combo_box.currentText()
+        self.worker2.handle_model_changed(name)
 
     @Slot(int)
     def cam1_changed(self, index):

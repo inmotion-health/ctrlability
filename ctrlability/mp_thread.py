@@ -1,4 +1,5 @@
 from ctrlability.landmark_processing.face import FaceLandmarkProcessing
+from ctrlability.landmark_processing.hand import HandLandmarkProcessing
 from ctrlability.video.source import VideoSource
 from ctrlability.mousectrl import MouseCtrl
 from PySide6.QtCore import Signal, QObject, Slot
@@ -6,6 +7,7 @@ from PySide6.QtGui import QImage
 import mediapipe as mp
 import time
 import logging as log
+import numpy as np
 
 
 class MediaPipeThread(QObject):
@@ -23,9 +25,12 @@ class MediaPipeThread(QObject):
 
         self.process_times_running_sum = 0
         self.process_times_count = 0
-        
+
         self._continue_processing = True
         self.tracking_state = False
+
+        self.selected_mp_model = "Face"
+        self.break_loop = False
 
     def change_camera(self, camera_id):
         self.camera_id = camera_id
@@ -33,32 +38,66 @@ class MediaPipeThread(QObject):
 
     def process(self):
         self.started.emit()
-        
-        with mp.solutions.holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-            for frame_rgb in self.webcam_source:
-                
-                if self._continue_processing:                        
-                    current_time = time.time() * 1000  # convert to ms
 
-                    results = holistic.process(frame_rgb)
+        # initialize Qimage for color conversion outside of loop to improve performance
+        probe_frame_rgb = self.webcam_source.get_probe_frame()
+        height, width, channel = probe_frame_rgb.shape
+        bytesPerLine = 3 * width
+        qImg = QImage(width, height, QImage.Format_RGB888)
 
-                    if results.face_landmarks is not None:
-                        face = FaceLandmarkProcessing(frame_rgb, results.face_landmarks)
-                        face.draw_landmarks()  # TODO: refactor drawing out of landmark processing
+        while True:
+            if self.selected_mp_model == "Face":
+                with mp.solutions.face_mesh.FaceMesh(
+                    min_detection_confidence=0.5, min_tracking_confidence=0.5
+                ) as face_mesh:
+                    for frame_rgb in self.webcam_source:
+                        if self.break_loop == True:
+                            self.break_loop = False
+                            break
+                        if self._continue_processing:
+                            current_time = time.time() * 1000  # convert to ms
 
-                        if  self.tracking_state:
-                            self.handle_mouse_events(face)
+                            results = face_mesh.process(frame_rgb)
+                            if results.multi_face_landmarks:
+                                # Only process the first detected face
+                                face_landmarks = results.multi_face_landmarks[0]
 
-                    height, width, channel = frame_rgb.shape
-                    bytesPerLine = 3 * width
-                    qImg = QImage(frame_rgb.data, width, height, bytesPerLine, QImage.Format_RGB888)
+                                face = FaceLandmarkProcessing(frame_rgb, face_landmarks)
+                                face.draw_landmarks()  # TODO: refactor drawing out of landmark processing
 
-                    time_taken = time.time() * 1000 - current_time
-                    self.process_times_running_sum += time_taken
-                    self.process_times_count += 1
+                                if self.tracking_state:
+                                    self.handle_mouse_events(face)
 
-                    self.signalFrame.emit(qImg)
-        self.finished.emit()
+                            # convert frame to QImage
+                            img_data = np.frombuffer(qImg.bits(), np.uint8).reshape((qImg.height(), qImg.width(), 3))
+                            np.copyto(img_data, frame_rgb)
+
+                            time_taken = time.time() * 1000 - current_time
+                            self.process_times_running_sum += time_taken
+                            self.process_times_count += 1
+
+                            self.signalFrame.emit(qImg)
+
+            elif self.selected_mp_model == "Hands":
+                with mp.solutions.hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+                    for frame_rgb in self.webcam_source:
+                        if self.break_loop:
+                            self.break_loop = False
+                            break
+                        results = hands.process(frame_rgb)
+
+                        if results.multi_hand_landmarks:
+                            for hand_landmarks in results.multi_hand_landmarks:
+                                hand = HandLandmarkProcessing(frame_rgb, hand_landmarks)
+                                hand.draw_landmarks()
+
+                        # convert frame to QImage
+                        img_data = np.frombuffer(qImg.bits(), np.uint8).reshape((qImg.height(), qImg.width(), 3))
+                        np.copyto(img_data, frame_rgb)
+
+                        self.signalFrame.emit(qImg)
+
+            self.finished.emit()
 
     def handle_mouse_events(self, face):
         if not MouseCtrl.is_mouse_frozen:
@@ -100,25 +139,27 @@ class MediaPipeThread(QObject):
     def handle_cam_index_change(self, camera_id):
         self.camera_id = camera_id
         self.webcam_source.change_camera(camera_id)
-        
+
     def handle_tracking_state_change(self, is_tracking_enabled):
         self.tracking_state = is_tracking_enabled
-        #ToDO change implemetation of MouseCtrl.set_tracking_mode(True) will be never called
-        if is_tracking_enabled:            
+        # ToDO change implemetation of MouseCtrl.set_tracking_mode(True) will be never called
+        if is_tracking_enabled:
             MouseCtrl.set_cursor_center()
-            
+
     def handle_cam_resolution_index_change(self, resolution_index):
-        print("resolution_index", resolution_index)
         self.webcam_source.change_resolution(resolution_index)
-        print("after resolution_index", resolution_index)
+
+    def handle_model_changed(self, name):
+        self.break_loop = True
+        self.selected_mp_model = name
 
     def terminate(self):
         log.debug(
             f"Average processing time on {self.name}: {self.process_times_running_sum / self.process_times_count if self.process_times_count else 0}ms"
         )
-    
+
     def pause(self):
         self._continue_processing = False
-    
+
     def resume(self):
         self._continue_processing = True
