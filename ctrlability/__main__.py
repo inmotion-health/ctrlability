@@ -151,16 +151,12 @@ class WebCamTabView(QObject):
         # Create a QVBoxLayout for the buttons, labels, and sliders
         grouped_layout = QVBoxLayout()
 
-        self.edit_button = QPushButton("Edit")
-        self.edit_button.setCheckable(True)
-        self.edit_button.clicked.connect(self.edit_button_callback)
-        grouped_layout.addWidget(self.edit_button)
-
         # Create the checkbox
-        self.process_checkbox = QCheckBox("Process", main)
+        self.process_button = QPushButton("PROCESS", main)
+        self.process_button.setCheckable(True)
         # Connect the checkbox's state change signal to the callback
-        self.process_checkbox.stateChanged.connect(self.process_callback)
-        grouped_layout.addWidget(self.process_checkbox)
+        self.process_button.clicked.connect(self.process_callback)
+        grouped_layout.addWidget(self.process_button)
 
         # Create a QComboBox to liste the available detection algorithms
         self.mp_model_combo_box = QComboBox(main)
@@ -171,12 +167,6 @@ class WebCamTabView(QObject):
         grouped_layout.addWidget(self.mp_model_combo_box)
         # Connect the activated signal to our custom slot
         self.mp_model_combo_box.currentIndexChanged.connect(self.on_select_mp_model)
-
-        # Create the checkbox
-        self.tracking_checkbox = QCheckBox("Tracking", main)
-        # Connect the checkbox's state change signal to the callback
-        self.tracking_checkbox.stateChanged.connect(self.tracking_callback)
-        grouped_layout.addWidget(self.tracking_checkbox)
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(main)
@@ -198,22 +188,34 @@ class WebCamTabView(QObject):
         self.webcam_resolution_combo_box.currentIndexChanged.connect(self.on_select_cam_resolution)
         self.webcam_resolution_combo_box.setEnabled(False)
 
-        # Adding buttons to the grouped layout
-        self.buttons = []
-        for i in range(4):
-            btn = QPushButton(f"Button {i+1}", main)
-            self.buttons.append(btn)
-            grouped_layout.addWidget(btn)
+        # Create the checkbox
+        self.tracking_button = QPushButton("TRACKING", main)
+        self.tracking_button.setCheckable(True)
+        # Connect the checkbox's state change signal to the callback
+        self.tracking_button.clicked.connect(self.tracking_callback)
+        grouped_layout.addWidget(self.tracking_button)
 
-        # Adding labels and sliders just below the buttons
-        self.sliders = []
-        for i in range(4):
-            lbl = QLabel(f"Slider {i+1}", main)
-            slider = QSlider(Qt.Horizontal, main)
-            slider.valueChanged.connect(self.slider_callback)  # Connect the callback to valueChanged signal
-            self.sliders.append(slider)
-            grouped_layout.addWidget(lbl)
-            grouped_layout.addWidget(slider)
+        self.edit_button = QPushButton("ADD ROI", main)
+        self.edit_button.setCheckable(True)
+        self.edit_button.clicked.connect(self.edit_button_callback)
+        grouped_layout.addWidget(self.edit_button)
+
+        # # Adding buttons to the grouped layout
+        # self.buttons = []
+        # for i in range(2):
+        #     btn = QPushButton(f"Dummy Button {i+1}", main)
+        #     self.buttons.append(btn)
+        #     grouped_layout.addWidget(btn)
+
+        # # Adding labels and sliders just below the buttons
+        # self.sliders = []
+        # for i in range(2):
+        #     lbl = QLabel(f"Dummy Slider {i+1}", main)
+        #     slider = QSlider(Qt.Horizontal, main)
+        #     slider.valueChanged.connect(self.slider_callback)  # Connect the callback to valueChanged signal
+        #     self.sliders.append(slider)
+        #     grouped_layout.addWidget(lbl)
+        #     grouped_layout.addWidget(slider)
 
         # Add the grouped layout to settings layout
         settings_layout.addLayout(grouped_layout)
@@ -265,8 +267,8 @@ class WebCamTabView(QObject):
 
     def toggle_tracking(self):
         # TODO: change implementation, that a mouse operation like (move cursor, left click, right click) can only be mapped from one view (configuration)
-        current_state = self.tracking_checkbox.isChecked()
-        self.tracking_checkbox.setChecked(not current_state)
+        current_state = self.tracking_button.isChecked()
+        self.tracking_button.setChecked(not current_state)
 
     def slider_callback(self, value):
         sender = self.sender()  # Find out which slider sent the signal
@@ -356,9 +358,9 @@ class MediaPipeApp(QMainWindow):
         # call roi2_changed when roi_changed signal is emitted
         self.webcam_tab_view2.roi_changed.connect(self.roi2_changed)
 
-        self.webcam_tab_view1.process_checkbox.setChecked(True)
+        self.webcam_tab_view1.process_button.setChecked(True)
         self.worker1.resume()
-        self.webcam_tab_view2.process_checkbox.setChecked(False)
+        self.webcam_tab_view2.process_button.setChecked(False)
         self.worker2.pause()
 
     @Slot(QRect)
