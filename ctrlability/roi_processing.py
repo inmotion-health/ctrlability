@@ -17,6 +17,7 @@ class RoiProcessing:
             for pt in points:
                 if roi.contains(pt):
                     return index
+        return -1
 
     def _convert_landmarks_to_points(self, landmarks):
         """Convert MediaPipe hand landmarks to a list of QPoint."""

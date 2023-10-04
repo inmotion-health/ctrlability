@@ -14,7 +14,7 @@ import numpy as np
 class MediaPipeThread(QObject):
     started = Signal()
     finished = Signal()
-    signalFrame = Signal(QImage)
+    signalFrame = Signal(QImage, int)
 
     def __init__(self, camera_id=0, name="mp_thread"):
         super().__init__()
@@ -33,6 +33,7 @@ class MediaPipeThread(QObject):
         self.selected_mp_model = "Face"
         self.break_loop = False
         self.roi_processing = RoiProcessing(self.webcam_source.width, self.webcam_source.height)
+        self.triggered_roi_index = -1
 
     def change_camera(self, camera_id):
         self.camera_id = camera_id
@@ -68,6 +69,8 @@ class MediaPipeThread(QObject):
                                 face = FaceLandmarkProcessing(frame_rgb, face_landmarks)
                                 face.draw_landmarks()  # TODO: refactor drawing out of landmark processing
 
+                                self.triggered_roi_index = self.roi_processing.check_collision(face_landmarks)
+
                                 if self.tracking_state:
                                     self.handle_mouse_events(face)
 
@@ -78,7 +81,8 @@ class MediaPipeThread(QObject):
                             self.process_times_running_sum += time_taken
                             self.process_times_count += 1
 
-                            self.signalFrame.emit(qImg)
+                            self.signalFrame.emit(qImg, self.triggered_roi_index)
+                            self.triggered_roi_index = -1
 
             elif self.selected_mp_model == "Hands":
                 with mp.solutions.hands.Hands(
@@ -94,15 +98,13 @@ class MediaPipeThread(QObject):
                             for hand_landmarks in results.multi_hand_landmarks:
                                 hand = HandLandmarkProcessing(frame_rgb, hand_landmarks)
                                 hand.draw_landmarks()
-                                triggered_roi_index = None
-                                triggered_roi_index = self.roi_processing.check_collision(hand_landmarks)
-                                if triggered_roi_index != None:
-                                    print("triggered roi index: ", triggered_roi_index)
+                                self.triggered_roi_index = self.roi_processing.check_collision(hand_landmarks)
 
                         # convert frame to QImage
                         np.copyto(img_data, frame_rgb)
 
-                        self.signalFrame.emit(qImg)
+                        self.signalFrame.emit(qImg, self.triggered_roi_index)
+                        self.triggered_roi_index = -1
 
             self.finished.emit()
 
@@ -161,8 +163,6 @@ class MediaPipeThread(QObject):
         self.selected_mp_model = name
 
     def handle_add_roi(self, roi):
-        print("add roi")
-        print(roi)
         self.roi_processing.add_roi(roi)
 
     def terminate(self):
