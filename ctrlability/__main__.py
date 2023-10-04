@@ -1,14 +1,8 @@
 import sys
 
-from PySide6.QtGui import (
-    QImage,
-    QPixmap,
-    QKeySequence,
-    QIcon,
-    QShortcut,
-    QAction,
-)
-from PySide6.QtCore import QTimer, Qt, Slot, QThread, Signal, QObject
+from PySide6.QtGui import QImage, QPixmap, QKeySequence, QIcon, QShortcut, QAction, QPainter, QColor, QBrush, QPen
+
+from PySide6.QtCore import QTimer, Qt, Slot, QThread, Signal, QObject, QRect, QSize
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -63,12 +57,72 @@ class SystemTrayApp(QSystemTrayIcon):
         log.info("Virtual Keyboard opened!")
 
 
+class ROIWidget(QLabel):
+    roi_added = Signal(QRect)
+
+    def __init__(self):
+        super().__init__()
+        self.rois = []  # List of QRect objects representing the ROIs
+        self.current_pixmap = None
+        self.current_roi = None
+        self.is_drawing = False
+        self.edit_state = False
+
+    def _add_roi(self, roi):
+        self.rois.append(roi)
+        self.roi_added.emit(roi)  # Emit the signal with the new ROI
+
+    def set_image(self, pixmap):
+        self.current_pixmap = pixmap
+        self.update()  # Schedule a repaint
+
+    def mousePressEvent(self, event):
+        if self.edit_state:  # Check if the edit button is toggled
+            self.is_drawing = True
+            self.current_roi = QRect(event.position().toPoint(), QSize(0, 0))
+
+    def mouseMoveEvent(self, event):
+        if self.is_drawing:
+            self.current_roi.setBottomRight(event.position().toPoint())
+            self.update()
+
+    def mouseReleaseEvent(self, event):
+        if self.is_drawing:
+            print(
+                f"Release ROI added: {self.current_roi.x()}, {self.current_roi.y()}, {self.current_roi.width()}, {self.current_roi.height()}"
+            )
+            self._add_roi(self.current_roi)
+            self.is_drawing = False
+            self.update()
+
+    def setEditState(self, state):
+        self.edit_state = state
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+
+        if self.current_pixmap:
+            painter = QPainter(self)
+            painter.drawPixmap(0, 0, self.current_pixmap)
+
+            painter.setPen(QPen(Qt.black, 2))
+            painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # Semi-transparent green
+
+            for roi in self.rois:
+                painter.drawRect(roi)
+
+            if self.is_drawing and self.current_roi:
+                painter.drawRect(self.current_roi)
+            painter.end()
+
+
 class WebCamTabView(QObject):
     cam_index_changed = Signal(int)
     tracking_state_changed = Signal(bool)
     process_state_changed = Signal(bool)
     cam_resolution_index_changed = Signal(int)
     mp_model_changed = Signal(int)
+    roi_changed = Signal(QRect)
 
     def __init__(self, main):
         super().__init__()
@@ -81,11 +135,21 @@ class WebCamTabView(QObject):
         self.label = QLabel(main)
         self.webCamLayoutView.addWidget(self.label)
 
+        self.roi = ROIWidget()
+        self.roi.roi_added.connect(self.on_new_roi_added)
+        self.roi.setFixedSize(640, 480)
+        self.webCamLayoutView.addWidget(self.roi)
+
         # Settings area (equivalent to BorderLayout::East)
         settings_layout = QVBoxLayout()
 
         # Create a QVBoxLayout for the buttons, labels, and sliders
         grouped_layout = QVBoxLayout()
+
+        self.edit_button = QPushButton("Edit")
+        self.edit_button.setCheckable(True)
+        self.edit_button.clicked.connect(self.edit_button_callback)
+        grouped_layout.addWidget(self.edit_button)
 
         # Create the checkbox
         self.process_checkbox = QCheckBox("Process", main)
@@ -158,6 +222,11 @@ class WebCamTabView(QObject):
     def updateWebcamFrame(self, pixmap):
         self.label.setPixmap(pixmap)
 
+    @Slot(bool)
+    def edit_button_callback(self, state):
+        print(f"Edit button state changed to: {state}")
+        self.roi.setEditState(state)
+
     @Slot(int)
     def on_select_mp_model(self, index):
         selected_text = self.mp_model_combo_box.currentText()
@@ -196,6 +265,11 @@ class WebCamTabView(QObject):
         sender = self.sender()  # Find out which slider sent the signal
         index = self.sliders.index(sender) + 1  # Get the slider number (1-based)
         log.debug(f"Slider {index} value changed to: {value}")
+
+    @Slot(QRect)
+    def on_new_roi_added(self, roi):
+        self.roi_changed.emit(roi)
+        print(f"New ROI added: {roi.x()}, {roi.y()}, {roi.width()}, {roi.height()}")
 
 
 class MediaPipeApp(QMainWindow):
@@ -271,10 +345,25 @@ class MediaPipeApp(QMainWindow):
         # call mp_model2_changed when mp_model_changed signal is emitted
         self.webcam_tab_view2.mp_model_changed.connect(self.mp_model2_changed)
 
+        # call roi1_changed when roi_changed signal is emitted
+        self.webcam_tab_view1.roi_changed.connect(self.roi1_changed)
+        # call roi2_changed when roi_changed signal is emitted
+        self.webcam_tab_view2.roi_changed.connect(self.roi2_changed)
+
         self.webcam_tab_view1.process_checkbox.setChecked(True)
         self.worker1.resume()
         self.webcam_tab_view2.process_checkbox.setChecked(False)
         self.worker2.pause()
+
+    @Slot(QRect)
+    def roi1_changed(self, roi):
+        print(f"--------New ROI added: {roi.x()}, {roi.y()}, {roi.width()}, {roi.height()}")
+        self.worker1.handle_add_roi(roi)
+
+    @Slot(QRect)
+    def roi2_changed(self, roi):
+        print(f"--------New ROI added: {roi.x()}, {roi.y()}, {roi.width()}, {roi.height()}")
+        self.worker2.handle_add_roi(roi)
 
     @Slot(int)
     def mp_model1_changed(self, index):
@@ -338,13 +427,22 @@ class MediaPipeApp(QMainWindow):
             self.thread1.wait()
             self.thread2.wait()
 
+    # def on_landmarks(self, list_of_landmarks):
+    #     sender = self.sender()
+
+    #     if sender == self.worker1:
+
+    #         self.webcam_tab_view1.roi.set_hands(list_of_landmarks)
+    #     elif sender == self.worker2:
+    #         self.webcam_tab_view2.roi.set_hands(list_of_landmarks)
+
     # when a frame is processed, update the webcam frame
     def on_progress(self, qImg):
         sender = self.sender()
 
         if sender == self.worker1:
             pixmap = QPixmap.fromImage(qImg)
-            self.webcam_tab_view1.updateWebcamFrame(pixmap)
+            self.webcam_tab_view1.roi.set_image(pixmap)
         elif sender == self.worker2:
             pixmap = QPixmap.fromImage(qImg)
             self.webcam_tab_view2.updateWebcamFrame(pixmap)

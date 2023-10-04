@@ -2,6 +2,7 @@ from ctrlability.landmark_processing.face import FaceLandmarkProcessing
 from ctrlability.landmark_processing.hand import HandLandmarkProcessing
 from ctrlability.video.source import VideoSource
 from ctrlability.mousectrl import MouseCtrl
+from ctrlability.roi_processing import RoiProcessing
 from PySide6.QtCore import Signal, QObject, Slot
 from PySide6.QtGui import QImage
 import mediapipe as mp
@@ -19,7 +20,7 @@ class MediaPipeThread(QObject):
         super().__init__()
         self.camera_id = camera_id
         self.name = name
-        self.webcam_source = VideoSource(camera_id, 1280, 720)
+        self.webcam_source = VideoSource(camera_id, 640, 480)
         # local state variables
         self.is_keeping_mouth_open = False
 
@@ -31,6 +32,7 @@ class MediaPipeThread(QObject):
 
         self.selected_mp_model = "Face"
         self.break_loop = False
+        self.roi_processing = RoiProcessing(self.webcam_source.width, self.webcam_source.height)
 
     def change_camera(self, camera_id):
         self.camera_id = camera_id
@@ -92,6 +94,10 @@ class MediaPipeThread(QObject):
                             for hand_landmarks in results.multi_hand_landmarks:
                                 hand = HandLandmarkProcessing(frame_rgb, hand_landmarks)
                                 hand.draw_landmarks()
+                                triggered_roi_index = None
+                                triggered_roi_index = self.roi_processing.check_collision(hand_landmarks)
+                                if triggered_roi_index != None:
+                                    print("triggered roi index: ", triggered_roi_index)
 
                         # convert frame to QImage
                         np.copyto(img_data, frame_rgb)
@@ -153,6 +159,11 @@ class MediaPipeThread(QObject):
     def handle_model_changed(self, name):
         self.break_loop = True
         self.selected_mp_model = name
+
+    def handle_add_roi(self, roi):
+        print("add roi")
+        print(roi)
+        self.roi_processing.add_roi(roi)
 
     def terminate(self):
         log.debug(
