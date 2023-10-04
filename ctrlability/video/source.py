@@ -1,9 +1,10 @@
-from typing import Optional, Tuple
+import logging as log
+
 import cv2
 import imageio
-import logging as log
 import numpy as np
-from ctrlability.video.source_resolution_provider import find_best_resolution, get_available_resolutions
+
+from ctrlability.video.platform import platform
 
 DEFAULT_RESOLUTION = (1280, 720)
 DEFAULT_FPS = 30
@@ -11,6 +12,7 @@ DEFAULT_FPS = 30
 
 class VideoSource:
     def __init__(self, camera_id: int, width: int, height: int):
+        self.fps = None
         self.reader = None
         self.width = width
         self.height = height
@@ -36,7 +38,7 @@ class VideoSource:
         self.close()
 
     def change_camera(self, camera_id: int):
-        resolution, self.fps = find_best_resolution(camera_id) or (DEFAULT_RESOLUTION, DEFAULT_FPS)
+        resolution, self.fps = platform.get_resolution_for(camera_id) or (DEFAULT_RESOLUTION, DEFAULT_FPS)
 
         log.info(f"Using resolution {resolution} and FPS: {self.fps} for camera {camera_id}.")
 
@@ -49,9 +51,9 @@ class VideoSource:
             ],
         )
 
-    def change_resolution(self, id):
-        resolutions = get_available_resolutions(self._camera_id)
-        selected_resolution = resolutions[id]
+    def change_resolution(self, cam_id):
+        resolutions = platform.list_available_resolutions(self._camera_id)
+        selected_resolution = resolutions[cam_id]
 
         log.info(f"Using resolution {selected_resolution}")
 
