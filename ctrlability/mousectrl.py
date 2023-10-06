@@ -14,8 +14,8 @@ pyautogui.DARWIN_CATCH_UP_TIME = 0.00
 
 X_THRESHOLD = 0.05
 Y_THRESHOLD = 0.03
-VELOCITY_COMPENSATION_X = 0.5
-VELOCITY_COMPENSATION_Y = 5
+VELOCITY_COMPENSATION_X = 0.1
+VELOCITY_COMPENSATION_Y = 4
 
 
 class MouseActions(ABC):
@@ -49,12 +49,14 @@ class _MouseCtrl:
         self.is_mouse_frozen = False
         self.is_right_mouse_clicked = False
 
+        self.scroll_mode = False
+
     # MOUSE STATE
     ## TRACKING STATE
     def set_tracking_mode(self, state: bool):
         self.is_tracking_enabled = state
         log.debug(f"Tracking mode set to {state}")
-        
+
     ## FREEZE STATE
     def freeze_mouse_pos(self):
         if self.is_mouse_frozen:
@@ -95,7 +97,10 @@ class _MouseCtrl:
         # Clamp to screen dimensions
         new_pos = np.clip(new_pos, [0, 0], [self.screen_width - 1, self.screen_height - 1])
 
-        pyautogui.moveTo(*new_pos)
+        if self.scroll_mode:
+            pyautogui.scroll(50)
+        else:
+            pyautogui.moveTo(*new_pos)
 
     # MOUSE CLICKS
     def left_click(self):

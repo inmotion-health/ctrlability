@@ -27,6 +27,7 @@ from ctrlability.video.source_resolution_provider import get_available_resolutio
 from ctrlability.util.argparser import parse_arguments
 from ctrlability.mousectrl import MouseCtrl
 from ctrlability.mp_thread import MediaPipeThread
+import pyautogui
 
 
 class SystemTrayApp(QSystemTrayIcon):
@@ -68,6 +69,7 @@ class WebcamRoiWidget(QLabel):
         self.is_drawing = False
         self.edit_state = False
         self.collided_roi_index = -1
+        self.toggle_state_last = 0
 
     def _add_roi(self, roi):
         self.rois.append(roi)
@@ -110,11 +112,24 @@ class WebcamRoiWidget(QLabel):
             painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # Semi-transparent green
 
             for index, roi in enumerate(self.rois):
-                if index == self.collided_roi_index:
-                    painter.setBrush(QBrush(QColor(255, 0, 0, 127)))
+                if index == self.collided_roi_index:  # Check if the current ROI is the collided one
+                    painter.setBrush(QBrush(QColor(255, 0, 0, 127)))  # red
                 else:
-                    painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # Semi-transparent green
+                    painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # green
                 painter.drawRect(roi)
+
+            if self.collided_roi_index == -1:
+                self.toggle_state_last = 0
+                # MouseCtrl.scroll_mode = False
+            elif self.collided_roi_index == 0 and self.toggle_state_last == 0:
+                # MouseCtrl.scroll_mode = True
+                pyautogui.keyDown("space")
+                print("space")
+                self.toggle_state_last = 1
+            elif self.collided_roi_index == 1 and self.toggle_state_last == 0:
+                # pyautogui.press("w")
+                pyautogui.keyDown("w")
+                self.toggle_state_last = 1
 
             if self.is_drawing and self.current_roi:
                 painter.drawRect(self.current_roi)
