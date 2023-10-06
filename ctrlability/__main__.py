@@ -1,8 +1,8 @@
+import logging as log
 import sys
 
-from PySide6.QtGui import QImage, QPixmap, QKeySequence, QIcon, QShortcut, QAction, QPainter, QColor, QBrush, QPen
-
 from PySide6.QtCore import QTimer, Qt, Slot, QThread, Signal, QObject, QRect, QSize
+from PySide6.QtGui import QPixmap, QKeySequence, QShortcut, QAction, QPainter, QColor, QBrush, QPen
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -10,8 +10,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QPushButton,
-    QCheckBox,
-    QSlider,
     QWidget,
     QMenuBar,
     QMenu,
@@ -20,14 +18,11 @@ from PySide6.QtWidgets import (
     QTabWidget,
 )
 from qt_material import apply_stylesheet, list_themes
-import logging as log
 
-from ctrlability.video.source_provider import get_available_vidsources
-from ctrlability.video.source_resolution_provider import get_available_resolutions, set_preferred_height
-from ctrlability.util.argparser import parse_arguments
-from ctrlability.mousectrl import MouseCtrl
 from ctrlability.mp_thread import MediaPipeThread
 import pyautogui
+from ctrlability.util.argparser import parse_arguments
+from ctrlability.video.vidplatform import video_platform
 
 
 class SystemTrayApp(QSystemTrayIcon):
@@ -185,7 +180,7 @@ class WebCamTabView(QObject):
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(main)
-        webcam_dict = get_available_vidsources()
+        webcam_dict = video_platform.list_video_devices()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
         self.webcam_combo_box.setFixedWidth(250)
@@ -195,7 +190,7 @@ class WebCamTabView(QObject):
 
         # Create a QComboBox to list the available resolutions
         self.webcam_resolution_combo_box = QComboBox(main)
-        webcam_resolution_dict = get_available_resolutions(self._cam_index)
+        webcam_resolution_dict = video_platform.list_available_resolutions(self._cam_index)
         for item in webcam_resolution_dict:
             self.webcam_resolution_combo_box.addItem(str(item[0]))
         self.webcam_resolution_combo_box.setFixedWidth(250)
@@ -507,9 +502,9 @@ if __name__ == "__main__":
 
     args = parse_arguments()
     if args.resolution == "MIN":
-        set_preferred_height(480)
+        video_platform.set_preferred_height(480)
     elif args.resolution == "MAX":
-        set_preferred_height(720)
+        video_platform.set_preferred_height(720)
 
     app = QApplication(sys.argv)
     app.setApplicationName("CTRLABILITY")  # Set the application name

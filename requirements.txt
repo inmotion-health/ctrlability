@@ -7,3 +7,4 @@ nbstripout >= 0.6.0 # for removing notebook output from git
 PySide6 >= 6.5.2
 pyobjc-framework-Cocoa >= 9.2;platform_system == "Darwin"
 qt-material >= 2.14
+pygrabber >= 0.1.0

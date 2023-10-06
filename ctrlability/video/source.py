@@ -1,16 +1,22 @@
-from typing import Optional, Tuple
+import logging as log
+from typing import Optional
+
 import cv2
 import imageio
-import logging as log
 import numpy as np
-from ctrlability.video.source_resolution_provider import find_best_resolution, get_available_resolutions
+
+from ctrlability.video.vidplatform import video_platform
+import platform
 
 DEFAULT_RESOLUTION = (1280, 720)
 DEFAULT_FPS = 30
 
 
 class VideoSource:
+    used_camera_ids = set()
+
     def __init__(self, camera_id: int, width: int, height: int):
+        self.fps = None
         self.reader = None
         self.width = width
         self.height = height
@@ -21,6 +27,10 @@ class VideoSource:
         return self
 
     def __next__(self) -> np.array:
+        if not self.reader:
+            log.error("get next frame: No reader found!")
+            raise StopIteration
+
         frame = self.reader.get_next_data()
         return self.flip(frame)
 
@@ -36,12 +46,21 @@ class VideoSource:
         self.close()
 
     def change_camera(self, camera_id: int):
-        resolution, self.fps = find_best_resolution(camera_id) or (DEFAULT_RESOLUTION, DEFAULT_FPS)
+        resolution, self.fps = video_platform.get_resolution_for(camera_id) or (DEFAULT_RESOLUTION, DEFAULT_FPS)
+        device_name = video_platform.get_ffmpeg_device_name(self._camera_id)
 
-        log.info(f"Using resolution {resolution} and FPS: {self.fps} for camera {camera_id}.")
+        log.info(f"Using resolution {resolution} and FPS: {self.fps} for camera with name: '{device_name}'")
+
+        # FIXME: this is a hack to prevent the same camera from being opened twice on Windows
+        #        macos and linux don't have this problem
+        if platform.system() == "Windows":
+            if camera_id in VideoSource.used_camera_ids:
+                log.error(f"Camera with id {camera_id} is already in use!")
+                self.reader = None
+                return
 
         self.reader = imageio.get_reader(
-            f"<video{camera_id}>",
+            device_name,
             size=resolution,
             input_params=[
                 "-framerate",
@@ -49,18 +68,27 @@ class VideoSource:
             ],
         )
 
-    def change_resolution(self, id):
-        resolutions = get_available_resolutions(self._camera_id)
-        selected_resolution = resolutions[id]
+        # FIXME: this is a hack to prevent the same camera from being opened twice on Windows
+        #        add a camera_id to the VideoSource class statically
+        VideoSource.used_camera_ids.add(camera_id)
 
-        log.info(f"Using resolution {selected_resolution}")
+    def change_resolution(self, cam_id):  # FIXME: big big smelly smell that we do this twice...
+        resolutions = video_platform.list_available_resolutions(self._camera_id)
+        selected_resolution = resolutions[cam_id]
+        device_name = video_platform.get_ffmpeg_device_name(self._camera_id)
+
+        log.info(f"Using resolution {selected_resolution}, FPS: {self.fps} for camera {device_name}.")
 
         self.reader = imageio.get_reader(
-            f"<video{self._camera_id}>",
+            device_name,
             size=(selected_resolution[0][0], selected_resolution[0][1]),
             input_params=["-framerate", f"{self.fps}", "-pix_fmt", "uyvy422"],
         )
 
-    def get_probe_frame(self) -> np.array:
+    def get_probe_frame(self) -> Optional[np.array]:
+        if not self.reader:
+            log.error("probe frame: No reader found!")
+            return None
+
         frame = self.reader.get_next_data()
         return self.flip(frame)
