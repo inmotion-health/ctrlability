@@ -1,4 +1,5 @@
 import logging as log
+from typing import Optional
 
 import cv2
 import imageio
@@ -26,6 +27,10 @@ class VideoSource:
         return self
 
     def __next__(self) -> np.array:
+        if not self.reader:
+            log.error("get next frame: No reader found!")
+            raise StopIteration
+
         frame = self.reader.get_next_data()
         return self.flip(frame)
 
@@ -51,6 +56,7 @@ class VideoSource:
         if platform.system() == "Windows":
             if camera_id in VideoSource.used_camera_ids:
                 log.error(f"Camera with id {camera_id} is already in use!")
+                self.reader = None
                 return
 
         self.reader = imageio.get_reader(
@@ -79,6 +85,10 @@ class VideoSource:
             input_params=["-framerate", f"{self.fps}", "-pix_fmt", "uyvy422"],
         )
 
-    def get_probe_frame(self) -> np.array:
+    def get_probe_frame(self) -> Optional[np.array]:
+        if not self.reader:
+            log.error("probe frame: No reader found!")
+            return None
+
         frame = self.reader.get_next_data()
         return self.flip(frame)
