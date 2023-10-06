@@ -21,7 +21,7 @@ from qt_material import apply_stylesheet, list_themes
 
 from ctrlability.mp_thread import MediaPipeThread
 from ctrlability.util.argparser import parse_arguments
-from ctrlability.video.platform import platform as video_platform
+from ctrlability.video.vidplatform import video_platform
 
 
 class SystemTrayApp(QSystemTrayIcon):

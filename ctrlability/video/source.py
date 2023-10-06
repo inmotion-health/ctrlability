@@ -4,13 +4,16 @@ import cv2
 import imageio
 import numpy as np
 
-from ctrlability.video.platform import platform
+from ctrlability.video.vidplatform import video_platform
+import platform
 
 DEFAULT_RESOLUTION = (1280, 720)
 DEFAULT_FPS = 30
 
 
 class VideoSource:
+    used_camera_ids = set()
+
     def __init__(self, camera_id: int, width: int, height: int):
         self.fps = None
         self.reader = None
@@ -38,10 +41,17 @@ class VideoSource:
         self.close()
 
     def change_camera(self, camera_id: int):
-        resolution, self.fps = platform.get_resolution_for(camera_id) or (DEFAULT_RESOLUTION, DEFAULT_FPS)
-        device_name = platform.get_ffmpeg_device_name(self._camera_id)
+        resolution, self.fps = video_platform.get_resolution_for(camera_id) or (DEFAULT_RESOLUTION, DEFAULT_FPS)
+        device_name = video_platform.get_ffmpeg_device_name(self._camera_id)
 
-        log.info(f"Using resolution {resolution} and FPS: {self.fps} for camera {device_name}.")
+        log.info(f"Using resolution {resolution} and FPS: {self.fps} for camera with name: '{device_name}'")
+
+        # FIXME: this is a hack to prevent the same camera from being opened twice on Windows
+        #        macos and linux don't have this problem
+        if platform.system() == "Windows":
+            if camera_id in VideoSource.used_camera_ids:
+                log.error(f"Camera with id {camera_id} is already in use!")
+                return
 
         self.reader = imageio.get_reader(
             device_name,
@@ -52,10 +62,14 @@ class VideoSource:
             ],
         )
 
+        # FIXME: this is a hack to prevent the same camera from being opened twice on Windows
+        #        add a camera_id to the VideoSource class statically
+        VideoSource.used_camera_ids.add(camera_id)
+
     def change_resolution(self, cam_id):  # FIXME: big big smelly smell that we do this twice...
-        resolutions = platform.list_available_resolutions(self._camera_id)
+        resolutions = video_platform.list_available_resolutions(self._camera_id)
         selected_resolution = resolutions[cam_id]
-        device_name = platform.get_ffmpeg_device_name(self._camera_id)
+        device_name = video_platform.get_ffmpeg_device_name(self._camera_id)
 
         log.info(f"Using resolution {selected_resolution}, FPS: {self.fps} for camera {device_name}.")
 

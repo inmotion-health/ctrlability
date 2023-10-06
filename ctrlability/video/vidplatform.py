@@ -19,4 +19,4 @@ def get_platform():
         raise Exception("Unsupported platform")
 
 
-platform = get_platform()
+video_platform = get_platform()

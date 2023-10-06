@@ -40,4 +40,4 @@ class WindowsVideoPlatform(base.VideoPlatform):
 
     def get_ffmpeg_device_name(self, cam_id: int) -> str:
         all_devices = self.list_video_devices()
-        return all_devices[cam_id]
+        return f"<video{cam_id}>"
