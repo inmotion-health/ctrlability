@@ -39,11 +39,12 @@ class VideoSource:
 
     def change_camera(self, camera_id: int):
         resolution, self.fps = platform.get_resolution_for(camera_id) or (DEFAULT_RESOLUTION, DEFAULT_FPS)
+        device_name = platform.get_ffmpeg_device_name(self._camera_id)
 
-        log.info(f"Using resolution {resolution} and FPS: {self.fps} for camera {camera_id}.")
+        log.info(f"Using resolution {resolution} and FPS: {self.fps} for camera {device_name}.")
 
         self.reader = imageio.get_reader(
-            f"<video{camera_id}>",
+            device_name,
             size=resolution,
             input_params=[
                 "-framerate",
@@ -51,14 +52,15 @@ class VideoSource:
             ],
         )
 
-    def change_resolution(self, cam_id):
+    def change_resolution(self, cam_id):  # FIXME: big big smelly smell that we do this twice...
         resolutions = platform.list_available_resolutions(self._camera_id)
         selected_resolution = resolutions[cam_id]
+        device_name = platform.get_ffmpeg_device_name(self._camera_id)
 
-        log.info(f"Using resolution {selected_resolution}")
+        log.info(f"Using resolution {selected_resolution}, FPS: {self.fps} for camera {device_name}.")
 
         self.reader = imageio.get_reader(
-            f"<video{self._camera_id}>",
+            device_name,
             size=(selected_resolution[0][0], selected_resolution[0][1]),
             input_params=["-framerate", f"{self.fps}", "-pix_fmt", "uyvy422"],
         )

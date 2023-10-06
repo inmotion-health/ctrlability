@@ -7,6 +7,9 @@ import ctrlability.video.platforms.base as base
 
 
 class MacVideoPlatform(base.VideoPlatform):
+    def __init__(self):
+        print("Initialized MacVideoPlatform")
+
     def get_video_format(self):
         return "avfoundation"
 
@@ -57,7 +60,7 @@ class MacVideoPlatform(base.VideoPlatform):
             log.debug(f"Found video devices: {video_devices}")
         return video_devices
 
-    def list_available_resolutions(self, device_id: int) -> Optional[list[Tuple[Tuple[int, int], int]]]:
+    def list_available_resolutions(self, device_id: int) -> Optional[List[Tuple[Tuple[int, int], int]]]:
         output = subprocess.get_cmd_output(
             [
                 "ffmpeg",
@@ -91,3 +94,6 @@ class MacVideoPlatform(base.VideoPlatform):
             resolutions.append(((width, height), fps))
 
         return resolutions
+
+    def get_ffmpeg_device_name(self, cam_id: int) -> str:
+        return f"<video{cam_id}>"
