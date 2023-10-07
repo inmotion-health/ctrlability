@@ -55,6 +55,9 @@ class MediaPipeThread(QObject):
                     min_detection_confidence=0.5, min_tracking_confidence=0.5, static_image_mode=False, max_num_faces=1
                 ) as face_mesh:
                     for frame_rgb in self.webcam_source:
+                        if frame_rgb is None:
+                            continue
+
                         if self.break_loop == True:
                             self.break_loop = False
                             break
