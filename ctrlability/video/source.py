@@ -1,5 +1,5 @@
 import logging as log
-from typing import Optional
+from typing import Optional, Set
 
 import cv2
 import imageio
@@ -13,7 +13,7 @@ DEFAULT_FPS = 30
 
 
 class VideoSource:
-    used_camera_ids = set()
+    used_camera_ids: Set[int] = set()
 
     def __init__(self, camera_id: int, width: int, height: int):
         self.fps = None
@@ -28,8 +28,7 @@ class VideoSource:
 
     def __next__(self) -> np.array:
         if not self.reader:
-            log.error("get next frame: No reader found!")
-            raise StopIteration
+            return
 
         frame = self.reader.get_next_data()
         return self.flip(frame)
@@ -40,19 +39,29 @@ class VideoSource:
 
     def close(self):
         if self.reader:
-            self.reader.close()
+            self.reader = None
+            VideoSource.used_camera_ids.remove(self._camera_id)
 
     def __del__(self):
         self.close()
 
+    # FIXME: this is a mess
+    #       - on macos when switching from <video2> to <video1> we get <video0> as the device but with the name of <video1>
+    #       - switching cameras leads to weird behaviour for detection of already in use cameras
+    # -> maybe we should keep a reference to all the open readers, their ID and count the references to them?
     def change_camera(self, camera_id: int):
-        resolution, self.fps = video_platform.get_resolution_for(camera_id) or (DEFAULT_RESOLUTION, DEFAULT_FPS)
-        device_name = video_platform.get_ffmpeg_device_name(self._camera_id)
+        self.close()
+        log.debug(f"Webcams currently in use: {VideoSource.used_camera_ids}")
 
+        resolution, self.fps = video_platform.get_resolution_for(camera_id) or (DEFAULT_RESOLUTION, DEFAULT_FPS)
+
+        self._camera_id = camera_id
+        self.width = resolution[0]
+        self.height = resolution[1]
+
+        device_name = video_platform.get_ffmpeg_device_name(self._camera_id)
         log.info(f"Using resolution {resolution} and FPS: {self.fps} for camera with name: '{device_name}'")
 
-        # FIXME: this is a hack to prevent the same camera from being opened twice on Windows
-        #        macos and linux don't have this problem
         if platform.system() == "Windows":
             if camera_id in VideoSource.used_camera_ids:
                 log.error(f"Camera with id {camera_id} is already in use!")
@@ -68,8 +77,6 @@ class VideoSource:
             ],
         )
 
-        # FIXME: this is a hack to prevent the same camera from being opened twice on Windows
-        #        add a camera_id to the VideoSource class statically
         VideoSource.used_camera_ids.add(camera_id)
 
     def change_resolution(self, cam_id):  # FIXME: big big smelly smell that we do this twice...
