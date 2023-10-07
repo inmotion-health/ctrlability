@@ -2,7 +2,7 @@ import logging as log
 import sys
 
 from PySide6.QtCore import QTimer, Qt, Slot, QThread, Signal, QObject, QRect, QSize
-from PySide6.QtGui import QPixmap, QKeySequence, QShortcut, QAction, QPainter, QColor, QBrush, QPen
+from PySide6.QtGui import QPixmap, QKeySequence, QShortcut, QAction, QPainter, QColor, QBrush, QPen, QFont, QFontMetrics
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -66,6 +66,9 @@ class WebcamRoiWidget(QLabel):
         self.collided_roi_index = -1
         self.toggle_state_last = 0
 
+        self.msg = ""
+        self.show_text = False
+
     def _add_roi(self, roi):
         self.rois.append(roi)
         self.roi_added.emit(roi)  # Emit the signal with the new ROI
@@ -95,6 +98,38 @@ class WebcamRoiWidget(QLabel):
 
     def set_collision(self, index):
         self.collided_roi_index = index
+
+    def set_msg(self, msg):
+        self.msg = msg
+        self.show_text = True
+        QTimer.singleShot(5000, self._hideText)
+        self.update()
+
+    def _hideText(self):
+        self.show_text = False
+        self.update()  # This will trigger a repaint of the widget
+
+    def _showText(self, painter, width, height, text):
+        # Set the color for the text
+        color = QColor(255, 0, 0)  # This is red. Adjust RGB values as needed.
+        pen = QPen(color)
+        painter.setPen(pen)
+
+        font = painter.font()
+        font.setPointSize(24)
+        painter.setFont(font)
+
+        # Calculate the position to draw the text
+        text = self.msg
+        font_metrics = QFontMetrics(font)
+        text_width = font_metrics.boundingRect(text).width()
+        text_height = font_metrics.height()
+
+        x = (width - text_width) / 2
+        y = (height + text_height) / 2  # + because the y-coordinate is the baseline of the text
+
+        # Draw the text at the calculated position
+        painter.drawText(x, y, text)
 
     def paintEvent(self, event):
         super().paintEvent(event)
@@ -128,6 +163,21 @@ class WebcamRoiWidget(QLabel):
 
             if self.is_drawing and self.current_roi:
                 painter.drawRect(self.current_roi)
+
+            if self.show_text == True:
+                self._showText(painter, self.current_pixmap.width(), self.current_pixmap.height(), self.msg)
+
+            painter.end()
+        else:
+            painter = QPainter(self)
+            width = 640
+            height = 480
+            painter.setPen(QPen(Qt.black, 2))
+            painter.setBrush(QBrush(QColor(0, 0, 0, 0)))  # Semi-transparent green
+            painter.drawRect(0, 0, width, height)
+            if self.show_text == True:
+                self._showText(painter, width, height, self.msg)
+
             painter.end()
 
 
@@ -184,6 +234,9 @@ class WebCamTabView(QObject):
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
         self.webcam_combo_box.setFixedWidth(250)
+        # Initialize the last_selected_index with the current index
+        self.cam_index_last_selected = self.webcam_combo_box.currentIndex()
+
         grouped_layout.addWidget(self.webcam_combo_box)
         # Connect the activated signal to our custom slot
         self.webcam_combo_box.currentIndexChanged.connect(self.on_select_camsource)
@@ -239,7 +292,6 @@ class WebCamTabView(QObject):
     def updateWebcamFrame(self, pixmap, triggered_roi_index):
         self.webcam_roi_region.set_image(pixmap)
         self.webcam_roi_region.set_collision(triggered_roi_index)
-        # self.label.setPixmap(pixmap)
 
     @Slot(bool)
     def edit_button_callback(self, state):
@@ -255,11 +307,6 @@ class WebCamTabView(QObject):
     @Slot(int)
     def on_select_camsource(self, index):
         self._cam_index = index
-
-        # self.webcam_resolution_combo_box.clear()
-        # webcam_resolutions = get_available_resolutions(self._cam_index)
-        # for item in webcam_resolutions:
-        #     self.webcam_resolution_combo_box.addItem(str(item[0]))
         self.cam_index_changed.emit(self._cam_index)
 
     @Slot(int)
@@ -393,11 +440,28 @@ class MediaPipeApp(QMainWindow):
 
     @Slot(int)
     def cam1_changed(self, index):
-        self.worker1.handle_cam_index_change(index)
+        if (
+            index == self.webcam_tab_view2.webcam_combo_box.currentIndex()
+            and self.webcam_tab_view2.process_button.isChecked() == True
+        ):
+            self.webcam_tab_view1.webcam_combo_box.setCurrentIndex(self.webcam_tab_view1.cam_index_last_selected)
+            self.webcam_tab_view1.webcam_roi_region.set_msg("Camera already in use in other view.")
+        else:
+            self.webcam_tab_view1.cam_index_last_selected = index
+            self.webcam_tab_view1.webcam_roi_region.set_msg("")
+            self.worker1.handle_cam_index_change(index)
 
     @Slot(int)
     def cam2_changed(self, index):
-        self.worker2.handle_cam_index_change(index)
+        if (
+            index == self.webcam_tab_view1.webcam_combo_box.currentIndex()
+            and self.webcam_tab_view1.process_button.isChecked() == True
+        ):
+            self.webcam_tab_view2.webcam_combo_box.setCurrentIndex(self.webcam_tab_view2.cam_index_last_selected)
+            self.webcam_tab_view2.webcam_roi_region.set_msg("Camera already in use in other view.")
+        else:
+            self.webcam_tab_view2.cam_index_last_selected = index
+            self.worker2.handle_cam_index_change(index)
 
     @Slot(int)
     def cam1_resolution_changed(self, index):
@@ -417,14 +481,30 @@ class MediaPipeApp(QMainWindow):
 
     @Slot(bool)
     def process_state1_changed(self, state):
-        if state:
+        if (
+            self.webcam_tab_view1.webcam_combo_box.currentIndex()
+            == self.webcam_tab_view2.webcam_combo_box.currentIndex()
+            and self.webcam_tab_view2.process_button.isChecked() == True
+        ):
+            self.webcam_tab_view1.webcam_roi_region.set_msg("Camera already in use in other view.")
+            self.webcam_tab_view1.process_button.setChecked(False)
+
+        elif state:
             self.worker1.resume()
         else:
             self.worker1.pause()
 
     @Slot(bool)
     def process_state2_changed(self, state):
-        if state:
+        if (
+            self.webcam_tab_view1.webcam_combo_box.currentIndex()
+            == self.webcam_tab_view2.webcam_combo_box.currentIndex()
+            and self.webcam_tab_view1.process_button.isChecked() == True
+        ):
+            self.webcam_tab_view2.webcam_roi_region.set_msg("Camera already in use in other view.")
+            self.webcam_tab_view2.process_button.setChecked(False)
+
+        elif state:
             self.worker2.resume()
         else:
             self.worker2.pause()
