@@ -65,6 +65,7 @@ class WebcamRoiWidget(QLabel):
         self.edit_state = False
         self.collided_roi_index = -1
         self.toggle_state_last = 0
+        self.demo_mode = "TOGGLE_KEYS"
 
         self.msg = ""
         self.show_text = False
@@ -148,18 +149,25 @@ class WebcamRoiWidget(QLabel):
                     painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # green
                 painter.drawRect(roi)
 
-            if self.collided_roi_index == -1:
-                self.toggle_state_last = 0
-                # MouseCtrl.scroll_mode = False
-            elif self.collided_roi_index == 0 and self.toggle_state_last == 0:
-                # MouseCtrl.scroll_mode = True
-                pyautogui.keyDown("space")
-                print("space")
-                self.toggle_state_last = 1
-            elif self.collided_roi_index == 1 and self.toggle_state_last == 0:
-                # pyautogui.press("w")
-                pyautogui.keyDown("w")
-                self.toggle_state_last = 1
+            if self.demo_mode == "TOGGLE_KEYS":
+                if self.collided_roi_index == -1:
+                    self.toggle_state_last = 0
+                elif self.collided_roi_index == 0 and self.toggle_state_last == 0:
+                    pyautogui.keyDown("space")
+                    # pyautogui.scroll(10)
+                    print("space")
+                    self.toggle_state_last = 1
+                elif self.collided_roi_index == 1 and self.toggle_state_last == 0:
+                    # pyautogui.press("w")
+                    pyautogui.keyDown("w")
+                    # pyautogui.scroll(-10)
+                    self.toggle_state_last = 1
+
+            if self.demo_mode == "SCROLL":
+                if self.collided_roi_index == 0:
+                    pyautogui.scroll(-1)
+                elif self.collided_roi_index == 1:
+                    pyautogui.scroll(1)
 
             if self.is_drawing and self.current_roi:
                 painter.drawRect(self.current_roi)
@@ -185,7 +193,7 @@ class WebCamTabView(QObject):
     cam_index_changed = Signal(int)
     tracking_state_changed = Signal(bool)
     process_state_changed = Signal(bool)
-    cam_resolution_index_changed = Signal(int)
+    mouse_ctrl_mode_changed = Signal(int)
     mp_model_changed = Signal(int)
     roi_changed = Signal(QRect)
 
@@ -241,22 +249,22 @@ class WebCamTabView(QObject):
         # Connect the activated signal to our custom slot
         self.webcam_combo_box.currentIndexChanged.connect(self.on_select_camsource)
 
-        # Create a QComboBox to list the available resolutions
-        self.webcam_resolution_combo_box = QComboBox(main)
-        webcam_resolution_dict = video_platform.list_available_resolutions(self._cam_index)
-        for item in webcam_resolution_dict:
-            self.webcam_resolution_combo_box.addItem(str(item[0]))
-        self.webcam_resolution_combo_box.setFixedWidth(250)
-        grouped_layout.addWidget(self.webcam_resolution_combo_box)
-        self.webcam_resolution_combo_box.currentIndexChanged.connect(self.on_select_cam_resolution)
-        self.webcam_resolution_combo_box.setEnabled(False)
-
         # Create the checkbox
         self.tracking_button = QPushButton("TRACKING", main)
         self.tracking_button.setCheckable(True)
         # Connect the checkbox's state change signal to the callback
         self.tracking_button.clicked.connect(self.tracking_callback)
         grouped_layout.addWidget(self.tracking_button)
+
+        # self.mouse_ctrl_mode_label = QLabel("Mouse Mode:", main)
+        # grouped_layout.addWidget(self.mouse_ctrl_mode_label)
+        # Create a QComboBox to list the available modes for mouse control
+        self.mouse_ctrl_mode_ui = QComboBox(main)
+        self.mouse_ctrl_mode_ui.addItem("relative")
+        self.mouse_ctrl_mode_ui.addItem("absolute")
+        # self.mouse_ctrl_mode_ui.setFixedWidth(250)
+        grouped_layout.addWidget(self.mouse_ctrl_mode_ui)
+        self.mouse_ctrl_mode_ui.currentIndexChanged.connect(self.on_select_mouse_ctrl_mode)
 
         self.edit_button = QPushButton("ADD ROI", main)
         self.edit_button.setCheckable(True)
@@ -310,9 +318,9 @@ class WebCamTabView(QObject):
         self.cam_index_changed.emit(self._cam_index)
 
     @Slot(int)
-    def on_select_cam_resolution(self, index):
-        self._cam_resolution_index = index
-        self.cam_resolution_index_changed.emit(self._cam_resolution_index)
+    def on_select_mouse_ctrl_mode(self, index):
+        mouse_ctrl_mode = self.mouse_ctrl_mode_ui.currentText()
+        self.mouse_ctrl_mode_changed.emit(index)
 
     @Slot(bool)
     def process_callback(self, state):
@@ -326,6 +334,7 @@ class WebCamTabView(QObject):
         # TODO: change implementation, that a mouse operation like (move cursor, left click, right click) can only be mapped from one view (configuration)
         current_state = self.tracking_button.isChecked()
         self.tracking_button.setChecked(not current_state)
+        self.tracking_state_changed.emit(not current_state)
 
     def slider_callback(self, value):
         sender = self.sender()  # Find out which slider sent the signal
@@ -391,9 +400,9 @@ class MediaPipeApp(QMainWindow):
         self.webcam_tab_view2.cam_index_changed.connect(self.cam2_changed)
 
         # call cam1_resolution_changed when cam_resolution_index_changed signal is emitted
-        self.webcam_tab_view1.cam_resolution_index_changed.connect(self.cam1_resolution_changed)
+        self.webcam_tab_view1.mouse_ctrl_mode_changed.connect(self.view1_mouse_ctrl_mode_changed)
         # all cam2_resolution_changed when cam_resolution_index_changed signal is emitted
-        self.webcam_tab_view2.cam_resolution_index_changed.connect(self.cam2_resolution_changed)
+        self.webcam_tab_view2.mouse_ctrl_mode_changed.connect(self.view2_mouse_ctrl_mode_changed)
 
         # call tracking_state1_changed when tracking_state_changed signal is emitted
         self.webcam_tab_view1.tracking_state_changed.connect(self.tracking_state1_changed)
@@ -464,12 +473,14 @@ class MediaPipeApp(QMainWindow):
             self.worker2.handle_cam_index_change(index)
 
     @Slot(int)
-    def cam1_resolution_changed(self, index):
-        self.worker1.handle_cam_resolution_index_change(index)
+    def view1_mouse_ctrl_mode_changed(self, index):
+        mode = self.webcam_tab_view1.mouse_ctrl_mode_ui.currentText()
+        self.worker1.handle_mouse_ctrl_mode_change(mode)
 
     @Slot(int)
-    def cam2_resolution_changed(self, index):
-        self.worker2.handle_cam_resolution_index_change(index)
+    def view2_mouse_ctrl_mode_changed(self, index):
+        mode = self.webcam_tab_view2.mouse_ctrl_mode_ui.currentText()
+        self.worker2.handle_mouse_ctrl_mode_change(mode)
 
     @Slot(bool)
     def tracking_state1_changed(self, state):

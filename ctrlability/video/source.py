@@ -71,10 +71,7 @@ class VideoSource:
         self.reader = imageio.get_reader(
             device_name,
             size=resolution,
-            input_params=[
-                "-framerate",
-                f"{self.fps}",
-            ],
+            input_params=["-framerate", f"{self.fps}", "-pix_fmt", "uyvy422"],
         )
 
         VideoSource.used_camera_ids.add(camera_id)

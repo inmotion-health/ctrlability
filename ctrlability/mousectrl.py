@@ -14,9 +14,9 @@ pyautogui.DARWIN_CATCH_UP_TIME = 0.00
 
 X_THRESHOLD = 0.05
 Y_THRESHOLD = 0.03
-VELOCITY_COMPENSATION_X = 0.05
-VELOCITY_COMPENSATION_Y = 0.05
-SIGMOID_FACTOR = 4
+VELOCITY_COMPENSATION_X = 0.15
+VELOCITY_COMPENSATION_Y = 3.5
+SIGMOID_FACTOR = 6
 
 
 # FIXME: not behaving as expected
@@ -108,7 +108,8 @@ class _MouseCtrl:
         if vec is None or (np.abs(vec) < [X_THRESHOLD, Y_THRESHOLD]).all():
             return
 
-        log_vec = sigmoid_smoothing(vec) * self.screen_height
+        # log_vec = sigmoid_smoothing(vec) * self.screen_height
+        log_vec = np.power(vec, 3) * self.screen_height
         rel_move = log_vec * [VELOCITY_COMPENSATION_X, -VELOCITY_COMPENSATION_Y]  # y inverted
 
         x, y = pyautogui.position()

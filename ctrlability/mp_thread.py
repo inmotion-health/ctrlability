@@ -158,8 +158,9 @@ class MediaPipeThread(QObject):
         if is_tracking_enabled:
             MouseCtrl.set_cursor_center()
 
-    def handle_cam_resolution_index_change(self, resolution_index):
-        self.webcam_source.change_resolution(resolution_index)
+    def handle_mouse_ctrl_mode_change(self, mode):
+        print(f"handle_mouse_ctrl_mode_change{mode}")
+        print(mode)
 
     def handle_model_changed(self, name):
         self.break_loop = True
