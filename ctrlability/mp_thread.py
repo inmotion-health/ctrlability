@@ -1,6 +1,5 @@
 from ctrlability.landmark_processing.face import FaceLandmarkProcessing
 from ctrlability.landmark_processing.hand import HandLandmarkProcessing
-from ctrlability.video.source import VideoSource
 from ctrlability.mousectrl import MouseCtrl
 from ctrlability.roi_processing import RoiProcessing
 from PySide6.QtCore import Signal, QObject, Slot
@@ -9,6 +8,7 @@ import mediapipe as mp
 import time
 import logging as log
 import numpy as np
+from vidcontrol import VideoManager
 
 
 class MediaPipeThread(QObject):
@@ -16,11 +16,12 @@ class MediaPipeThread(QObject):
     finished = Signal()
     signalFrame = Signal(QImage, int)
 
-    def __init__(self, camera_id=0, name="mp_thread"):
+    def __init__(self, video_manager, camera_id=0, name="mp_thread"):
         super().__init__()
-        self.camera_id = camera_id
         self.name = name
-        self.webcam_source = VideoSource(camera_id, 640, 480)
+        self.video_manager = video_manager
+        self.change_camera(camera_id)
+
         # local state variables
         self.is_keeping_mouth_open = False
 
@@ -32,22 +33,18 @@ class MediaPipeThread(QObject):
 
         self.selected_mp_model = "Face"
         self.break_loop = False
-        self.roi_processing = RoiProcessing(self.webcam_source.width, self.webcam_source.height)
+        self.roi_processing = RoiProcessing(self.width, self.height)
         self.triggered_roi_index = -1
 
     def change_camera(self, camera_id):
-        self.camera_id = camera_id
-        self.webcam_source.change_camera(camera_id)
+        self.webcam_source = self.video_manager.get_video_source(camera_id)
+        self.width = self.webcam_source.get_width()
+        self.height = self.webcam_source.get_height()
+        self.qImage = QImage(self.width, self.height, QImage.Format_RGB888)
 
     def process(self):
         self.started.emit()
-
-        # initialize Qimage for color conversion outside of loop to improve performance
-        probe_frame_rgb = self.webcam_source.get_probe_frame()
-        height, width, channel = probe_frame_rgb.shape
-        bytesPerLine = 3 * width
-        qImg = QImage(width, height, QImage.Format_RGB888)
-        img_data = np.frombuffer(qImg.bits(), np.uint8).reshape((qImg.height(), qImg.width(), 3))
+        img_data = np.frombuffer(self.qImage.bits(), np.uint8).reshape((self.qImage.height(), self.qImage.width(), 3))
 
         while True:
             if self.selected_mp_model == "Face":
@@ -84,7 +81,7 @@ class MediaPipeThread(QObject):
                             self.process_times_running_sum += time_taken
                             self.process_times_count += 1
 
-                            self.signalFrame.emit(qImg, self.triggered_roi_index)
+                            self.signalFrame.emit(self.qImage, self.triggered_roi_index)
                             self.triggered_roi_index = -1
 
             elif self.selected_mp_model == "Hands":
@@ -106,7 +103,7 @@ class MediaPipeThread(QObject):
                         # convert frame to QImage
                         np.copyto(img_data, frame_rgb)
 
-                        self.signalFrame.emit(qImg, self.triggered_roi_index)
+                        self.signalFrame.emit(self.qImage, self.triggered_roi_index)
                         self.triggered_roi_index = -1
 
             self.finished.emit()
@@ -149,8 +146,7 @@ class MediaPipeThread(QObject):
             MouseCtrl.release_right_click()
 
     def handle_cam_index_change(self, camera_id):
-        self.camera_id = camera_id
-        self.webcam_source.change_camera(camera_id)
+        self.change_camera(camera_id)
 
     def handle_tracking_state_change(self, is_tracking_enabled):
         self.tracking_state = is_tracking_enabled

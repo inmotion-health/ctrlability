@@ -22,7 +22,7 @@ from qt_material import apply_stylesheet, list_themes
 from ctrlability.mp_thread import MediaPipeThread
 import pyautogui
 from ctrlability.util.argparser import parse_arguments
-from ctrlability.video.vidplatform import video_platform
+from vidcontrol import VideoManager
 
 
 class SystemTrayApp(QSystemTrayIcon):
@@ -197,9 +197,10 @@ class WebCamTabView(QObject):
     mp_model_changed = Signal(int)
     roi_changed = Signal(QRect)
 
-    def __init__(self, main):
+    def __init__(self, main, video_manager: VideoManager):
         super().__init__()
         self._cam_index = 0
+        self.video_manager = video_manager
         self.webCamWidget = QWidget()
 
         self.webCamLayoutView = QHBoxLayout()
@@ -238,7 +239,7 @@ class WebCamTabView(QObject):
 
         # Create a QComboBox to liste the connected webcames
         self.webcam_combo_box = QComboBox(main)
-        webcam_dict = video_platform.list_video_devices()
+        webcam_dict = self.video_manager.list_available_cameras()
         for key, value in webcam_dict.items():
             self.webcam_combo_box.addItem(value)
         self.webcam_combo_box.setFixedWidth(250)
@@ -347,9 +348,10 @@ class WebCamTabView(QObject):
 
 
 class MediaPipeApp(QMainWindow):
-    def __init__(self, app):
+    def __init__(self, app, video_manager):
         super().__init__()
         self.app = app  # Store the QApplication reference here
+        self.video_manager = video_manager
 
         self.setWindowTitle("CTRLABILITY")
         self.setupMenuBar()
@@ -360,14 +362,14 @@ class MediaPipeApp(QMainWindow):
         # First tab for Video Processing
         tab1 = QWidget()
         tab1_layout = QVBoxLayout(tab1)
-        self.webcam_tab_view1 = WebCamTabView(self)
+        self.webcam_tab_view1 = WebCamTabView(self, self.video_manager)
         tab1_layout.addWidget(self.webcam_tab_view1.webCamWidget)
         self.tab_widget.addTab(tab1, "Video Processing 1")
 
         # Second tab for Video Processing
         tab2 = QWidget()
         tab2_layout = QVBoxLayout(tab2)
-        self.webcam_tab_view2 = WebCamTabView(self)
+        self.webcam_tab_view2 = WebCamTabView(self, self.video_manager)
         tab2_layout.addWidget(self.webcam_tab_view2.webCamWidget)
         self.tab_widget.addTab(tab2, "Video Processing 2")
 
@@ -382,12 +384,12 @@ class MediaPipeApp(QMainWindow):
 
         # Setup Threads for First Video Processing
         self.thread1 = QThread()
-        self.worker1 = MediaPipeThread(0, name="mp_thread1")
+        self.worker1 = MediaPipeThread(self.video_manager, 0, name="mp_thread1")
         self.worker1.moveToThread(self.thread1)
         self.setup_connections(self.thread1, self.worker1)
 
         self.thread2 = QThread()
-        self.worker2 = MediaPipeThread(0, name="mp_thread2")
+        self.worker2 = MediaPipeThread(self.video_manager, 0, name="mp_thread2")
         self.worker2.moveToThread(self.thread2)
         self.setup_connections(self.thread2, self.worker2)
 
@@ -591,11 +593,13 @@ if __name__ == "__main__":
         app_info = NSBundle.mainBundle().infoDictionary()
         app_info["CFBundleName"] = "CTRLABILITY"
 
+    video_manager = VideoManager()
+
     args = parse_arguments()
     if args.resolution == "MIN":
-        video_platform.set_preferred_height(480)
+        video_manager.set_preferred_height(480)
     elif args.resolution == "MAX":
-        video_platform.set_preferred_height(720)
+        video_manager.set_preferred_height(720)
 
     app = QApplication(sys.argv)
     app.setApplicationName("CTRLABILITY")  # Set the application name
@@ -610,6 +614,6 @@ if __name__ == "__main__":
     # tray = SystemTrayApp(icon)
     # tray.show()
 
-    mainWin = MediaPipeApp(app)
+    mainWin = MediaPipeApp(app, video_manager)
     mainWin.show()
     sys.exit(app.exec())
