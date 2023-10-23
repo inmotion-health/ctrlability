@@ -1,0 +1,52 @@
+{
+  "name": "My first profile",
+  "head_tracking": {
+    "enabled": true,
+    "camera": 0,
+    "model": "absolute",
+    "speed": 0.5
+  },
+  "mapping": [
+    {
+      "input_action": {
+        "type": "classification",
+        "gesture": "left_eye_blink"
+      },
+      "output_action": {
+        "type": "key_press",
+        "key": "space"
+      }
+    },
+    {
+      "input_action": {
+        "type": "speech",
+        "phrase": "next"
+      },
+      "output_action": {
+        "type": "key_press",
+        "key": "right_arrow"
+      }
+    },
+    {
+      "input_action": {
+        "type": "region_of_interest",
+        "model": "face",
+        "trigger_landmark": ["nose"],
+        "camera": 1,
+        "position": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "size": {
+          "width": 0.5,
+          "height": 1.0
+        },
+        "keep_triggering": true
+      },
+      "output_action": {
+        "type": "key_press",
+        "key": "left_arrow"
+      }
+    }
+  ]
+}
