@@ -25,5 +25,5 @@ parser.add_argument(
 def parse_arguments():
     """Parse the arguments and set the log level"""
     args = parser.parse_args()
-    log.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s", level=args.log_level)
+    log.basicConfig(format="%(asctime)s %(name)s [%(levelname)s]: %(message)s", level=args.log_level)
     return args
