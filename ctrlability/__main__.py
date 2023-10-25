@@ -585,6 +585,16 @@ class MediaPipeApp(QMainWindow):
         self.app.quit()
 
 
+def check_ffmpeg():
+    import subprocess
+
+    try:
+        subprocess.check_output(["ffmpeg", "-version"])
+    except OSError:
+        log.error("ffmpeg not found. Please install ffmpeg and add it to your PATH.")
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     # ToDo: fix in deployment: currently development hack to show application name in menu bar
     if sys.platform == "darwin":
@@ -600,6 +610,8 @@ if __name__ == "__main__":
         video_manager.set_preferred_height(480)
     elif args.resolution == "MAX":
         video_manager.set_preferred_height(720)
+
+    check_ffmpeg()
 
     app = QApplication(sys.argv)
     app.setApplicationName("CTRLABILITY")  # Set the application name
