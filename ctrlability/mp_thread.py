@@ -1,14 +1,16 @@
+import logging as log
+import time
+
+import mediapipe as mp
+import numpy as np
+from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtGui import QImage
+from vidcontrol import VideoManager
+
 from ctrlability.landmark_processing.face import FaceLandmarkProcessing
 from ctrlability.landmark_processing.hand import HandLandmarkProcessing
 from ctrlability.mousectrl import MouseCtrl
 from ctrlability.roi_processing import RoiProcessing
-from PySide6.QtCore import Signal, QObject, Slot
-from PySide6.QtGui import QImage
-import mediapipe as mp
-import time
-import logging as log
-import numpy as np
-from vidcontrol import VideoManager
 
 
 class MediaPipeThread(QObject):

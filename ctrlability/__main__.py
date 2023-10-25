@@ -1,28 +1,28 @@
 import logging as log
 import sys
 
-from PySide6.QtCore import QTimer, Qt, Slot, QThread, Signal, QObject, QRect, QSize
-from PySide6.QtGui import QPixmap, QKeySequence, QShortcut, QAction, QPainter, QColor, QBrush, QPen, QFont, QFontMetrics
+import pyautogui
+from PySide6.QtCore import QObject, QRect, QSize, Qt, QThread, QTimer, Signal, Slot
+from PySide6.QtGui import QAction, QBrush, QColor, QFont, QFontMetrics, QKeySequence, QPainter, QPen, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QLabel,
-    QVBoxLayout,
-    QHBoxLayout,
-    QPushButton,
-    QWidget,
-    QMenuBar,
-    QMenu,
-    QSystemTrayIcon,
     QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMenu,
+    QMenuBar,
+    QPushButton,
+    QSystemTrayIcon,
     QTabWidget,
+    QVBoxLayout,
+    QWidget,
 )
 from qt_material import apply_stylesheet, list_themes
+from vidcontrol import VideoManager
 
 from ctrlability.mp_thread import MediaPipeThread
-import pyautogui
 from ctrlability.util.argparser import parse_arguments
-from vidcontrol import VideoManager
 
 
 class SystemTrayApp(QSystemTrayIcon):

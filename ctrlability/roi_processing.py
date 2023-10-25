@@ -1,4 +1,4 @@
-from PySide6.QtCore import QRect, QPoint
+from PySide6.QtCore import QPoint, QRect
 
 
 class RoiProcessing:

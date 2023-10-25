@@ -1,9 +1,10 @@
-import time
-import pyautogui
-import platform
-import numpy as np
-from abc import ABC, abstractmethod
 import logging as log
+import platform
+import time
+from abc import ABC, abstractmethod
+
+import numpy as np
+import pyautogui
 
 if platform.system() == "Darwin":
     import macmouse
