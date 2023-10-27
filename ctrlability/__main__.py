@@ -451,28 +451,11 @@ class MediaPipeApp(QMainWindow):
 
     @Slot(int)
     def cam1_changed(self, index):
-        if (
-            index == self.webcam_tab_view2.webcam_combo_box.currentIndex()
-            and self.webcam_tab_view2.process_button.isChecked() == True
-        ):
-            self.webcam_tab_view1.webcam_combo_box.setCurrentIndex(self.webcam_tab_view1.cam_index_last_selected)
-            self.webcam_tab_view1.webcam_roi_region.set_msg("Camera already in use in other view.")
-        else:
-            self.webcam_tab_view1.cam_index_last_selected = index
-            self.webcam_tab_view1.webcam_roi_region.set_msg("")
-            self.worker1.handle_cam_index_change(index)
+        self.worker1.handle_cam_index_change(index)
 
     @Slot(int)
     def cam2_changed(self, index):
-        if (
-            index == self.webcam_tab_view1.webcam_combo_box.currentIndex()
-            and self.webcam_tab_view1.process_button.isChecked() == True
-        ):
-            self.webcam_tab_view2.webcam_combo_box.setCurrentIndex(self.webcam_tab_view2.cam_index_last_selected)
-            self.webcam_tab_view2.webcam_roi_region.set_msg("Camera already in use in other view.")
-        else:
-            self.webcam_tab_view2.cam_index_last_selected = index
-            self.worker2.handle_cam_index_change(index)
+        self.worker2.handle_cam_index_change(index)
 
     @Slot(int)
     def view1_mouse_ctrl_mode_changed(self, index):
@@ -494,30 +477,14 @@ class MediaPipeApp(QMainWindow):
 
     @Slot(bool)
     def process_state1_changed(self, state):
-        if (
-            self.webcam_tab_view1.webcam_combo_box.currentIndex()
-            == self.webcam_tab_view2.webcam_combo_box.currentIndex()
-            and self.webcam_tab_view2.process_button.isChecked() == True
-        ):
-            self.webcam_tab_view1.webcam_roi_region.set_msg("Camera already in use in other view.")
-            self.webcam_tab_view1.process_button.setChecked(False)
-
-        elif state:
+        if state:
             self.worker1.resume()
         else:
             self.worker1.pause()
 
     @Slot(bool)
     def process_state2_changed(self, state):
-        if (
-            self.webcam_tab_view1.webcam_combo_box.currentIndex()
-            == self.webcam_tab_view2.webcam_combo_box.currentIndex()
-            and self.webcam_tab_view1.process_button.isChecked() == True
-        ):
-            self.webcam_tab_view2.webcam_roi_region.set_msg("Camera already in use in other view.")
-            self.webcam_tab_view2.process_button.setChecked(False)
-
-        elif state:
+        if state:
             self.worker2.resume()
         else:
             self.worker2.pause()
