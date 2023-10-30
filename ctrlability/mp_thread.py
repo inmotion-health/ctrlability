@@ -60,6 +60,7 @@ class MediaPipeThread(QObject):
                         if self.break_loop == True:
                             self.break_loop = False
                             break
+
                         if self._continue_processing:
                             current_time = time.time() * 1000  # convert to ms
 
