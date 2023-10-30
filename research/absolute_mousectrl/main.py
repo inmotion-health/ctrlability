@@ -57,7 +57,8 @@ def main():
         fy=camera_matrix[1, 1],
     )
 
-    oef = OneEuroFilter(t0=0, x0=0, min_cutoff=0.02, beta=0.01)
+    oef_1 = OneEuroFilter(t0=0, x0=0, min_cutoff=0.002, beta=0.01)
+    oef_2 = OneEuroFilter(t0=0, x0=0, min_cutoff=0.02, beta=0.01)
 
     with mp_face_mesh.FaceMesh(
         static_image_mode=False,
@@ -129,7 +130,7 @@ def main():
                 nose_tip_2D, nose_tip_2D_extended = nose_pointer2D.squeeze().astype(int)
 
                 # filter nose tip
-                nose_tip_2D_extended = oef(idx, nose_tip_2D_extended).astype(int)
+                nose_tip_2D_extended = oef_1(idx, nose_tip_2D_extended).astype(int)
 
                 frame = cv2.line(frame, nose_tip_2D, nose_tip_2D_extended, MAGENTA, 2)
                 text_pos = (nose_tip_2D_extended[0] + 10, nose_tip_2D_extended[1] + 10)
@@ -150,6 +151,9 @@ def main():
 
                 # scale nose tip to screen size
                 translated_nose_tip = translated_nose_tip * np.array([screenWidth, screenHeight])
+
+                # filter the translated nose tip
+                translated_nose_tip = oef_2(idx, translated_nose_tip).astype(int)
 
                 # move mouse
                 pag.moveTo(*translated_nose_tip, duration=0.1)
