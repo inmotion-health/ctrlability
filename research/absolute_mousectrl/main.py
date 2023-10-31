@@ -21,12 +21,13 @@ mp_face_mesh_connections = mp.solutions.face_mesh_connections
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=3)
 
 points_idx = [33, 263, 61, 291, 199]
+# points_idx = [168, 206, 426, 33, 263, 61, 291, 172, 397]
 points_idx = points_idx + [key for (key, val) in procrustes_landmark_basis]
 points_idx = list(set(points_idx))
 points_idx.sort()
 
-# uncomment next line to use all points for PnP algorithm
-# points_idx = list(range(0,468)); points_idx[0:2] = points_idx[0:2:-1];
+# points_idx = list(range(0, 468))
+# points_idx[0:2] = points_idx[0:2:-1]
 
 frame_height, frame_width, channels = (720, 1280, 3)
 

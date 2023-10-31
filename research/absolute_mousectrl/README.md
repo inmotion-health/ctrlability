@@ -18,6 +18,8 @@ graph LR
 - [ ] we need to stabilize the nose tip while mouth is being opened
 - [ ] we need to be aware of the distance of the user to the camera since our rectangle is fixed
 
+-> Alternatively, we should use smaller gestures for triggering clicks.
+
 ## Acknowledgements
 
 - [MediaPipe Demos by Rasmus Jones](https://github.com/Rassibassi/mediapipeDemos/)
