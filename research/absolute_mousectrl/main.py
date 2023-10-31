@@ -162,6 +162,31 @@ def main():
                 # move mouse
                 pag.moveTo(*translated_nose_tip, duration=0.1)
 
+                # detect if mouth open
+                distance = np.linalg.norm(landmarks[:, 12] - landmarks[:, 16])
+
+                # draw line and put distance next to it
+                frame = cv2.line(
+                    frame,
+                    (int(landmarks[0, 12] * frame_width), int(landmarks[1, 12] * frame_height)),
+                    (int(landmarks[0, 16] * frame_width), int(landmarks[1, 16] * frame_height)),
+                    (255, 0, 0),
+                    2,
+                )
+                cv2.putText(
+                    frame,
+                    f"{distance}",
+                    (int(landmarks[0, 12] * frame_width), int(landmarks[1, 12] * frame_height)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (255, 0, 0),
+                    1,
+                )
+
+                if distance > 0.05:
+                    pag.click()
+                    print("click")
+
             source.show(frame)
 
 
