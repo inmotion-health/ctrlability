@@ -61,6 +61,9 @@ def main():
     oef_1 = OneEuroFilter(t0=0, x0=0, min_cutoff=0.01, beta=0.005)
     oef_2 = OneEuroFilter(t0=0, x0=0, min_cutoff=0.001, beta=0.001)
 
+    # lets create a filter for every point we use for the pnp
+    oef_pts = [OneEuroFilter(t0=0, x0=0, min_cutoff=0.01, beta=0.005) for _ in range(len(points_idx))]
+
     with mp_face_mesh.FaceMesh(
         static_image_mode=False,
         refine_landmarks=refine_landmarks,
@@ -84,6 +87,10 @@ def main():
 
                 image_points = landmarks[0:2, points_idx].T * np.array([frame_width, frame_height])[None, :]
                 model_points = metric_landmarks[0:3, points_idx].T
+
+                # filter points
+                for i, pt in enumerate(model_points):
+                    model_points[i] = oef_pts[i](idx, pt)
 
                 # see here:
                 # https://github.com/google/mediapipe/issues/1379#issuecomment-752534379
