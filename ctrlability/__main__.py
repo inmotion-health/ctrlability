@@ -1,5 +1,7 @@
 import logging as log
 import sys
+import subprocess
+import platform
 
 import pyautogui
 from PySide6.QtCore import QObject, QRect, QSize, Qt, QThread, QTimer, Signal, Slot
@@ -562,6 +564,13 @@ def check_ffmpeg():
         sys.exit(1)
 
 
+def check_appearance():
+    """Checks DARK/LIGHT mode of macos."""
+    cmd = "defaults read -g AppleInterfaceStyle"
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    return bool(p.communicate()[0])
+
+
 if __name__ == "__main__":
     # ToDo: fix in deployment: currently development hack to show application name in menu bar
     if sys.platform == "darwin":
@@ -582,8 +591,13 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     app.setApplicationName("CTRLABILITY")  # Set the application name
+
     # setup stylesheet
-    apply_stylesheet(app, theme="light_blue.xml")
+    theme = "light_blue.xml"
+    if platform.system() == "Darwin":
+        if check_appearance():
+            theme = "dark_blue.xml"
+    apply_stylesheet(app, theme=theme)
 
     # Ensure the app doesn't exit when the window is closed
     app.setQuitOnLastWindowClosed(False)
