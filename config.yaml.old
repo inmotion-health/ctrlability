@@ -1,0 +1,53 @@
+version: 1.2
+mapping:
+  VideoStream: #stream
+    args:
+      device: 0
+      preferred_fps: 30
+      preferred_width: 640
+
+    processors:
+      - FaceLandmarkDetector: #processor
+        args:
+          confidence: 0.5
+        processors:
+          - ExampleConfigurableProcessor: #processor
+            args:
+              foo: 1
+              bar: 2
+            triggers:
+              - ExampleTrigger: #trigger
+                  args:
+                    foo: 1
+                    bar: 2
+                  action:
+                    ExampleAction: #action
+                      args:
+                        foo: 1
+                        bar: 2
+        triggers:
+          - LandmarkDistance: #trigger
+              args:
+                landmarks:
+                  - 11
+                  - 16
+                threshold: 0.1
+              action:
+                MouseAction:
+                  args:
+                    x: 0
+                    y: 0
+                    command: move
+                  input:
+                    - trigger.nosetip
+                    - 0.5
+
+          - LandmarkDistance: #trigger
+              args:
+                landmarks:
+                  - 179
+                  - 403
+                threshold: 0.3
+              action:
+                MouseAction:
+                  command: right_click

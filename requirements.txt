@@ -10,3 +10,10 @@ qt-material >= 2.14
 pygrabber >= 0.1.0
 vidcontrol >= 0.1.1
 
+PyYAML==6.0.1
+
+
+numpy~=1.26.2
+opencv-python~=4.8.1.78
+sounddevice~=0.4.6
+Pillow~=10.1.0

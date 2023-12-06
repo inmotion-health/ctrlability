@@ -1,0 +1,60 @@
+version: 1.2
+mapping:
+  NumberStream:
+    processors:
+      - Multiplier:
+          args:
+            factor: 2
+          processors:
+            - Multiplierrr:
+                args:
+                  factor: 2
+                triggers:
+                  - BiggerThan:
+                      args:
+                        number: 2
+                      action:
+                        - Printer2:
+                            args:
+                              hallo: "Hallo Welt"
+                processors:
+                  - Multiplier:
+                      args:
+                        factor: 2
+                      triggers:
+                        - BiggerThan:
+                            args:
+                              number: 2
+                            action:
+                              - Printer2:
+                                  args:
+                                      message: "Hello World"
+                                      hallo: "Hallo Welt"
+          triggers:
+            - BiggerThan:
+                args:
+                  number: 19
+                  baller: "Hallo Welt"
+                action:
+                  - Printer:
+                        args:
+                            message: "Hello World"
+                            hallo: "Hallo Welt"
+            - BiggerThan:
+                args:
+                  number: 19
+                action:
+                  - Printer
+      - Multiplier:
+          args:
+            factor: 2
+          triggers:
+            - BiggerThan:
+                args:
+                  number: 20
+                action:
+                  - Printer
+    triggers:
+      - Truer:
+          action:
+            - Printer
