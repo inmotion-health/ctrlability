@@ -21,7 +21,6 @@ class Multiplier(Processor):
 
 
 class Printer(Action):
-
     def __init__(self):
         pass
 
@@ -43,7 +42,6 @@ b = Bootstrapper()
 
 @b.add("Truer")
 class Truer(Trigger):
-
     def check(self, data):
         print("SOWIESO")
         return True
@@ -51,7 +49,6 @@ class Truer(Trigger):
 
 @b.add("Printer2")
 class Printer2(Action):
-
     def __init__(self, message=3):
         print("INIT")
         print(message)
@@ -63,13 +60,14 @@ class Printer2(Action):
         return True
 
 
-b.add_class('NumberStream', NumberStream)
-b.add_class('Multiplier', Multiplier)
-b.add_class('Printer', Printer)
-b.add_class('BiggerThan', BiggerThan)
+# TODO: can we hide this away and do it automatically?
+b.add_class("NumberStream", NumberStream)
+b.add_class("Multiplier", Multiplier)
+b.add_class("Printer", Printer)
+b.add_class("BiggerThan", BiggerThan)
 b.add_class("Multiplierrr", Multiplier)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     streams = b.bootstrap()
     print(streams)
     for stream in streams:

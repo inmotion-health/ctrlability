@@ -28,8 +28,6 @@ class Action:
     def execute(self, **kwargs):
         pass
 
-    #
-
 
 class Stream(ABC):
     @abstractmethod
@@ -38,7 +36,6 @@ class Stream(ABC):
 
 
 class MappingEngine:
-
     def __init__(self):
         self._actions: dict[UUID, Action] = {}
 
@@ -85,7 +82,9 @@ class Processor(ABC):
             str_ += "\n\t" + post_processor.__repr__()
 
         for trigger in self._triggers:
-            str_ += f"\n\t{trigger[0].__class__.__name__} -> {self._mapping_engine._actions[trigger[1]].__class__.__name__}"
+            str_ += (
+                f"\n\t{trigger[0].__class__.__name__} -> {self._mapping_engine._actions[trigger[1]].__class__.__name__}"
+            )
         return str_
 
 
@@ -99,7 +98,6 @@ class PostProcessor(Processor, ABC):
 
 
 class StreamHandler(Processor):
-
     def __init__(self, stream: Stream, mapping_engine: MappingEngine):
         super().__init__(mapping_engine)
         self._stream = stream
@@ -122,8 +120,8 @@ class StreamHandler(Processor):
 # TODO: structure checking -> could be done in the config parser but alot of dup code for parsing/traversing
 # TODO: split this parsing traversion into a separate class
 
-class Bootstrapper:
 
+class Bootstrapper:
     def __init__(self):
         self._config = ConfigParser().parse()
         self._mapping_engine = MappingEngine()
@@ -186,8 +184,9 @@ class Bootstrapper:
             return {}
         return block.get(self.block_name(block)).get("args", {})
 
-    def create_instance(self, block: dict,
-                        mapping_engine: MappingEngine = None) -> Action | Trigger | Processor | Stream:
+    def create_instance(
+        self, block: dict, mapping_engine: MappingEngine = None
+    ) -> Action | Trigger | Processor | Stream:
         block_name = self.block_name(block)
         block_args = self.block_args(block)
 
@@ -233,6 +232,7 @@ class Bootstrapper:
             return self.add_class_by_classname
         if isinstance(name, str):
             from functools import partial
+
             return partial(self.add_class_by_name, name)
         if inspect.isclass(name):
             return self.add_class_by_classname(name)
