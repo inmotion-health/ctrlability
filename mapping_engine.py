@@ -7,14 +7,15 @@ from config_parser import ConfigParser
 
 
 # TODO: add logging
-# TODO: is it possibly to separate streamhandlaer and postprocessor more - maybe not necessary
+# TODO: is it possibly to separate StreamHandler and postprocessor more - maybe not necessary
 # TODO: better naming
 # TODO: think how ui can interact with the whole system
 # TODO: thinking about async
 # TODO: can we implement type detection while we parse the config
 # TODO: separate into files/modules
-# TODO: Maybe transform to templaye method pattern so that we can do some more stuff
+# TODO: Maybe transform to template method pattern so that we can do some more stuff
 # TODO: create event class
+# TODO: we need options for Streams, e.g. for setting the webcam id
 
 
 class Trigger(ABC):
@@ -118,7 +119,7 @@ class StreamHandler(Processor):
 # TODO: return stream in better format. one more class? like one big handler. so much indirection >.<
 # TODO: better naming
 # TODO: structure checking -> could be done in the config parser but alot of dup code for parsing/traversing
-# TODO: split this parsing traversion into a separate class
+# TODO: split this parsing traversal into a separate class
 
 
 class Bootstrapper:
@@ -170,7 +171,7 @@ class Bootstrapper:
             if isinstance(action, str):
                 action_instance = self.find_class(action)()
             elif isinstance(action, dict):
-                # todo check keywoard ags
+                # todo check keyword ags
                 action_instance = self.create_instance(action)
             uu = uuid4()
             processor_instance.connect_trigger(trigger_instance, uu)
@@ -223,7 +224,8 @@ class Bootstrapper:
         return class_
 
     def add(self, name=None):
-        """flexible decorator to add classes to the mapping engine
+        """
+        flexible decorator to add classes to the mapping engine
         :param name: name which can be used to add the class - name that is used in the config file
         calling it like @add("MyClass") will add the class by the name "MyClass"
         calling it like @add()/@add will add the class by its classname
