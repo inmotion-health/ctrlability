@@ -16,6 +16,7 @@ from config_parser import ConfigParser
 # TODO: Maybe transform to template method pattern so that we can do some more stuff
 # TODO: create event class
 # TODO: we need options for Streams, e.g. for setting the webcam id
+# TODO: !!also how can we change the setup during runtime through the ai and persist these changes to the config file
 
 
 class Trigger(ABC):
