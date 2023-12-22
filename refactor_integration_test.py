@@ -88,6 +88,8 @@ class LandmarkDistance(Trigger):
 
 @b.add("MouseAction")
 class MouseAction(Action):
+    # if we put here an instance of MouseCtrl as a singleton property, it would solve our "only-once" issue,
+    # but very dirty.
     def __init__(self, key_name):
         self.key = key_name
 
@@ -97,9 +99,9 @@ class MouseAction(Action):
 
 if __name__ == "__main__":
     streams = b.bootstrap()
-    print(streams)
 
     while True:
+        # TODO: maybe its better to hide this away into a function on the bootstrapper as well, or an the mapping engine
         for stream in streams:
             stream.process(None)
 
