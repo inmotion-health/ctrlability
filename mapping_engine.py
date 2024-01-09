@@ -38,17 +38,18 @@ class Stream(ABC):
 
 
 class MappingEngine:
+
     def __init__(self):
         self._actions: dict[UUID, Action] = {}
 
-    def register(self, evnet_id: UUID, action: Action):
-        self._actions[evnet_id] = action
+    def register(self, action_id: UUID, action: Action):
+        self._actions[action_id] = action
 
-    def notify(self, event_id: UUID, **kwargs: object) -> object:
+    def notify(self, action_id: UUID, **kwargs: object) -> object:
         print(kwargs)
         print("notify")
-        print(self._actions[event_id])
-        self._actions[event_id].execute(**kwargs)
+        print(self._actions[action_id])
+        self._actions[action_id].execute(**kwargs)
 
 
 class Processor(ABC):
@@ -57,8 +58,8 @@ class Processor(ABC):
         self._triggers: List[Tuple[Trigger, UUID]] = []
         self._post_processors: List[Processor] = []
 
-    def connect_trigger(self, trigger: Trigger, event_id: UUID):
-        self._triggers.append((trigger, event_id))
+    def connect_trigger(self, trigger: Trigger, action_id: UUID):
+        self._triggers.append((trigger, action_id))
 
     def connect_post_processor(self, post_processor):
         self._post_processors.append(post_processor)
@@ -77,17 +78,6 @@ class Processor(ABC):
     @abstractmethod
     def compute(self, data):
         pass
-
-    def __repr__(self):
-        str_ = ""
-        for post_processor in self._post_processors:
-            str_ += "\n\t" + post_processor.__repr__()
-
-        for trigger in self._triggers:
-            str_ += (
-                f"\n\t{trigger[0].__class__.__name__} -> {self._mapping_engine._actions[trigger[1]].__class__.__name__}"
-            )
-        return str_
 
 
 class PostProcessor(Processor, ABC):
@@ -169,6 +159,10 @@ class Bootstrapper:
         trigger_instance = self.create_instance(trigger)
         action = trigger.get(trigger_name).get("action", [])
         for action in action:
+            # this is done because of the way how yaml is parsed
+            # it allows to specify the action as a string or as a dict
+            # you can just write - Printer or - Printer2:
+            #                                      args: ...
             if isinstance(action, str):
                 action_instance = self.find_class(action)()
             elif isinstance(action, dict):
