@@ -7,21 +7,16 @@ from config_parser import ConfigParser
 
 
 # TODO: add logging
-# TODO: is it possibly to separate StreamHandler and postprocessor more - maybe not necessary
 # TODO: better naming
 # TODO: think how ui can interact with the whole system
 # TODO: thinking about async
-# TODO: can we implement type detection while we parse the config
+# TODO: can we implement type detection of arguments while we parse the config
 # TODO: separate into files/modules
-# TODO: Maybe transform to template method pattern so that we can do some more stuff
-# TODO: create event class
-# TODO: we need options for Streams, e.g. for setting the webcam id
-# TODO: !!also how can we change the setup during runtime through the ai and persist these changes to the config file
 
 
 class Trigger(ABC):
     @abstractmethod
-    def check(self, data) -> bool:
+    def check(self, data) -> dict | None:
         pass
 
 
@@ -38,7 +33,6 @@ class Stream(ABC):
 
 
 class MappingEngine:
-
     def __init__(self):
         self._actions: dict[UUID, Action] = {}
 
@@ -80,15 +74,6 @@ class Processor(ABC):
         pass
 
 
-class PostProcessor(Processor, ABC):
-    def __init__(self, mapping_engine: MappingEngine):
-        super().__init__(mapping_engine)
-
-    @abstractmethod
-    def compute(self, data):
-        pass
-
-
 class StreamHandler(Processor):
     def __init__(self, stream: Stream, mapping_engine: MappingEngine):
         super().__init__(mapping_engine)
@@ -105,10 +90,8 @@ class StreamHandler(Processor):
         return f"StreamHandler for {self._stream.__class__.__name__} -> " + super().__repr__()
 
 
-# TODO: action get input from trigger
 # TODO: maybe use args for triggers - not kwargs
 # TODO: return stream in better format. one more class? like one big handler. so much indirection >.<
-# TODO: better naming
 # TODO: structure checking -> could be done in the config parser but alot of dup code for parsing/traversing
 # TODO: split this parsing traversal into a separate class
 
@@ -117,8 +100,8 @@ class Bootstrapper:
     def __init__(self):
         self._config = ConfigParser().parse()
         self._mapping_engine = MappingEngine()
-        self._classes = {}  # here life only the manually added classes
-        self.streams: list[StreamHandler] = []  # maybe put this in
+        self._classes = {}
+        self.streams: list[StreamHandler] = []
 
     def bootstrap(self):
         print(self._classes)
@@ -166,13 +149,14 @@ class Bootstrapper:
             if isinstance(action, str):
                 action_instance = self.find_class(action)()
             elif isinstance(action, dict):
-                # todo check keyword ags
+                # todo: check keyword ags
                 action_instance = self.create_instance(action)
             uu = uuid4()
             processor_instance.connect_trigger(trigger_instance, uu)
             self._mapping_engine.register(uu, action_instance)
 
-    def block_name(self, block: dict) -> str:
+    @staticmethod
+    def block_name(block: dict) -> str:
         return list(block.keys())[0]
 
     def block_args(self, block: dict) -> dict:
@@ -190,7 +174,8 @@ class Bootstrapper:
             block_args["mapping_engine"] = mapping_engine
         return self.create_instance_from_name(block_name, block_args)
 
-    def validate_args(self, cls, args: dict) -> dict:
+    @staticmethod
+    def validate_args(cls, args: dict) -> dict:
         class_args = inspect.getfullargspec(cls.__init__)
         args_out = args.copy()
         for arg in args.keys():

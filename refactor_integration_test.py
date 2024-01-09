@@ -9,18 +9,13 @@ from mapping_engine import *
 ConfigParser.CONFIG_PATH = "refactor_config.yaml"
 b = Bootstrapper()
 
-# TODO: where can we put the cursor tracking in there nicely?
-#       if we want to have it as an action we need two things:
-#       - a way to pass arbitrary data to the action
-#       - a way to force the single use of a action in the config
+# TODO: implement cursor as trigger and action
 
 # TODO: biggest remaining task is to be able to change settings dynamically, e.g. through the UI and a way to persist
 #       these changes to "the" or "a" config.
 
-# TODO: maybe enforce some kind of typing of the kind of data begin transferred from block to block
 
-
-@b.add("VideoStream")
+@b.add()
 class VideoStream(Stream):
     def __init__(self, webcam_id):
         self.webcam_id = webcam_id
@@ -36,8 +31,7 @@ class VideoStream(Stream):
 
         cv2.imshow("frame", frame)
 
-        # TODO: observation
-        #       here we could dig a tunnel with qt threads to the UI to pass along the current frame, though this is not
+        # TODO: here we could dig a tunnel with qt threads to the UI to pass along the current frame, though this is not
         #       good.how can we do this gracefully?
         #       we also would somehow need to build a mechanism that allows overlaying of info onto the frame.
         #       maybe we also could not do this and just keep this app in its final version in the background; though,
@@ -46,7 +40,7 @@ class VideoStream(Stream):
         return frame
 
 
-@b.add("FaceLandmarkProcessor")
+@b.add()
 class FaceLandmarkProcessor(Processor):
     def __init__(self, mapping_engine: MappingEngine):
         super().__init__(mapping_engine)
@@ -67,7 +61,7 @@ def distance_between_points(a, b):
     return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 
 
-@b.add("LandmarkDistance")
+@b.add()
 class LandmarkDistance(Trigger):
     def __init__(self, landmark1, landmark2, threshold):
         self.landmark1 = landmark1
@@ -76,25 +70,27 @@ class LandmarkDistance(Trigger):
 
         print(f"landmarks: [{self.landmark1}, {self.landmark2}]")
 
-    def check(self, data) -> bool:
-        landmark1_coords = data.landmark[self.landmark1]
-        landmark2_coords = data.landmark[self.landmark2]
+    def check(self, data) -> dict | None:
+        if data:
+            landmark1_coords = data.landmark[self.landmark1]
+            landmark2_coords = data.landmark[self.landmark2]
 
-        distance = distance_between_points(landmark1_coords, landmark2_coords)
+            distance = distance_between_points(landmark1_coords, landmark2_coords)
 
-        if distance > self.threshold:
-            return True
+            if distance > self.threshold:
+                return {"distance": distance, "length": 10}
 
 
-@b.add("MouseAction")
+@b.add()
 class MouseAction(Action):
     # if we put here an instance of MouseCtrl as a singleton property, it would solve our "only-once" issue,
     # but very dirty.
     def __init__(self, key_name):
         self.key = key_name
 
-    def execute(self, **kwargs):
+    def execute(self, data):
         print(f"triggered: {self.key}")
+        print(f"d: {data}")
 
 
 if __name__ == "__main__":
