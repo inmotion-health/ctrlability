@@ -1,4 +1,7 @@
 from yaml import load, Loader
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class ConfigParser:
@@ -8,11 +11,14 @@ class ConfigParser:
         if config_path is not None:
             self.CONFIG_PATH = config_path
 
+        log.debug(f"Config path set to {config_path}")
+
     def validate(self, config: dict):
+        # TODO: validate config
         pass
 
     def parse(self):
         with open(self.CONFIG_PATH) as f:
             config: dict = load(f, Loader=Loader)
-            # self.validate(config)
+
             return config.get("mapping")

@@ -1,0 +1,19 @@
+from ctrlability.engine.api.processor import Processor
+from ctrlability.engine.api.stream import Stream
+from ctrlability.engine.mapping_engine import MappingEngine
+
+
+class StreamHandler(Processor):
+    def __init__(self, stream: Stream, mapping_engine: MappingEngine):
+        super().__init__(mapping_engine)
+        self._stream = stream
+        self._mapping_engine = mapping_engine
+
+    def _handle_stream(self):
+        return self._stream.get_next()
+
+    def compute(self, data):
+        return self._handle_stream()
+
+    def __repr__(self):
+        return f"StreamHandler for {self._stream.__class__.__name__} -> " + super().__repr__()

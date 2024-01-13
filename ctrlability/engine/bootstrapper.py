@@ -1,99 +1,18 @@
 import inspect
-from abc import ABC, abstractmethod
-from typing import List, Tuple
-from uuid import uuid4, UUID
+import logging
+from uuid import uuid4
 
-from config_parser import ConfigParser
+from ctrlability.engine.api import Action, Processor, Stream, Trigger
+from ctrlability.engine.config_parser import ConfigParser
+from ctrlability.engine.mapping_engine import MappingEngine
+from ctrlability.engine.stream_handler import StreamHandler
 
-
-# TODO: add logging
-# TODO: better naming
-# TODO: think how ui can interact with the whole system
-# TODO: thinking about async
-# TODO: can we implement type detection of arguments while we parse the config
-# TODO: separate into files/modules
-
-
-class Trigger(ABC):
-    @abstractmethod
-    def check(self, data) -> dict | None:
-        pass
-
-
-class Action:
-    @abstractmethod
-    def execute(self, **kwargs):
-        pass
-
-
-class Stream(ABC):
-    @abstractmethod
-    def get_next(self):
-        pass
-
-
-class MappingEngine:
-    def __init__(self):
-        self._actions: dict[UUID, Action] = {}
-
-    def register(self, action_id: UUID, action: Action):
-        self._actions[action_id] = action
-
-    def notify(self, action_id: UUID, **kwargs: object) -> object:
-        print(kwargs)
-        print("notify")
-        print(self._actions[action_id])
-        self._actions[action_id].execute(**kwargs)
-
-
-class Processor(ABC):
-    def __init__(self, mapping_engine: MappingEngine):
-        self._mapping_engine = mapping_engine
-        self._triggers: List[Tuple[Trigger, UUID]] = []
-        self._post_processors: List[Processor] = []
-
-    def connect_trigger(self, trigger: Trigger, action_id: UUID):
-        self._triggers.append((trigger, action_id))
-
-    def connect_post_processor(self, post_processor):
-        self._post_processors.append(post_processor)
-
-    def process(self, data):
-        data = self.compute(data)
-        for post_processor in self._post_processors:
-            post_processor.process(data)
-
-        for trigger in self._triggers:
-            d = trigger[0].check(data)
-            if d:
-                event_id = trigger[1]
-                self._mapping_engine.notify(event_id, data=d)
-
-    @abstractmethod
-    def compute(self, data):
-        pass
-
-
-class StreamHandler(Processor):
-    def __init__(self, stream: Stream, mapping_engine: MappingEngine):
-        super().__init__(mapping_engine)
-        self._stream = stream
-        self._mapping_engine = mapping_engine
-
-    def _handle_stream(self):
-        return self._stream.get_next()
-
-    def compute(self, data):
-        return self._handle_stream()
-
-    def __repr__(self):
-        return f"StreamHandler for {self._stream.__class__.__name__} -> " + super().__repr__()
+log = logging.getLogger(__name__)
 
 
 # TODO: maybe use args for triggers - not kwargs
-# TODO: return stream in better format. one more class? like one big handler. so much indirection >.<
 # TODO: structure checking -> could be done in the config parser but alot of dup code for parsing/traversing
-# TODO: split this parsing traversal into a separate class
+# TODO: can we implement type detection of arguments while we parse the config
 
 
 class Bootstrapper:
@@ -103,8 +22,8 @@ class Bootstrapper:
         self._classes = {}
         self.streams: list[StreamHandler] = []
 
-    def bootstrap(self):
-        print(self._classes)
+    def boot(self):
+        print(self._classes)  # FIXME: better tree like representation
         for stream in self._config.keys():
             args = self._config[stream].get("args", {})
             stream_instance = self.create_instance_from_name(stream, args)
@@ -127,15 +46,14 @@ class Bootstrapper:
         handler.connect_post_processor(processor_instance)
 
         post_processor = processor.get(processor_name).get("processors", [])
-        print(processor_name)
 
         for trigger in processor.get(processor_name).get("triggers", []):
             self.parse_trigger(processor_instance, trigger)
 
         for pr in post_processor:
-            print("PARSING POST PROCESSOR")
+            log.debug("PARSING POST PROCESSOR")
             self.parse_processor(pr, processor_instance)
-            print("PARSED POST PROCESSOR")
+            log.debug("PARSED POST PROCESSOR")
 
     def parse_trigger(self, processor_instance, trigger):
         trigger_name = self.block_name(trigger)
@@ -180,7 +98,7 @@ class Bootstrapper:
         args_out = args.copy()
         for arg in args.keys():
             if arg not in class_args.args:
-                print(f"Argument {arg} is not valid for {cls.__name__} - ignoring")
+                log.error(f"Argument {arg} is not valid for {cls.__name__} - ignoring")
                 args_out.pop(arg)
         return args_out
 
