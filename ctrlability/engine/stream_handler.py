@@ -14,6 +14,3 @@ class StreamHandler(Processor):
 
     def compute(self, data):
         return self._handle_stream()
-
-    def __repr__(self):
-        return f"StreamHandler for {self._stream.__class__.__name__} -> " + super().__repr__()

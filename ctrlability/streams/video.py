@@ -1,6 +1,5 @@
 import logging
 import subprocess
-import sys
 
 from vidcontrol import VideoManager
 
@@ -13,8 +12,7 @@ def check_ffmpeg():
     try:
         subprocess.check_output(["ffmpeg", "-version"])
     except OSError:
-        log.error("ffmpeg not found. Please install ffmpeg and add it to your PATH.")
-        sys.exit(1)
+        raise RuntimeError("ffmpeg not found. Please install ffmpeg and add it to your PATH.")
 
 
 @bootstrapper.add()

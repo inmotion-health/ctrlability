@@ -2,7 +2,6 @@ import inspect
 import logging
 
 from ctrlability.engine.mapping_engine import MappingEngine
-from ctrlability.util import printing
 
 # TODO: maybe use args for triggers - not kwargs
 # TODO: structure checking -> could be done in the config parser but alot of dup code for parsing/traversing
@@ -28,7 +27,6 @@ class Bootstrapper:
         _tree_parser = TreeParser(self._classes, self._mapping_engine)
 
         log.debug("Bootstrapping...")
-        printing.debug_pprint(_config)
         for stream, stream_info in _config.items():  # Iterate over the dictionary
             args = stream_info.get("args", {})
             stream_instance = _tree_parser.create_instance_from_name(stream, args)

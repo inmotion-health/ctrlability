@@ -74,4 +74,7 @@ class TreeParser:
         return cls(**args)
 
     def find_class(self, class_name: str):
+        if class_name not in self._classes:
+            raise RuntimeError(f"Class {class_name} not found. Did you forget to add it to the bootstrapper?")
+
         return self._classes[class_name]

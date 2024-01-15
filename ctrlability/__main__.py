@@ -17,6 +17,7 @@ def main():
         tree_printer = TreePrinter(stream_handlers, bootstrapper._mapping_engine)
         tree_printer.print_representation()
 
+    # run the main loop of the app infinitely
     while True:
         for stream in stream_handlers:
             stream.process(None)
@@ -31,15 +32,19 @@ def show_version():
     exit(0)
 
 
+def setup():
+    # set the config file path from the arguments
+    from ctrlability.engine.config_parser import ConfigParser
+
+    ConfigParser.CONFIG_PATH = args.config_file
+
+
 if __name__ == "__main__":
     args = parse_arguments()
 
     if args.show_version:
         show_version()
 
-    # set the config file path from the arguments
-    from ctrlability.engine.config_parser import ConfigParser
-
-    ConfigParser.CONFIG_PATH = args.config_file
+    setup()
 
     main()
