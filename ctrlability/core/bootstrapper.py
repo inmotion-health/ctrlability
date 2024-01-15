@@ -1,7 +1,7 @@
 import inspect
 import logging
 
-from ctrlability.engine.mapping_engine import MappingEngine
+from ctrlability.core.mapping_engine import MappingEngine
 
 # TODO: maybe use args for triggers - not kwargs
 # TODO: structure checking -> could be done in the config parser but alot of dup code for parsing/traversing
@@ -19,9 +19,9 @@ class Bootstrapper:
     def boot(self):
         # let's delay these imports to the actual booting process to avoid not propagating changes to the logger since
         # we are creating a global singleton instance in a module.
-        from ctrlability.engine.stream_handler import StreamHandler
-        from ctrlability.engine.tree_parser import TreeParser
-        from ctrlability.engine.config_parser import ConfigParser
+        from ctrlability.core.stream_handler import StreamHandler
+        from ctrlability.core.tree_parser import TreeParser
+        from ctrlability.core.config_parser import ConfigParser
 
         _config = ConfigParser().parse()
         _tree_parser = TreeParser(self._classes, self._mapping_engine)

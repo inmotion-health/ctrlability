@@ -1,6 +1,6 @@
-from ctrlability.engine.api.processor import Processor
-from ctrlability.engine.api.stream import Stream
-from ctrlability.engine.mapping_engine import MappingEngine
+from ctrlability.core.api.processor import Processor
+from ctrlability.core.api.stream import Stream
+from ctrlability.core.mapping_engine import MappingEngine
 
 
 class StreamHandler(Processor):

@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 
 def main():
-    from ctrlability.engine import bootstrapper
+    from ctrlability.core import bootstrapper
 
     stream_handlers = bootstrapper.boot()
 
@@ -34,7 +34,7 @@ def show_version():
 
 def setup():
     # set the config file path from the arguments
-    from ctrlability.engine.config_parser import ConfigParser
+    from ctrlability.core.config_parser import ConfigParser
 
     ConfigParser.CONFIG_PATH = args.config_file
 

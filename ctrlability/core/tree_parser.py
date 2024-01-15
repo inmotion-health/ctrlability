@@ -2,7 +2,7 @@ import inspect
 import logging
 from uuid import uuid4
 
-from ctrlability.engine.mapping_engine import MappingEngine
+from ctrlability.core.mapping_engine import MappingEngine
 
 log = logging.getLogger(__name__)
 

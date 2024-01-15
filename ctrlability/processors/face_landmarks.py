@@ -1,6 +1,6 @@
 import mediapipe as mp
 
-from ctrlability.engine import Processor, MappingEngine, bootstrapper
+from ctrlability.core import Processor, MappingEngine, bootstrapper
 
 
 @bootstrapper.add()

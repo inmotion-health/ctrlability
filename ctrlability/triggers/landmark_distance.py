@@ -1,6 +1,6 @@
 import logging
 
-from ctrlability.engine import Trigger, bootstrapper
+from ctrlability.core import Trigger, bootstrapper
 from ctrlability.math.geometry import distance_between_points
 
 log = logging.getLogger(__name__)

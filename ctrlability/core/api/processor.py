@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import List, Tuple
 from uuid import UUID
 
-from ctrlability.engine.api.trigger import Trigger
-from ctrlability.engine.mapping_engine import MappingEngine
+from ctrlability.core.api.trigger import Trigger
+from ctrlability.core.mapping_engine import MappingEngine
 
 
 class Processor(ABC):

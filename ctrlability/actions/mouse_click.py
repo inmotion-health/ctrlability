@@ -1,4 +1,4 @@
-from ctrlability.engine import Action, bootstrapper
+from ctrlability.core import Action, bootstrapper
 
 
 @bootstrapper.add()

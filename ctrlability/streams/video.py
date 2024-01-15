@@ -3,7 +3,7 @@ import subprocess
 
 from vidcontrol import VideoManager
 
-from ctrlability.engine import bootstrapper, Stream
+from ctrlability.core import bootstrapper, Stream
 
 log = logging.getLogger(__name__)
 

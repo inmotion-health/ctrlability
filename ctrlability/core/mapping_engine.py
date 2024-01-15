@@ -1,7 +1,7 @@
 import logging
 from uuid import UUID
 
-from ctrlability.engine.api.action import Action
+from ctrlability.core.api.action import Action
 
 log = logging.getLogger(__name__)
 
