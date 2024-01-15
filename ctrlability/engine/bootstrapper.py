@@ -23,17 +23,18 @@ class Bootstrapper:
         self.streams: list[StreamHandler] = []
 
     def boot(self):
-        for stream in self._config.keys():
-            args = self._config[stream].get("args", {})
-            stream_instance = self.create_instance_from_name(stream, args)
-            stream_handler = StreamHandler(stream_instance, self._mapping_engine)
-            self.streams.append(stream_handler)
+        for stream_config in self._config:  # Iterate over each item in the list
+            for stream, stream_info in stream_config.items():  # Now iterate over the dictionary
+                args = stream_info.get("args", {})
+                stream_instance = self.create_instance_from_name(stream, args)
+                stream_handler = StreamHandler(stream_instance, self._mapping_engine)
+                self.streams.append(stream_handler)
 
-            for trigger in self._config[stream].get("triggers", []):
-                self.parse_trigger(stream_handler, trigger)
+                for trigger in stream_info.get("triggers", []):
+                    self.parse_trigger(stream_handler, trigger)
 
-            for processor in self._config[stream].get("processors"):
-                self.parse_processor(processor, stream_handler)
+                for processor in stream_info.get("processors", []):  # Added default empty list
+                    self.parse_processor(processor, stream_handler)
 
         return self.streams
 
