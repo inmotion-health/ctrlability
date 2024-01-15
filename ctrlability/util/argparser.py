@@ -1,5 +1,5 @@
 import argparse
-import logging as log
+import logging
 
 # Create the argument parser
 parser = argparse.ArgumentParser(description="CTRLABILITY - Controller for people with motor disabilities")
@@ -33,5 +33,6 @@ def parse_arguments():
     """Parse the arguments and set the log level"""
     args = parser.parse_args()
 
-    log.basicConfig(format="%(asctime)s %(name)s [%(levelname)s]: %(message)s", level=args.log_level)
+    logging.basicConfig(format="%(asctime)s %(name)s [%(levelname)s]: %(message)s", level=args.log_level)
+    logging.debug("Debug logging enabled")
     return args

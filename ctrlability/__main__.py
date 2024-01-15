@@ -1,15 +1,14 @@
 import logging
 
 import ctrlability.util.printing as printing
-from ctrlability import __version__
-from ctrlability.engine import bootstrapper
-from ctrlability.engine.config_parser import ConfigParser
 from ctrlability.util.argparser import parse_arguments
 
 log = logging.getLogger(__name__)
 
 
 def main():
+    from ctrlability.engine import bootstrapper
+
     stream_handlers = bootstrapper.boot()
 
     if log.isEnabledFor(logging.DEBUG):
@@ -24,6 +23,8 @@ def main():
 
 
 def show_version():
+    from ctrlability import __version__
+
     printing.print_line()
     print("CTRLABILITY - Controller for people with motor disabilities")
     print(f"Version: {__version__}")
@@ -37,6 +38,8 @@ if __name__ == "__main__":
         show_version()
 
     # set the config file path from the arguments
+    from ctrlability.engine.config_parser import ConfigParser
+
     ConfigParser.CONFIG_PATH = args.config_file
 
     main()

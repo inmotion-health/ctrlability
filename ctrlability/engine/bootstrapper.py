@@ -1,33 +1,37 @@
 import inspect
 import logging
 
-from ctrlability.engine.config_parser import ConfigParser
 from ctrlability.engine.mapping_engine import MappingEngine
-from ctrlability.engine.stream_handler import StreamHandler
-from ctrlability.engine.tree_parser import TreeParser
 from ctrlability.util import printing
-
-log = logging.getLogger(__name__)
-
 
 # TODO: maybe use args for triggers - not kwargs
 # TODO: structure checking -> could be done in the config parser but alot of dup code for parsing/traversing
 # TODO: can we implement type detection of arguments while we parse the config
 
+log = logging.getLogger(__name__)
+
 
 class Bootstrapper:
     def __init__(self):
-        self._config = ConfigParser().parse()
         self._mapping_engine = MappingEngine()
         self._classes = {}
         self.streams = []
-        self._tree_parser = TreeParser(self._classes, self._mapping_engine)
 
     def boot(self):
-        printing.debug_pprint(self._config)
-        for stream, stream_info in self._config.items():  # Iterate over the dictionary
+        # let's delay these imports to the actual booting process to avoid not propagating changes to the logger since
+        # we are creating a global singleton instance in a module.
+        from ctrlability.engine.stream_handler import StreamHandler
+        from ctrlability.engine.tree_parser import TreeParser
+        from ctrlability.engine.config_parser import ConfigParser
+
+        _config = ConfigParser().parse()
+        _tree_parser = TreeParser(self._classes, self._mapping_engine)
+
+        log.debug("Bootstrapping...")
+        printing.debug_pprint(_config)
+        for stream, stream_info in _config.items():  # Iterate over the dictionary
             args = stream_info.get("args", {})
-            stream_instance = self._tree_parser.create_instance_from_name(stream, args)
+            stream_instance = _tree_parser.create_instance_from_name(stream, args)
             stream_handler = StreamHandler(stream_instance, self._mapping_engine)
             self.streams.append(stream_handler)
 
@@ -35,7 +39,7 @@ class Bootstrapper:
             for processor_dict in stream_info.get("processors", []):
                 for processor_name, processor_info in processor_dict.items():
                     processor = {processor_name: processor_info}
-                    self._tree_parser.parse_processor(processor, stream_handler)
+                    _tree_parser.parse_processor(processor, stream_handler)
 
         return self.streams
 

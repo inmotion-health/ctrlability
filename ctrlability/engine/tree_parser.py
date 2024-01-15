@@ -24,9 +24,9 @@ class TreeParser:
             self.parse_trigger(processor_instance, trigger)
 
         for pr in post_processor:
-            log.debug("PARSING POST PROCESSOR")
+            log.debug("PARSING POST PROCESSOR...")
             self.parse_processor(pr, processor_instance)
-            log.debug("PARSED POST PROCESSOR")
+            log.debug("PARSED POST PROCESSOR.")
 
     def parse_trigger(self, processor_instance, trigger):
         trigger_name = self.block_name(trigger)
