@@ -2,6 +2,7 @@ import inspect
 import logging
 from uuid import uuid4
 
+import ctrlability.util.printing as printing
 from ctrlability.engine.api import Action, Processor, Stream, Trigger
 from ctrlability.engine.config_parser import ConfigParser
 from ctrlability.engine.mapping_engine import MappingEngine
@@ -23,6 +24,7 @@ class Bootstrapper:
         self.streams: list[StreamHandler] = []
 
     def boot(self):
+        printing.debug_pprint(self._config)
         for stream_config in self._config:  # Iterate over each item in the list
             for stream, stream_info in stream_config.items():  # Now iterate over the dictionary
                 args = stream_info.get("args", {})
