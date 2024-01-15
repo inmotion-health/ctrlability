@@ -24,3 +24,6 @@ class LandmarkDistance(Trigger):
 
             if distance > self.threshold:
                 return {"distance": distance, "length": 10}
+
+    def __repr__(self):
+        return f"LandmarkDistance(landmarks: [{self.landmark1}, {self.landmark2}])"

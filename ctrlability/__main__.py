@@ -1,11 +1,22 @@
+import logging
+
+import ctrlability.util.printing as printing
 from ctrlability import __version__
 from ctrlability.engine import bootstrapper
 from ctrlability.engine.config_parser import ConfigParser
 from ctrlability.util.argparser import parse_arguments
 
+log = logging.getLogger(__name__)
+
 
 def main():
     stream_handlers = bootstrapper.boot()
+
+    if log.isEnabledFor(logging.DEBUG):
+        from ctrlability.util.tree_print import TreePrinter
+
+        tree_printer = TreePrinter(stream_handlers, bootstrapper._mapping_engine)
+        tree_printer.print_representation()
 
     while True:
         for stream in stream_handlers:
@@ -13,7 +24,7 @@ def main():
 
 
 def show_version():
-    print("------------------------------------------------------------------")
+    printing.print_line()
     print("CTRLABILITY - Controller for people with motor disabilities")
     print(f"Version: {__version__}")
     exit(0)

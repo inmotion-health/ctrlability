@@ -34,3 +34,6 @@ class VideoStream(Stream):
         frame = next(self.source)
 
         return frame
+
+    def __repr__(self):
+        return f"VideoStream(webcam_id: {self.webcam_id})"

@@ -23,7 +23,6 @@ class Bootstrapper:
         self.streams: list[StreamHandler] = []
 
     def boot(self):
-        print(self._classes)  # FIXME: better tree like representation
         for stream in self._config.keys():
             args = self._config[stream].get("args", {})
             stream_instance = self.create_instance_from_name(stream, args)

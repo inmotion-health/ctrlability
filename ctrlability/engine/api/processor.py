@@ -32,3 +32,6 @@ class Processor(ABC):
     @abstractmethod
     def compute(self, data):
         pass
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}"
