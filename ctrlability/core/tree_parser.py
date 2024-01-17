@@ -9,37 +9,42 @@ log = logging.getLogger(__name__)
 
 class TreeParser:
     def __init__(self, classes, mapping_engine):
-        self._classes = classes
+        self._registered_classes = classes
         self._mapping_engine = mapping_engine
 
-    def parse_processor(self, processor: dict, handler):
+    def parse_processor(self, processor: dict, stream_handler):
         processor_name = self.block_name(processor)
 
         processor_instance = self.create_instance(processor, mapping_engine=self._mapping_engine)
-        handler.connect_post_processor(processor_instance)
+        stream_handler.connect_post_processor(processor_instance)
 
-        post_processor = processor.get(processor_name).get("processors", [])
+        post_processors = processor.get(processor_name).get("processors", [])
 
         for trigger in processor.get(processor_name).get("triggers", []):
             self.parse_trigger(processor_instance, trigger)
 
-        for pr in post_processor:
-            log.debug("PARSING POST PROCESSOR...")
+        for pr in post_processors:
             self.parse_processor(pr, processor_instance)
-            log.debug("PARSED POST PROCESSOR.")
 
     def parse_trigger(self, processor_instance, trigger):
         trigger_name = self.block_name(trigger)
         trigger_instance = self.create_instance(trigger)
         action = trigger.get(trigger_name).get("action", [])
+
         for action in action:
+            action_instance = None
             if isinstance(action, str):
                 action_instance = self.find_class(action)()
             elif isinstance(action, dict):
                 action_instance = self.create_instance(action)
+
             uu = uuid4()
             processor_instance.connect_trigger(trigger_instance, uu)
-            self._mapping_engine.register(uu, action_instance)
+
+            if action_instance:
+                self._mapping_engine.register(uu, action_instance)
+            else:
+                raise RuntimeError(f"Could not create action {action}.")
 
     @staticmethod
     def block_name(block: dict) -> str:
@@ -74,7 +79,7 @@ class TreeParser:
         return cls(**args)
 
     def find_class(self, class_name: str):
-        if class_name not in self._classes:
+        if class_name not in self._registered_classes:
             raise RuntimeError(f"Class {class_name} not found. Did you forget to add it to the bootstrapper?")
 
-        return self._classes[class_name]
+        return self._registered_classes[class_name]

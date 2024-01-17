@@ -24,10 +24,10 @@ class Processor(ABC):
             post_processor.process(data)
 
         for trigger in self._triggers:
-            d = trigger[0].check(data)
-            if d:
+            trigger_data = trigger[0].check(data)
+            if trigger_data:
                 event_id = trigger[1]
-                self._mapping_engine.notify(event_id, data=d)
+                self._mapping_engine.notify(event_id, data=trigger_data)
 
     @abstractmethod
     def compute(self, data):
