@@ -1,1 +1,2 @@
 from ctrlability.triggers.landmark_distance import LandmarkDistance
+from ctrlability.triggers.throughput import Throughput
