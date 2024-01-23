@@ -9,13 +9,18 @@ log = logging.getLogger(__name__)
 
 @bootstrapper.add()
 class LandmarkDistance(Trigger):
-    def __init__(self, landmark1, landmark2, threshold, timer=0.0):
+    def __init__(self, landmark1, landmark2, threshold, timer=0.0, direction="greater"):
         self.landmark1 = landmark1
         self.landmark2 = landmark2
         self.threshold = threshold
         self.timer = timer / 1000  # convert to seconds
         self.exceeded_time = 0.0
         self.triggered = False
+        self.direction = direction
+
+        self.valid_directions = ["greater", "smaller"]
+        if direction not in self.valid_directions:
+            raise ValueError(f"direction should be one of {self.valid_directions}")
 
         log.debug(f"setup landmark distance trigger: {self.landmark1} {self.landmark2} {self.threshold}")
 
@@ -26,13 +31,19 @@ class LandmarkDistance(Trigger):
 
             distance = distance_between_points(landmark1_coords, landmark2_coords)
 
-            if distance > self.threshold:
+            condition_greater = distance > self.threshold
+            condition_smaller = distance < self.threshold
+
+            condition = condition_greater if self.direction == "greater" else condition_smaller
+
+            if condition:
                 if self.exceeded_time == 0.0:
                     self.exceeded_time = time.time()
 
                 if time.time() - self.exceeded_time >= self.timer and not self.triggered:
                     self.exceeded_time = 0.0
                     self.triggered = True
+                    log.debug(f"triggered landmark distance trigger: {self.landmark1} {self.landmark2} {distance}")
                     return {"distance": distance, "state": self.exceeded_time}
 
             else:
