@@ -2,14 +2,14 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import pyautogui as pag
-from one_euro_filter import OneEuroFilter
-from videosource import WebcamSource
 
+from ctrlability.math.one_euro_filter import OneEuroFilter
 from face_geometry import (  # isort:skip
     PCF,
     get_metric_landmarks,
     procrustes_landmark_basis,
 )
+from videosource import WebcamSource
 
 pag.FAILSAFE = False
 pag.PAUSE = 0.0
