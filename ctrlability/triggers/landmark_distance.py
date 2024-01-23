@@ -9,13 +9,27 @@ log = logging.getLogger(__name__)
 
 @bootstrapper.add()
 class LandmarkDistance(Trigger):
+    """
+    The LandmarkDistance class is a subclass of Trigger and is used to check the distance between two landmarks.
+    It triggers when the distance between the two landmarks exceeds a threshold.
+
+    Attributes:
+        - landmark1: The name of the first landmark.
+        - landmark2: The name of the second landmark.
+        - threshold: The threshold value for the distance between the landmarks.
+        - timer: The time duration (in milliseconds) for which the distance should exceed the threshold before triggering (default: 0.0).
+        - direction: The direction of the trigger. Can be "greater" or "smaller" (default: "greater").
+    """
+
     def __init__(self, landmark1, landmark2, threshold, timer=0.0, direction="greater"):
         self.landmark1 = landmark1
         self.landmark2 = landmark2
         self.threshold = threshold
+
         self.timer = timer / 1000  # convert to seconds
         self.exceeded_time = 0.0
-        self.triggered = False
+
+        self.triggered = False  # used to prevent multiple triggers
         self.direction = direction
 
         self.valid_directions = ["greater", "smaller"]

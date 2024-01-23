@@ -10,26 +10,36 @@ mapping:
                 args:
                   landmark1: 12
                   landmark2: 15
-                  threshold: 0.05
+                  threshold: 0.02
                 action:
                   - MouseClick:
                       args:
                         key_name: "left"
-            - LandmarkDistance: # mouth open
+            - LandmarkDistance: # mouth open long
                 args:
                   landmark1: 12
                   landmark2: 15
-                  threshold: 0.05
+                  threshold: 0.02
                   timer: 200
                 action:
                   - MouseClick:
                       args:
                         key_name: "double"
+            - LandmarkDistance: # mouth small
+                args:
+                  landmark1: 61
+                  landmark2: 291
+                  threshold: 0.09
+                  direction: "smaller"
+                action:
+                  - MouseClick:
+                      args:
+                        key_name: "right"
 
             - RelativeCursorControl:
                 args:
-                  x_threshold: 0.03
-                  y_threshold: 0.05
+                  x_threshold: 0.02
+                  y_threshold: 0.03
                   velocity_compensation_x: 0.05
                   velocity_compensation_y: 0.5
                 action:
