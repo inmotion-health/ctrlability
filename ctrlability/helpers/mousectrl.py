@@ -1,4 +1,4 @@
-import logging as log
+import logging
 import platform
 import time
 from abc import ABC, abstractmethod
@@ -9,34 +9,11 @@ import pyautogui
 if platform.system() == "Darwin":
     import macmouse
 
+log = logging.getLogger(__name__)
+
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0.0
 pyautogui.DARWIN_CATCH_UP_TIME = 0.00
-
-X_THRESHOLD = 0.05
-Y_THRESHOLD = 0.03
-VELOCITY_COMPENSATION_X = 0.15
-VELOCITY_COMPENSATION_Y = 3.5
-SIGMOID_FACTOR = 6
-
-
-# FIXME: not behaving as expected
-def sigmoid_smoothing(vec: np.array) -> np.array:
-    vec = np.array(vec)  # FIXME: not sure why we have to do this at this point
-
-    def sigmoid(x):
-        return 1 / (1 + np.exp(-SIGMOID_FACTOR * x))
-
-    def adjusted_sigmoid(x):
-        return (sigmoid(2 * x - 1) - sigmoid(-SIGMOID_FACTOR)) / (sigmoid(SIGMOID_FACTOR) - sigmoid(-SIGMOID_FACTOR))
-
-    for x in vec:
-        if x > 0:
-            x = adjusted_sigmoid(x)
-        else:
-            x = -adjusted_sigmoid(-x)
-
-    return vec
 
 
 class MouseActions(ABC):
@@ -72,13 +49,32 @@ class _MouseCtrl:
 
         self.scroll_mode = False
 
-    # MOUSE STATE
-    ## TRACKING STATE
+        # default values
+        self.X_THRESHOLD = None
+        self.Y_THRESHOLD = None
+        self.VELOCITY_COMPENSATION_X = None
+        self.VELOCITY_COMPENSATION_Y = None
+        self.setup_counter = 0
+
+    def set_settings(self, settings):
+        if self.setup_counter > 0:
+            raise RuntimeError(
+                "MouseCtrl settings can only be set once. You migh have multiple cursor control triggers."
+            )
+
+        self.X_THRESHOLD = settings["x_threshold"]
+        self.Y_THRESHOLD = settings["y_threshold"]
+        self.VELOCITY_COMPENSATION_X = settings["velocity_compensation_x"]
+        self.VELOCITY_COMPENSATION_Y = settings["velocity_compensation_y"]
+
+        self.setup_counter += 1
+
+    # TRACKING STATE
     def set_tracking_mode(self, state: bool):
         self.is_tracking_enabled = state
         log.debug(f"Tracking mode set to {state}")
 
-    ## FREEZE STATE
+    # FREEZE STATE
     def freeze_mouse_pos(self):
         if self.is_mouse_frozen:
             return
@@ -106,12 +102,14 @@ class _MouseCtrl:
         log.debug("Cursor set to center of screen")
 
     def move_mouse(self, vec: np.array) -> None:
-        if vec is None or (np.abs(vec) < [X_THRESHOLD, Y_THRESHOLD]).all():
+        if self.is_mouse_frozen:
             return
 
-        # log_vec = sigmoid_smoothing(vec) * self.screen_height
+        if vec is None or (np.abs(vec) < [self.X_THRESHOLD, self.Y_THRESHOLD]).all():
+            return
+
         log_vec = np.power(vec, 3) * self.screen_height
-        rel_move = log_vec * [VELOCITY_COMPENSATION_X, -VELOCITY_COMPENSATION_Y]  # y inverted
+        rel_move = log_vec * [self.VELOCITY_COMPENSATION_X, -self.VELOCITY_COMPENSATION_Y]  # y inverted
 
         x, y = pyautogui.position()
         new_pos = np.array([x, y]) + rel_move
