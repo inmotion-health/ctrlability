@@ -35,12 +35,17 @@ mapping:
                   - MouseClick:
                       args:
                         key_name: "right"
-
-            - RelativeCursorControl:
+          processors:
+            - LandmarkEuroFilter:
                 args:
-                  x_threshold: 0.02
-                  y_threshold: 0.03
-                  velocity_compensation_x: 0.05
-                  velocity_compensation_y: 0.5
-                action:
-                  - MoveMouse
+                  min_cutoff: 1
+                  beta: 0
+                triggers:
+                  - RelativeCursorControl:
+                      args:
+                        x_threshold: 0.02
+                        y_threshold: 0.03
+                        velocity_compensation_x: 0.05
+                        velocity_compensation_y: 0.5
+                      action:
+                        - MoveMouse

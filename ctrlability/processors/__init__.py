@@ -1,4 +1,5 @@
 from ctrlability.processors.face_landmarks import FaceLandmarkProcessor
 from ctrlability.processors.hand_landmarks import HandLandmarkProcessor
 from ctrlability.processors.holistic_landmarks import HolisticLandmarkProcessor
+from ctrlability.processors.landmark_eurofilter import LandmarkEuroFilter
 from ctrlability.processors.pose_landmarks import PoseLandmarkProcessor

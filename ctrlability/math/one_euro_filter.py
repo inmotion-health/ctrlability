@@ -11,8 +11,7 @@ def exponential_smoothing(a, x, x_prev):
 
 
 class OneEuroFilter:
-    def __init__(self, t0, x0, dx0=0.0, min_cutoff=1.0, beta=0.0,
-                 d_cutoff=1.0):
+    def __init__(self, t0, x0, dx0=0.0, min_cutoff=1.0, beta=0.0, d_cutoff=1.0):
         """Initialize the one euro filter."""
         # The parameters.
         self.min_cutoff = float(min_cutoff)
