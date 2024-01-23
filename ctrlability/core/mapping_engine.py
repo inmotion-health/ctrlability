@@ -14,5 +14,4 @@ class MappingEngine:
         self._actions[action_id] = action
 
     def notify(self, action_id: UUID, **kwargs: object) -> object:
-        log.debug(f"notify: {action_id} with {kwargs}")
         self._actions[action_id].execute(**kwargs)
