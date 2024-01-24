@@ -8,7 +8,10 @@ mapping:
           processors:
             - SignalDivider: # expressions
                 triggers:
-                  - Throughput:
+                  - FacialExpressionTrigger:
+                      args:
+                        name: "browOuterUpLeft"
+                        confidence: 0.2
                       action:
                         - Logger
             - SignalDivider: # landmarks
