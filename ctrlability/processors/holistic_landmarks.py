@@ -13,4 +13,9 @@ class HolisticLandmarkProcessor(Processor):
     def compute(self, data):
         results = self.holistic_mesh.process(data)
 
-        return results.pose_landmarks, results.left_hand_landmarks, results.right_hand_landmarks, results.face_landmarks
+        return (
+            results.pose_landmarks.landmark,
+            results.left_hand_landmarks.landmark,
+            results.right_hand_landmarks.landmark,
+            results.face_landmarks.landmark,
+        )
