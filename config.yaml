@@ -6,6 +6,13 @@ mapping:
     processors:
       - FaceLandmarkProcessor:
           triggers:
+            - RegionOfInterest: # nose in upper left corner
+                args:
+                  position: [ 0, 0 ]
+                  size: [ 0.3, 0.3 ]
+                  landmarks: [ 1 ]
+                action:
+                  - Logger
             - LandmarkDistance: # mouth open
                 args:
                   landmark1: 12

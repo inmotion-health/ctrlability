@@ -1,3 +1,4 @@
 from ctrlability.triggers.landmark_distance import LandmarkDistance
+from ctrlability.triggers.region_of_interest import RegionOfInterest
 from ctrlability.triggers.relative_cursor_control import RelativeCursorControl
 from ctrlability.triggers.throughput import Throughput
