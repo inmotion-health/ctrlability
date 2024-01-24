@@ -39,4 +39,6 @@ CMakeUserPresets.json
 # IDEs and editors
 /.idea
 /.vscode
-research/blendshapes/face_landmarker_v2_with_blendshapes.task
+
+# mediapipe models downloaded during runtime
+*.task
