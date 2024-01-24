@@ -1,6 +1,7 @@
 import logging
 import subprocess
 
+import cv2
 from vidcontrol import VideoManager
 
 from ctrlability.core import bootstrapper, Stream
@@ -17,8 +18,9 @@ def check_ffmpeg():
 
 @bootstrapper.add()
 class VideoStream(Stream):
-    def __init__(self, webcam_id, mirror=True, mirror_horizontal=False):
+    def __init__(self, webcam_id, mirror=True, mirror_horizontal=False, debug=False):
         self.webcam_id = webcam_id
+        self.debug = debug
 
         check_ffmpeg()
 
@@ -30,6 +32,10 @@ class VideoStream(Stream):
 
     def get_next(self):
         frame = next(self.source)
+
+        if self.debug:
+            cv2.imshow("VideoStream", frame)
+            cv2.waitKey(1)
 
         return frame
 
