@@ -1,0 +1,67 @@
+version: 1.2
+mapping:
+  VideoStream:
+    args:
+      webcam_id: 0
+    processors:
+      - FacialExpressionClassifier:
+          processors:
+            - SignalDivider: # expressions
+                triggers:
+                  - Throughput:
+                      action:
+                        - Logger
+            - SignalDivider: # landmarks
+                args:
+                  index: 1
+                triggers:
+                  - RegionOfInterest: # nose in upper left corner
+                      args:
+                        position: [ 0, 0 ]
+                        size: [ 0.3, 0.3 ]
+                        landmarks: [ 1 ]
+                      action:
+                        - Logger
+                  - LandmarkDistance: # mouth open
+                      args:
+                        landmark1: 12
+                        landmark2: 15
+                        threshold: 0.02
+                      action:
+                        - MouseClick:
+                            args:
+                              key_name: "left"
+                  - LandmarkDistance: # mouth open long
+                      args:
+                        landmark1: 12
+                        landmark2: 15
+                        threshold: 0.02
+                        timer: 200
+                      action:
+                        - MouseClick:
+                            args:
+                              key_name: "double"
+                  - LandmarkDistance: # mouth small
+                      args:
+                        landmark1: 61
+                        landmark2: 291
+                        threshold: 0.09
+                        direction: "smaller"
+                      action:
+                        - MouseClick:
+                            args:
+                              key_name: "right"
+                processors:
+                  - LandmarkEuroFilter:
+                      args:
+                        min_cutoff: 1
+                        beta: 0
+                      triggers:
+                        - RelativeCursorControl:
+                            args:
+                              x_threshold: 0.02
+                              y_threshold: 0.03
+                              velocity_compensation_x: 0.05
+                              velocity_compensation_y: 0.5
+                            action:
+                              - MoveMouse
