@@ -17,4 +17,4 @@ class FaceLandmarkProcessor(Processor):
 
         if results.multi_face_landmarks:
             face_landmarks = results.multi_face_landmarks[0]
-            return face_landmarks
+            return face_landmarks.landmark

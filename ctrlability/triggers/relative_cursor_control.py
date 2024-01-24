@@ -24,12 +24,12 @@ class RelativeCursorControl(Trigger):
 
     def check(self, data) -> dict | None:
         if data:
-            left_ear = data.landmark[93]
-            right_ear = data.landmark[323]
-            head_top = data.landmark[10]
-            head_bottom = data.landmark[152]
+            left_ear = data[93]
+            right_ear = data[323]
+            head_top = data[10]
+            head_bottom = data[152]
 
-            nose = data.landmark[4]
+            nose = data[4]
 
             head_width = abs(left_ear.x - right_ear.x)
             head_height = abs(head_top.y - head_bottom.y)

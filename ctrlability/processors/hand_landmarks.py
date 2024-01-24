@@ -15,4 +15,4 @@ class HandLandmarkProcessor(Processor):
 
         if results.multi_hand_landmarks:
             hand_landmarks = results.multi_hand_landmarks[0]
-            return hand_landmarks
+            return hand_landmarks.landmark

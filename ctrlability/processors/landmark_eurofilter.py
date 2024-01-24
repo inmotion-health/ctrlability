@@ -23,7 +23,7 @@ class LandmarkEuroFilter(Processor):
         if not self.initialized:
             t = time.time()
 
-            for i, landmark in enumerate(landmarks.landmark):
+            for i, landmark in enumerate(landmarks):
                 self.filters_x.append(
                     OneEuroFilter(t, landmark.x, min_cutoff=self.min_cutoff, beta=self.beta, d_cutoff=self.d_cutoff)
                 )
@@ -33,7 +33,7 @@ class LandmarkEuroFilter(Processor):
             self.initialized = True
 
         # overwrite landmarks and apply filter to each landmark
-        for i, landmark in enumerate(landmarks.landmark):
+        for i, landmark in enumerate(landmarks):
             landmark.x = self.filters_x[i](time.time(), landmark.x)
             landmark.y = self.filters_y[i](time.time(), landmark.y)
 

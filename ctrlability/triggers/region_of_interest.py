@@ -31,7 +31,7 @@ class RegionOfInterest(Trigger):
             triggered_landmarks = []
 
             for landmark_id in self.landmarks:
-                landmark = data.landmark[landmark_id]
+                landmark = data[landmark_id]
 
                 if self.is_in_region(landmark):
                     triggered_landmarks.append(landmark_id)

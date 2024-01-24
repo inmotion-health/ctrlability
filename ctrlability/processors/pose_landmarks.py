@@ -15,4 +15,4 @@ class PoseLandmarkProcessor(Processor):
 
         if results.pose_landmarks:
             pose_landmarks = results.pose_landmarks
-            return pose_landmarks
+            return pose_landmarks.landmark

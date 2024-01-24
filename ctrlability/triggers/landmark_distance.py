@@ -40,8 +40,8 @@ class LandmarkDistance(Trigger):
 
     def check(self, data) -> dict | None:
         if data:
-            landmark1_coords = data.landmark[self.landmark1]
-            landmark2_coords = data.landmark[self.landmark2]
+            landmark1_coords = data[self.landmark1]
+            landmark2_coords = data[self.landmark2]
 
             distance = distance_between_points(landmark1_coords, landmark2_coords)
 
