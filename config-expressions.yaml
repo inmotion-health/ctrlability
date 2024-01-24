@@ -10,10 +10,12 @@ mapping:
                 triggers:
                   - FacialExpressionTrigger:
                       args:
-                        name: "browOuterUpLeft"
+                        name: "browOuterUpLeft"w
                         confidence: 0.2
                       action:
-                        - Logger
+                        - KeyCommand:
+                            args:
+                              command: [ "command", "w" ]
             - SignalDivider: # landmarks
                 args:
                   index: 1
