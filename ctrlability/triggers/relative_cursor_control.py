@@ -1,6 +1,7 @@
 import logging
 
 from ctrlability.core import Trigger, bootstrapper
+from ctrlability.core.data_types import LandmarkData
 from ctrlability.helpers.mousectrl import MouseCtrl
 
 log = logging.getLogger(__name__)
@@ -22,14 +23,14 @@ class RelativeCursorControl(Trigger):
 
         log.debug(f"RelativeCursorControl settings: {settings}")
 
-    def check(self, data) -> dict | None:
-        if data:
-            left_ear = data[93]
-            right_ear = data[323]
-            head_top = data[10]
-            head_bottom = data[152]
+    def check(self, landmark_data: LandmarkData) -> dict | None:
+        if landmark_data.landmarks:
+            left_ear = landmark_data.landmarks[93]
+            right_ear = landmark_data.landmarks[323]
+            head_top = landmark_data.landmarks[10]
+            head_bottom = landmark_data.landmarks[152]
 
-            nose = data[4]
+            nose = landmark_data.landmarks[4]
 
             head_width = abs(left_ear.x - right_ear.x)
             head_height = abs(head_top.y - head_bottom.y)

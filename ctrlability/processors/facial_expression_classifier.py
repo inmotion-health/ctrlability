@@ -6,6 +6,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 from ctrlability.core import Processor, MappingEngine, bootstrapper
+from ctrlability.core.data_types import FrameData, LandmarkData
 
 
 @bootstrapper.add()
@@ -31,10 +32,10 @@ class FacialExpressionClassifier(Processor):
         )
         self.detector = vision.FaceLandmarker.create_from_options(options)
 
-    def compute(self, image):
+    def compute(self, image: FrameData):
         shapes = []
-        image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image)
-        detection_result = self.detector.detect(image)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image.frame)
+        detection_result = self.detector.detect(mp_image)
 
         if detection_result.face_blendshapes and detection_result.face_landmarks:
             if detection_result.face_blendshapes[0] and detection_result.face_landmarks[0]:
@@ -42,4 +43,7 @@ class FacialExpressionClassifier(Processor):
                     if shape.score > self.min_confidence:
                         shapes.append(shape)
 
-        return [shapes, detection_result.face_landmarks[0]]
+        # direct indexing sometimes failsw
+        if detection_result.face_landmarks:
+            if detection_result.face_landmarks[0]:
+                return [shapes, LandmarkData(detection_result.face_landmarks[0], image.width, image.height)]

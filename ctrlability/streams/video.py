@@ -5,6 +5,7 @@ import cv2
 from vidcontrol import VideoManager
 
 from ctrlability.core import bootstrapper, Stream
+from ctrlability.core.data_types import FrameData
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ class VideoStream(Stream):
             cv2.imshow("VideoStream", frame)
             cv2.waitKey(1)
 
-        return frame
+        return FrameData(frame, frame.shape[1], frame.shape[0])
 
     def __repr__(self):
         return f"VideoStream(webcam_id: {self.webcam_id})"

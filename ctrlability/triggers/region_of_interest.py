@@ -1,6 +1,7 @@
 import logging
 
 from ctrlability.core import Trigger, bootstrapper
+from ctrlability.core.data_types import LandmarkData
 
 log = logging.getLogger(__name__)
 
@@ -26,12 +27,12 @@ class RegionOfInterest(Trigger):
         (width, height) = self.size
         return pos_x <= x <= (pos_x + width) and pos_y <= y <= (pos_y + height)
 
-    def check(self, data) -> dict | None:
-        if data and not (self.triggered and not self.keep_triggering):
+    def check(self, landmark_data: LandmarkData) -> dict | None:
+        if landmark_data.landmarks and not (self.triggered and not self.keep_triggering):
             triggered_landmarks = []
 
             for landmark_id in self.landmarks:
-                landmark = data[landmark_id]
+                landmark = landmark_data.landmarks[landmark_id]
 
                 if self.is_in_region(landmark):
                     triggered_landmarks.append(landmark_id)
@@ -43,4 +44,4 @@ class RegionOfInterest(Trigger):
                 self.triggered = False
 
     def __repr__(self):
-        return f"RegionOfInterest: position = {self.position}, size = {self.size}, keep_triggering = {self.keep_triggering}"
+        return f"RegionOfInterest(position = {self.position}, size = {self.size}, keep_triggering = {self.keep_triggering})"

@@ -1,6 +1,7 @@
 import mediapipe as mp
 
 from ctrlability.core import Processor, MappingEngine, bootstrapper
+from ctrlability.core.data_types import FrameData, LandmarkData
 
 
 @bootstrapper.add()
@@ -12,9 +13,9 @@ class FaceLandmarkProcessor(Processor):
             min_detection_confidence=0.5, min_tracking_confidence=0.5, static_image_mode=False, max_num_faces=1
         )
 
-    def compute(self, data):
-        results = self.face_mesh.process(data)
+    def compute(self, data: FrameData):
+        results = self.face_mesh.process(data.frame)
 
         if results.multi_face_landmarks:
             face_landmarks = results.multi_face_landmarks[0]
-            return face_landmarks.landmark
+            return LandmarkData(face_landmarks.landmark, data.width, data.height)
