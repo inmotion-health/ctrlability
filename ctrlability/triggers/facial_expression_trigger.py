@@ -10,6 +10,9 @@ class FacialExpressionTrigger(Trigger):
         self.triggered = False
 
     def check(self, data) -> dict | None:
+        if data is None:
+            return None
+
         for category in data:
             if category.category_name == self.blendshape_name:
                 if category.score >= self.confidence_level:
