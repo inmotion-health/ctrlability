@@ -10,7 +10,7 @@ mapping:
                 triggers:
                   - FacialExpressionTrigger:
                       args:
-                        name: "browOuterUpLeft"w
+                        name: "browOuterUpLeft"
                         confidence: 0.2
                       action:
                         - KeyCommand:
