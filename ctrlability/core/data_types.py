@@ -1,4 +1,23 @@
-from collections import namedtuple
+from dataclasses import dataclass
 
-FrameData = namedtuple("FrameData", ["frame", "width", "height"])
-LandmarkData = namedtuple("LandmarkData", ["landmarks", "width", "height"])
+
+@dataclass
+class FrameData:
+    frame: any
+    width: any
+    height: any
+
+
+@dataclass
+class LandmarkData:
+    landmarks: any
+    width: any
+    height: any
+
+
+@dataclass
+class NormalVectorData:
+    base: any
+    tip: any
+    width: any
+    height: any
