@@ -9,8 +9,5 @@ class StreamHandler(Processor):
         self._stream = stream
         self._mapping_engine = mapping_engine
 
-    def _handle_stream(self):
-        return self._stream.get_next()
-
     def compute(self, data):
-        return self._handle_stream()
+        return self._stream.get_next()
