@@ -19,8 +19,12 @@ def main():
 
     # run the main loop of the app infinitely
     while True:
-        for stream in stream_handlers:
-            stream.process(None)
+        try:
+            for stream in stream_handlers:
+                stream.process(None)
+        except KeyboardInterrupt:
+            log.info("KeyboardInterrupt: Exiting...")
+            break
 
 
 def show_version():
