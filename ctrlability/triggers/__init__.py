@@ -1,3 +1,4 @@
+from ctrlability.triggers.absolute_cursor_control import AbsoluteCursorControl
 from ctrlability.triggers.facial_expression_trigger import FacialExpressionTrigger
 from ctrlability.triggers.landmark_distance import LandmarkDistance
 from ctrlability.triggers.region_of_interest import RegionOfInterest
