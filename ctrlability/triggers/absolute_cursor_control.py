@@ -13,8 +13,9 @@ log = logging.getLogger(__name__)
 
 @bootstrapper.add()
 class AbsoluteCursorControl(Trigger):
-    def __init__(self, rect_width=0.8):
+    def __init__(self, rect_width=0.8, head_width=0.3):
         self.rect_width = rect_width
+        self.head_width = head_width
 
         self.screen_width, self.screen_height = MouseCtrl.screen_width, MouseCtrl.screen_height
 
@@ -27,16 +28,13 @@ class AbsoluteCursorControl(Trigger):
         if normal_vector_data is None:
             return None
 
-        print(normal_vector_data)
-
-        # TODO: scale width together with head width
+        # let's scale the width of the rectangle to the width of the head, so we reduce the impact of the distance to
+        # the camera
         head_left = normal_vector_data.landmarks[234]
         head_right = normal_vector_data.landmarks[454]
 
         head_width = distance_between_points(head_left, head_right)
-
-        # TODO: if t head-width is 0.3, then the rect width should be 0.5, translate the head width to 0.5
-        rect_width = self.rect_width
+        rect_width = self.rect_width * head_width / self.head_width
 
         # draw rectangle around the base of the normal vector
         nose = normal_vector_data.base
