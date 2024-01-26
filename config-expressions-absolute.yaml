@@ -1,0 +1,70 @@
+version: 1.2
+mapping:
+  VideoStream:
+    args:
+      webcam_id: 0
+    processors:
+      - FacialExpressionClassifier:
+          processors:
+            - SignalDivider: # expressions
+                triggers:
+                  - FacialExpressionTrigger:
+                      args:
+                        name: "browOuterUpLeft"
+                        confidence: 0.2
+                      action:
+                        - MouseClick:
+                            args:
+                              key_name: "double"
+            - SignalDivider: # landmarks
+                args:
+                  index: 1
+                triggers:
+                  - RegionOfInterest: # nose in upper left corner
+                      args:
+                        position: [ 0, 0 ]
+                        size: [ 0.3, 0.3 ]
+                        landmarks: [ 1 ]
+                      action:
+                        - Logger
+                  - LandmarkDistance: # mouth open
+                      args:
+                        landmarks: [ 12, 15 ]
+                        threshold: 0.02
+                      action:
+                        - MouseClick:
+                            args:
+                              key_name: "left_down"
+                  - LandmarkDistance: # mouth close
+                      args:
+                        landmarks: [ 12, 15 ]
+                        threshold: 0.02
+                        direction: "smaller"
+                      action:
+                        - MouseClick:
+                            args:
+                              key_name: "left_up"
+                  - LandmarkDistance: # mouth small
+                      args:
+                        landmarks: [ 61, 291 ]
+                        threshold: 0.09
+                        direction: "smaller"
+                      action:
+                        - MouseClick:
+                            args:
+                              key_name: "right"
+                processors:
+                  - LandmarkEuroFilter:
+                      args:
+                        min_cutoff: 1
+                        beta: 0
+                      processors:
+                        - LandmarkNormalVector:
+                            args:
+                              landmark: 1
+                              ref_landmarks: [ 33, 263, 61, 291, 199 ]
+                              tip_scale: 4
+                            triggers:
+                              - AbsoluteCursorControl:
+                                  action:
+                                    - MoveMouse

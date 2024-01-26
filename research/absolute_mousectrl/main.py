@@ -2,14 +2,14 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import pyautogui as pag
-from one_euro_filter import OneEuroFilter
-from videosource import WebcamSource
 
-from face_geometry import (  # isort:skip
+from ctrlability.math.face_geometry import (  # isort:skip
     PCF,
     get_metric_landmarks,
     procrustes_landmark_basis,
 )
+from ctrlability.math.one_euro_filter import OneEuroFilter
+from videosource import WebcamSource
 
 pag.FAILSAFE = False
 pag.PAUSE = 0.0
@@ -137,6 +137,7 @@ def main():
 
                 nose_tip_2D, nose_tip_2D_extended = nose_pointer2D.squeeze().astype(int)
 
+                # TODO: here we left off
                 # filter nose tip
                 nose_tip_2D_extended = oef_1(idx, nose_tip_2D_extended).astype(int)
 
