@@ -19,5 +19,6 @@ class LandmarkData:
 class NormalVectorData:
     base: any
     tip: any
+    landmarks: any
     width: any
     height: any
