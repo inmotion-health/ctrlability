@@ -38,4 +38,6 @@ class LandmarkEuroFilter(Processor):
             landmark.x = self.filters_x[i](time.time(), landmark.x)
             landmark.y = self.filters_y[i](time.time(), landmark.y)
 
+        # FIXME: maybe we need to copy the data?
+
         return landmark_data
