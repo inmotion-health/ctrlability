@@ -97,22 +97,10 @@ class _MouseCtrl:
         if self.is_mouse_frozen:
             return
 
-        if vec is None or (np.abs(vec) < [self.X_THRESHOLD, self.Y_THRESHOLD]).all():
-            return
-
-        log_vec = np.power(vec, 3) * self.screen_height
-        rel_move = log_vec * [self.VELOCITY_COMPENSATION_X, -self.VELOCITY_COMPENSATION_Y]  # y inverted
-
-        x, y = pyautogui.position()
-        new_pos = np.array([x, y]) + rel_move
-
-        # Clamp to screen dimensions
-        new_pos = np.clip(new_pos, [0, 0], [self.screen_width - 1, self.screen_height - 1])
-
         if self.scroll_mode:
             pyautogui.scroll(50)
         else:
-            pyautogui.moveTo(*new_pos)
+            pyautogui.moveTo(*vec)
 
     # MOUSE CLICKS
     def left_click(self):
