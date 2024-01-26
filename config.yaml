@@ -21,17 +21,17 @@ mapping:
                 action:
                   - MouseClick:
                       args:
-                        key_name: "left"
-            - LandmarkDistance: # mouth open long
+                        key_name: "left_down"
+            - LandmarkDistance: # mouth close
                 args:
                   landmark1: 12
                   landmark2: 15
                   threshold: 0.02
-                  timer: 200
+                  direction: "smaller"
                 action:
                   - MouseClick:
                       args:
-                        key_name: "double"
+                        key_name: "left_up"
             - LandmarkDistance: # mouth small
                 args:
                   landmark1: 61

@@ -137,6 +137,7 @@ def main():
 
                 nose_tip_2D, nose_tip_2D_extended = nose_pointer2D.squeeze().astype(int)
 
+                # TODO: here we left off
                 # filter nose tip
                 nose_tip_2D_extended = oef_1(idx, nose_tip_2D_extended).astype(int)
 

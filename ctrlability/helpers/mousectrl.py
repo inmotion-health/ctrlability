@@ -1,6 +1,5 @@
 import logging
 import platform
-import time
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -89,13 +88,6 @@ class _MouseCtrl:
         self.is_mouse_frozen = False
         log.debug("Mouse position unfrozen")
 
-    def release_left_click(self):
-        self.left_click_count = 0
-        self.last_left_click_ms = 0
-
-    def release_right_click(self):
-        self.is_right_mouse_clicked = False
-
     # MOUSE MOVEMENT
     def set_cursor_center(self):
         pyautogui.moveTo(self.screen_center[0], self.screen_center[1])
@@ -125,20 +117,23 @@ class _MouseCtrl:
     # MOUSE CLICKS
     def left_click(self):
         pyautogui.click()
-        self.last_left_click_ms = time.time() * 1000
-        self.left_click_count += 1
         log.debug("Left click")
 
     def double_click(self):
         self.mouse_actions.double_click()
-
-        self.last_left_click_ms = time.time() * 1000
         log.debug("Double click")
 
     def right_click(self):
         pyautogui.rightClick()
-        self.is_right_mouse_clicked = True
         log.debug("Right click")
+
+    def left_down(self):
+        pyautogui.mouseDown()
+        log.debug("Left down")
+
+    def left_up(self):
+        pyautogui.mouseUp()
+        log.debug("Left up")
 
 
 # Singleton instance
