@@ -29,8 +29,7 @@ mapping:
                         - Logger
                   - LandmarkDistance: # mouth open
                       args:
-                        landmark1: 12
-                        landmark2: 15
+                        landmarks: [ 12, 15 ]
                         threshold: 0.02
                       action:
                         - MouseClick:
@@ -38,8 +37,7 @@ mapping:
                               key_name: "left_down"
                   - LandmarkDistance: # mouth close
                       args:
-                        landmark1: 12
-                        landmark2: 15
+                        landmarks: [ 12, 15 ]
                         threshold: 0.02
                         direction: "smaller"
                       action:
@@ -48,8 +46,7 @@ mapping:
                               key_name: "left_up"
                   - LandmarkDistance: # mouth small
                       args:
-                        landmark1: 61
-                        landmark2: 291
+                        landmarks: [ 61, 291 ]
                         threshold: 0.09
                         direction: "smaller"
                       action:

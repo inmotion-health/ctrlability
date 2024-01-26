@@ -22,11 +22,12 @@ class LandmarkDistance(Trigger):
         - direction: The direction of the trigger. Can be "greater" or "smaller" (default: "greater").
     """
 
-    def __init__(
-        self, landmark1, landmark2, threshold, timer=0.0, direction="greater", normalize=False, ref_landmarks=None
-    ):
-        self.landmark1 = landmark1
-        self.landmark2 = landmark2
+    def __init__(self, landmarks, threshold, timer=0.0, direction="greater", normalize=False, ref_landmarks=None):
+        if len(landmarks) != 2:
+            raise ValueError("landmarks should be a list of two landmarks")
+
+        self.landmark1 = landmarks[0]
+        self.landmark2 = landmarks[1]
         self.threshold = threshold
 
         self.normalize = normalize
