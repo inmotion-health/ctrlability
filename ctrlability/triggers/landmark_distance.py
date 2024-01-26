@@ -22,10 +22,15 @@ class LandmarkDistance(Trigger):
         - direction: The direction of the trigger. Can be "greater" or "smaller" (default: "greater").
     """
 
-    def __init__(self, landmark1, landmark2, threshold, timer=0.0, direction="greater"):
+    def __init__(
+        self, landmark1, landmark2, threshold, timer=0.0, direction="greater", normalize=False, ref_landmarks=None
+    ):
         self.landmark1 = landmark1
         self.landmark2 = landmark2
         self.threshold = threshold
+
+        self.normalize = normalize
+        self.ref_landmarks = ref_landmarks
 
         self.timer = timer / 1000  # convert to seconds
         self.exceeded_time = 0.0
@@ -45,6 +50,12 @@ class LandmarkDistance(Trigger):
             landmark2_coords = data.landmarks[self.landmark2]
 
             distance = distance_between_points(landmark1_coords, landmark2_coords)
+
+            if self.normalize:
+                ref_distance = distance_between_points(
+                    data.landmarks[self.ref_landmarks[0]], data.landmarks[self.ref_landmarks[1]]
+                )
+                distance = distance / ref_distance
 
             condition_greater = distance > self.threshold
             condition_smaller = distance < self.threshold
