@@ -54,4 +54,4 @@ class RelativeCursorControl(Trigger):
             # Clamp to screen dimensions
             new_pos = np.clip(new_pos, [0, 0], [self.screen_width - 1, self.screen_height - 1])
 
-            return {"x": x_pos, "y": y_pos}
+            return {"x": new_pos[0], "y": new_pos[1]}
