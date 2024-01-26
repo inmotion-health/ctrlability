@@ -1,8 +1,6 @@
 from ctrlability.core import Action, bootstrapper
 from ctrlability.helpers.mousectrl import MouseCtrl
 
-# TODO: implement all fine grained freezing, unfreezing and checks for which click can be done when
-
 
 @bootstrapper.add()
 class MouseClick(Action):
