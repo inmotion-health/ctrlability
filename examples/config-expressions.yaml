@@ -16,6 +16,14 @@ mapping:
                         - MouseClick:
                             args:
                               key_name: "double"
+                  - FacialExpressionTrigger:
+                      args:
+                        name: "browOuterUpRight"
+                        confidence: 0.4
+                      action:
+                        - KeyCommand:
+                            args:
+                              command: [ "cmd", "w" ]
             - SignalDivider: # landmarks
                 args:
                   index: 1
