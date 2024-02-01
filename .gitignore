@@ -42,3 +42,4 @@ CMakeUserPresets.json
 
 # mediapipe models downloaded during runtime
 *.task
+*.egg-info

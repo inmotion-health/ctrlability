@@ -1,2 +1,49 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ctrlability"
+version = "0.1.0"
+description = "We translate gestures and speech from people with motor disabilities into control commands for computers."
+readme = "README.md"
+requires-python = ">3.8.0"
+license = { file = "LICENSE.md" }
+authors = [
+    { name = "Marco Kuhn", email = "marco.kuhn@inmotion.health" },
+    { name = "Fabian S. Klinke", email = "fabian.s.klinke@inmotion.health" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+keywords = [
+    "accesibility",
+    "motion tracking",
+    "speech recognition",
+    "computer control",
+]
+
+dependencies = [
+    "mediapipe >= 0.10.3",
+    "PyAutoGUI >= 0.9.54",
+    "macmouse >= 0.7.4",
+    "nbstripout >= 0.6.0", # for removing notebook output from git
+    "PySide6 >= 6.5.2",
+    "qt-material >= 2.14",
+    "pygrabber >= 0.1.0",
+    "vidcontrol >= 0.1.1",
+    'PyYAML==6.0.1',
+    'numpy~=1.26.2',
+    'opencv-python~=4.8.1.78',
+    'sounddevice~=0.4.6',
+    'Pillow~=10.1.0',
+    'whispercpp~=0.0.1',
+]
+
+[optional-dependencies]
+darwin = ['pyobjc-framework-Cocoa >= 9.2; platform_system == "Darwin"']
+
 [tool.black]
 line-length = 120
