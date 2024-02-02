@@ -8,17 +8,34 @@ log = logging.getLogger(__name__)
 
 @bootstrapper.add()
 class RegionOfInterest(Trigger):
+    """
+    A trigger that detects when a landmark is within a region of interest. The region of interest is defined by a
+    position and size. The trigger can be set to keep triggering as long as the landmark is within the region.
+
+    Inputs:
+        LandmarkData: The landmark data.
+
+    Returns:
+        dict: The triggered landmarks.
+
+    Args:
+        landmarks (list): The list of landmarks to be checked.
+        position (tuple): The position of the region of interest in normalized coordinates.
+        size (tuple): The size of the region of interest.
+        keep_triggering (bool, optional): Whether the trigger should keep triggering as long as the landmark is within the region. Defaults to False.
+    """
+
     def __init__(self, landmarks, position, size, keep_triggering=False):
         self.landmarks = landmarks
-
         self.position = position
         self.size = size
-
         self.keep_triggering = keep_triggering
-
         self.triggered = False
 
     def is_in_region(self, landmark):
+        """
+        Checks if a landmark is within the region of interest.
+        """
         if not landmark:  # if landmark does not exist
             return False
 

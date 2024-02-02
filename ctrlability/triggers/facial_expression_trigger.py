@@ -3,6 +3,21 @@ from ctrlability.core import Trigger, bootstrapper
 
 @bootstrapper.add()
 class FacialExpressionTrigger(Trigger):
+    """
+    A trigger that detects facial expressions based on blendshape names and confidence levels.
+
+    Inputs:
+        data: The list of blendshapes detected in the frame.
+
+    Returns:
+        dict: The detected blendshape and the confidence level.
+
+    Args:
+        name (str): The name of the blendshape to detect.
+        confidence (float, optional): The confidence level required to trigger the expression. Defaults to 0.5.
+        trigger_once (bool, optional): Whether the trigger should only be activated once. Defaults to True.
+    """
+
     def __init__(self, name: str, confidence: float = 0.5, trigger_once: bool = True):
         self.blendshape_name = name
         self.confidence_level = confidence

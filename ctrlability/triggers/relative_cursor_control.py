@@ -12,6 +12,25 @@ log = logging.getLogger(__name__)
 
 @bootstrapper.add()
 class RelativeCursorControl(Trigger):
+    """
+    A trigger that moves the cursor to the position of the nose tip in 2D space. The distance from the nose tip to a
+    computed head center is used to move the cursor relative to the current position of the cursor.
+
+    !! This trigger only works with facial landmarks !!
+
+    Inputs:
+        LandmarkData: The landmark data.
+
+    Returns:
+        dict: The x and y coordinates of the landmark tip in the screen space.
+
+    Args:
+        x_threshold: The threshold for the x axis (default: 0.05).
+        y_threshold: The threshold for the y axis (default: 0.03).
+        velocity_compensation_x: The velocity compensation for the x axis (default: 0.15).
+        velocity_compensation_y: The velocity compensation for the y axis (default: 3.5).
+    """
+
     def __init__(self, x_threshold=0.05, y_threshold=0.03, velocity_compensation_x=0.15, velocity_compensation_y=3.5):
         log.debug(f"Initializing {self.__class__.__name__}")
 

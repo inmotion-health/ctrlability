@@ -9,6 +9,21 @@ from ctrlability.math.face_geometry import procrustes_landmark_basis, PCF, get_m
 
 @bootstrapper.add()
 class LandmarkNormalVector(Processor):
+    """
+    A Processor that takes in a LandmarkData object and computes the normal vector on a specific landmark.
+
+    Inputs:
+        LandmarkData: The landmarks to which the one euro filter should be applied.
+
+    Returns:
+        NormalVectorData: The normal vector of the landmark.
+
+    Args:
+        landmark: The landmark to which the normal vector should be computed.
+        ref_landmarks: The reference landmarks to use for the normal vector computation.
+        tip_scale: The scale factor for the normal vector (default: 3.5).
+    """
+
     def __init__(self, mapping_engine: MappingEngine, landmark, ref_landmarks, tip_scale=3.5):
         super().__init__(mapping_engine)
         self.landmark = landmark

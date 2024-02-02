@@ -6,6 +6,19 @@ from ctrlability.core.data_types import LandmarkData, FrameData
 
 @bootstrapper.add()
 class HandLandmarkProcessor(Processor):
+    """
+    A Processor that takes a frame and returns the landmarks detected in the frame. For details on the landmarks, see
+    the image below.
+
+    ![landmarks](img/hand_landmarks.png)
+
+    Inputs:
+        FrameData: The frame in which the landmarks should be detected.
+
+    Returns:
+        LandmarkData: The landmarks detected in the frame.
+    """
+
     def __init__(self, mapping_engine: MappingEngine):
         super().__init__(mapping_engine)
 

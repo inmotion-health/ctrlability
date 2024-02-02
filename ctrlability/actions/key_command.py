@@ -5,6 +5,13 @@ from ctrlability.core import Action, bootstrapper
 
 @bootstrapper.add()
 class KeyCommand(Action):
+    """
+    Represents a key command action.
+
+    Args:
+        command (list): A list of strings representing the keys to be pressed.
+    """
+
     def __init__(self, command):
         self.command = command
 

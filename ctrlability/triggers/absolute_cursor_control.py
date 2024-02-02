@@ -13,6 +13,23 @@ log = logging.getLogger(__name__)
 
 @bootstrapper.add()
 class AbsoluteCursorControl(Trigger):
+    """
+    A trigger that moves the cursor to the position of the nose tip in the 2D space. We project a vector from a specific
+    landmark first using the normal vector and then translate the nose tip to the screen space.
+
+    !! This trigger only works with facial landmarks !!
+
+    Inputs:
+        NormalVectorData: The normal vector of the landmark.
+
+    Returns:
+        dict: The x and y coordinates of the landmark tip in the screen space.
+
+    Args:
+        rect_width: The width of the rectangle around the nose tip (default: 0.8).
+        head_width: The width of the head (default: 0.3).
+    """
+
     def __init__(self, rect_width=0.8, head_width=0.3):
         self.rect_width = rect_width
         self.head_width = head_width

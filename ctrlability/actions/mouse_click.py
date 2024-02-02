@@ -4,6 +4,14 @@ from ctrlability.helpers.mousectrl import MouseCtrl
 
 @bootstrapper.add()
 class MouseClick(Action):
+    """
+    MouseClick action with the specified key name.
+
+    Args:
+        key_name (str): The key name representing the type of mouse click action.
+            Valid key names are 'left', 'right', 'double', 'left_down', and 'left_up'.
+    """
+
     _LEFT = "left"
     _RIGHT = "right"
     _DOUBLE = "double"

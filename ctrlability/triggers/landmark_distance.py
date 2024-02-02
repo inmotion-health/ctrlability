@@ -14,17 +14,21 @@ class LandmarkDistance(Trigger):
     The LandmarkDistance class is a subclass of Trigger and is used to check the distance between two landmarks.
     It triggers when the distance between the two landmarks exceeds a threshold.
 
-    Attributes:
-        - landmark1: The name of the first landmark.
-        - landmark2: The name of the second landmark.
-        - threshold: The threshold value for the distance between the landmarks.
-        - timer: The time duration (in milliseconds) for which the distance should exceed the threshold before triggering (default: 0.0).
-        - direction: The direction of the trigger. Can be "greater" or "smaller" (default: "greater").
+    Args:
+        landmarks: A list of two landmarks between which the distance should be checked.
+        threshold: The threshold value for the distance between the landmarks.
+        timer: The time duration (in milliseconds) for which the distance should exceed the threshold before triggering (default: 0.0).
+        direction: The direction of the trigger. Can be "greater" or "smaller" (default: "greater").
+        normalize: A boolean value to normalize the distance with respect to a reference distance (default: False).
+        ref_landmarks: A list of two landmarks to be used as reference for normalizing the distance (default: None).
     """
 
     def __init__(self, landmarks, threshold, timer=0.0, direction="greater", normalize=False, ref_landmarks=None):
         if len(landmarks) != 2:
             raise ValueError("landmarks should be a list of two landmarks")
+
+        if len(ref_landmarks) != 2:
+            raise ValueError("ref_landmarks should be a list of two landmarks")
 
         self.landmark1 = landmarks[0]
         self.landmark2 = landmarks[1]

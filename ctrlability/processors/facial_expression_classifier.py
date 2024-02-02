@@ -11,6 +11,22 @@ from ctrlability.core.data_types import FrameData, LandmarkData
 
 @bootstrapper.add()
 class FacialExpressionClassifier(Processor):
+    """
+    A Processor that takes a frame and returns the facial expression and landmarks detected in the frame. For an
+    overview of all landmarks, see FaceLandmarkProcessor.
+
+    To connect other nodes to this node, use a SignalDivider to split the output into two separate signals.
+
+    Inputs:
+        FrameData: The frame in which the landmarks should be detected.
+
+    Returns:
+        (list, LandmarkData): A list of facial expressions and the landmarks detected in the frame.
+
+    Args:
+        min_confidence (float): The minimum confidence score for a landmark to be considered. Default is 0.
+    """
+
     def __init__(self, mapping_engine: MappingEngine, min_confidence=0):
         super().__init__(mapping_engine)
 
