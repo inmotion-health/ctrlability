@@ -10,16 +10,16 @@ To read more, see the [project website](https://prototypefund.de/project/ctrlabi
 
 ## Usage
 
-To use this project, you first need to install all our dependencies. You can do this by running the following command. We recommend using a virtual environment, such as [venv](https://docs.python.org/3/library/venv.html) or [conda](https://docs.conda.io/en/latest/), as well as Python 3.11.
+To use this project, you first need to install all our dependencies. You can do this by running the following command. We recommend using a virtual environment, such as [venv](https://docs.python.org/3/library/venv.html) or [conda](https://docs.conda.io/en/latest/), as well as Python 3.10.
 
 ```bash
-pip install -r requirements.txt # or make install
+pip install -r requirements.txt
 ```
 
 Afterwards, you can start the application by running the following command:
 
 ```bash
-python -m ctrlability # or make run
+python -m ctrlability
 ```
 
 ## Documentation
@@ -27,6 +27,12 @@ python -m ctrlability # or make run
 This project is still in rapid and early development. As such, the documentation is not yet complete or may not be fully up to date. However, we are working on it. You can find the documentation in the [`docs`](docs) folder. The following documentation is currently available:
 
 1. [Command Line Arguments](docs/arguments.md)
+2. [General Architecture](docs/architecture.md)
+3. **Available Components**
+   1. [Streams](docs/streams.md)
+   2. [Processors](docs/processors.md)
+   3. [Triggers](docs/triggers.md)
+   4. [Actions](docs/actions.md)
 
 ## License
 
