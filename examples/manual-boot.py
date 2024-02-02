@@ -22,7 +22,8 @@ vid_stream_handler.connect_post_processor(face_landmarks)
 # create a trigger and connect it to an action
 mouth_open_trigger = LandmarkDistance(landmarks=[12, 15], threshold=0.2, direction="greater")
 action_id, action = uuid4(), Logger()
-face_landmarks.connect_trigger(mouth_open_trigger, mapping_engine.register(action_id, action))
+mapping_engine.register(action_id, action)
+face_landmarks.connect_trigger(mouth_open_trigger, action_id)
 
 
 def main():
