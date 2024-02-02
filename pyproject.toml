@@ -24,12 +24,11 @@ keywords = [
     "speech recognition",
     "computer control",
 ]
-
 dependencies = [
     "mediapipe >= 0.10.3",
     "PyAutoGUI >= 0.9.54",
     "macmouse >= 0.7.4",
-    "nbstripout >= 0.6.0", # for removing notebook output from git
+    "nbstripout >= 0.6.0",                                      # for removing notebook output from git
     "PySide6 >= 6.5.2",
     "qt-material >= 2.14",
     "pygrabber >= 0.1.0",
@@ -40,10 +39,19 @@ dependencies = [
     'sounddevice~=0.4.6',
     'Pillow~=10.1.0',
     'whispercpp~=0.0.1',
+    'toml~=0.10.2',
+    'pyobjc-framework-Cocoa>=9.2; platform_system == "Darwin"',
 ]
 
-[optional-dependencies]
-darwin = ['pyobjc-framework-Cocoa >= 9.2; platform_system == "Darwin"']
+[tool.setuptools]
+packages = { find = { where = [
+    "ctrlability",
+], exclude = [
+    "research",
+    "examples",
+    "tests",
+] } }
+
 
 [tool.black]
 line-length = 120
