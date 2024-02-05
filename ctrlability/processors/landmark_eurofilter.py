@@ -34,8 +34,8 @@ class LandmarkEuroFilter(Processor):
 
     def compute(self, landmark_data: LandmarkData):
         if landmark_data is None:
-            return None
-            
+            return
+
         if landmark_data.landmarks is None:
             return
 

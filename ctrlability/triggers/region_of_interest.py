@@ -45,6 +45,9 @@ class RegionOfInterest(Trigger):
         return pos_x <= x <= (pos_x + width) and pos_y <= y <= (pos_y + height)
 
     def check(self, landmark_data: LandmarkData) -> dict | None:
+        if landmark_data is None:
+            return
+
         if landmark_data.landmarks and not (self.triggered and not self.keep_triggering):
             triggered_landmarks = []
 

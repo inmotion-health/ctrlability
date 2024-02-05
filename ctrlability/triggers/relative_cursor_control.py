@@ -42,6 +42,9 @@ class RelativeCursorControl(Trigger):
         self.screen_width, self.screen_height = MouseCtrl.screen_width, MouseCtrl.screen_height
 
     def check(self, landmark_data: LandmarkData) -> dict | None:
+        if landmark_data is None:
+            return
+
         if landmark_data.landmarks:
             left_ear = landmark_data.landmarks[93]
             right_ear = landmark_data.landmarks[323]
