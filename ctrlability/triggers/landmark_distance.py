@@ -27,8 +27,9 @@ class LandmarkDistance(Trigger):
         if len(landmarks) != 2:
             raise ValueError("landmarks should be a list of two landmarks")
 
-        if len(ref_landmarks) != 2:
-            raise ValueError("ref_landmarks should be a list of two landmarks")
+        if ref_landmarks:
+            if len(ref_landmarks) != 2:
+                raise ValueError("ref_landmarks should be a list of two landmarks")
 
         self.landmark1 = landmarks[0]
         self.landmark2 = landmarks[1]
