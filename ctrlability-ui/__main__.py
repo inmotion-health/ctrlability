@@ -3,6 +3,9 @@ import sys
 import subprocess
 import platform
 
+# FIX_MK yaml should be imported from ctrlability.core.config_parser
+import yaml
+
 import pyautogui
 from PySide6.QtCore import QObject, QRect, QSize, Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import (
@@ -37,6 +40,9 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QFileDialog,
     QScrollArea,
+    QSlider,
+    QLineEdit,
+    QCheckBox,
 )
 from qt_material import apply_stylesheet, list_themes
 
@@ -47,7 +53,322 @@ from ctrlability.util.argparser import parse_arguments
 log = logging.getLogger(__name__)
 
 
+class WebcamRoiWidget(QLabel):
+    roi_added = Signal(QRect)
+
+    def __init__(self):
+        super().__init__()
+        self.rois = []  # List of QRect objects representing the ROIs
+        self.current_pixmap = None
+        self.current_roi = None
+        self.is_drawing = False
+        self.edit_state = False
+        self.collided_roi_index = -1
+        self.toggle_state_last = 0
+        self.demo_mode = "TOGGLE_KEYS"
+
+        self.msg = ""
+        self.show_text = False
+
+    def _add_roi(self, roi):
+        self.rois.append(roi)
+        self.roi_added.emit(roi)  # Emit the signal with the new ROI
+
+    def set_image(self, pixmap):
+        self.current_pixmap = pixmap
+        self.update()  # Schedule a repaint
+
+    def mousePressEvent(self, event):
+        if self.edit_state:  # Check if the edit button is toggled
+            self.is_drawing = True
+            self.current_roi = QRect(event.position().toPoint(), QSize(0, 0))
+
+    def mouseMoveEvent(self, event):
+        if self.is_drawing:
+            self.current_roi.setBottomRight(event.position().toPoint())
+            self.update()
+
+    def mouseReleaseEvent(self, event):
+        if self.is_drawing:
+            self._add_roi(self.current_roi)
+            self.is_drawing = False
+            self.update()
+
+    def setEditState(self, state):
+        self.edit_state = state
+
+    def set_collision(self, index):
+        self.collided_roi_index = index
+
+    def set_msg(self, msg):
+        self.msg = msg
+        self.show_text = True
+        QTimer.singleShot(5000, self._hideText)
+        self.update()
+
+    def _hideText(self):
+        self.show_text = False
+        self.update()  # This will trigger a repaint of the widget
+
+    def _showText(self, painter, width, height, text):
+        # Set the color for the text
+        color = QColor(255, 0, 0)  # This is red. Adjust RGB values as needed.
+        pen = QPen(color)
+        painter.setPen(pen)
+
+        font = painter.font()
+        font.setPointSize(24)
+        painter.setFont(font)
+
+        # Calculate the position to draw the text
+        text = self.msg
+        font_metrics = QFontMetrics(font)
+        text_width = font_metrics.boundingRect(text).width()
+        text_height = font_metrics.height()
+
+        x = (width - text_width) / 2
+        y = (height + text_height) / 2  # + because the y-coordinate is the baseline of the text
+
+        # Draw the text at the calculated position
+        painter.drawText(x, y, text)
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+
+        if self.current_pixmap:
+            painter = QPainter(self)
+            painter.drawPixmap(0, 0, self.current_pixmap)
+
+            painter.setPen(QPen(Qt.black, 2))
+            painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # Semi-transparent green
+
+            for index, roi in enumerate(self.rois):
+                if index == self.collided_roi_index:  # Check if the current ROI is the collided one
+                    painter.setBrush(QBrush(QColor(255, 0, 0, 127)))  # red
+                else:
+                    painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # green
+                painter.drawRect(roi)
+
+            if self.demo_mode == "TOGGLE_KEYS":
+                if self.collided_roi_index == -1:
+                    self.toggle_state_last = 0
+                elif self.collided_roi_index == 0 and self.toggle_state_last == 0:
+                    pyautogui.keyDown("space")
+                    # pyautogui.scroll(10)
+                    print("space")
+                    self.toggle_state_last = 1
+                elif self.collided_roi_index == 1 and self.toggle_state_last == 0:
+                    # pyautogui.press("w")
+                    pyautogui.keyDown("w")
+                    # pyautogui.scroll(-10)
+                    self.toggle_state_last = 1
+
+            if self.demo_mode == "SCROLL":
+                if self.collided_roi_index == 0:
+                    pyautogui.scroll(-1)
+                elif self.collided_roi_index == 1:
+                    pyautogui.scroll(1)
+
+            if self.is_drawing and self.current_roi:
+                painter.drawRect(self.current_roi)
+
+            if self.show_text == True:
+                self._showText(painter, self.current_pixmap.width(), self.current_pixmap.height(), self.msg)
+
+            painter.end()
+        else:
+            painter = QPainter(self)
+            width = 640
+            height = 480
+            painter.setPen(QPen(Qt.black, 2))
+            painter.setBrush(QBrush(QColor(0, 0, 0, 0)))  # Semi-transparent green
+            painter.drawRect(0, 0, width, height)
+            if self.show_text == True:
+                self._showText(painter, width, height, self.msg)
+
+            painter.end()
+
+
+class MainView(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.layout = QVBoxLayout(self)
+
+        # Create a QScrollArea
+        self.scrollArea = QScrollArea(self)
+        self.layout.addWidget(self.scrollArea)
+
+        # Create a QStackedWidget that will contain the different views
+        self.contentStack = QStackedWidget()
+        self.scrollArea.setWidget(self.contentStack)
+        self.scrollArea.setWidgetResizable(True)  # Allow the widget to be resized
+
+        self.preferenceView = PreferencesView()
+        self.headFaceView = HeadFaceView()
+        self.handView = HandView()
+        self.holisticView = HolisticView()
+
+        # Create instances of the content views and add them to the stacked widget
+        self.contentStack.addWidget(self.preferenceView)
+        self.contentStack.addWidget(self.headFaceView)
+        self.contentStack.addWidget(self.handView)
+        self.contentStack.addWidget(self.holisticView)
+
+        self.setMinimumSize(400, 300)  # Set a minimum size for the main view
+
+    def display_index(self, index):
+        if 0 <= index < self.contentStack.count():
+            self.contentStack.setCurrentIndex(index)
+        else:
+            self.contentStack.setCurrentWidget(QLabel("Select a page"))
+
+
+# Separate classes for each content type
+class PreferencesView(QWidget):
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout(self)
+        # Add checkboxes
+        # for i in range(3):
+        #     layout.addWidget(QCheckBox(f"Option {i+1}"))
+
+
+class HeadFaceView(QWidget):
+
+    # cam_changed = Signal(int)
+
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout(self)
+
+        self.cam_combo_box = QComboBox(self)
+        self.cam_combo_box.addItem("CAM1")
+        self.cam_combo_box.addItem("CAM2")
+        # self.cam_combo_box.currentIndexChanged.connect(self.on_select_cam)
+        # self.cam_combo_box.setFixedWidth(250)
+        layout.addWidget(self.cam_combo_box)
+
+        # Add sliders
+        for i in range(3):
+            layout.addWidget(QSlider())
+
+    # @Slot(int)
+    # def on_select_cam(self, index):
+    #     selected_text = self.cam_combo_box.currentText()
+    #     log.debug(f"Selected cam: {selected_text}")
+    #     self.cam_changed.emit(index)
+
+
+class HandView(QWidget):
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout(self)
+        # Add text fields
+        # for i in range(10):
+        #     layout.addWidget(QLineEdit(f"Text Field {i+1}"))
+
+
+class HolisticView(QWidget):
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout(self)
+        # Add a single slider
+        layout.addWidget(QSlider())
+
+
+# View
+class CtrlAbilityView(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("CTRLABILITY")
+        # self.setGeometry(100, 100, 200, 100)
+
+        # self.comboBox = QComboBox()
+        # self.comboBox.addItems(["Option 1", "Option 2", "Option 3"])
+
+        # layout = QVBoxLayout()
+        # layout.addWidget(self.comboBox)
+        # container = QWidget()
+        # container.setLayout(layout)
+        # self.setCentralWidget(container)
+
+        self.initMenu()
+        self.initUI()
+
+    def update(self, state):
+        if "selected_index" in state:
+            self.comboBox.setCurrentIndex(state["selected_index"])
+        print(f"View updated with state: {state}")
+
+    def initMenu(self):
+        # Create a menu bar
+        menuBar = self.menuBar()
+
+        # Create a About menu
+        aboutMenu = menuBar.addMenu("&About")
+        fileMenu = menuBar.addMenu("&File")
+
+        # Create an action for the About dialog
+        self.aboutAction = QAction("&About", self)
+        self.aboutAction.setStatusTip("Show the About dialog")
+        # self.aboutAction.triggered.connect(self.show_about_dialog)
+        aboutMenu.addAction(self.aboutAction)
+
+        self.loadAction = QAction("&Load", self)
+        self.loadAction.setStatusTip("Load a file")
+        # self.loadAction.triggered.connect(self.load_file)
+        fileMenu.addAction(self.loadAction)
+
+        self.saveAction = QAction("&Save", self)
+        self.saveAction.setStatusTip("Save the file")
+        # self.saveAction.triggered.connect(self.save_file)
+        fileMenu.addAction(self.saveAction)
+
+        # Create Help menu
+        helpMenu = QMenu("&Help", self)
+        menuBar.addMenu(helpMenu)
+
+        # Create About action
+        self.helpAction = QAction("&Help", self)
+        self.helpAction.setStatusTip("Show the Help dialog")
+        # self.helpAction.triggered.connect(self.show_help_dialog)
+        helpMenu.addAction(self.helpAction)
+        # Set the appropriate role for macOS (optional, for better macOS integration)
+        self.aboutAction.setMenuRole(QAction.MenuRole.AboutRole)
+
+    def initUI(self):
+        # Create the side menu (sidebar)
+        self.sideMenu = QListWidget()
+        self.sideMenu.setMinimumWidth(200)  # Set a minimum width for the sidebar
+
+        menu = ["PREFERENCES", "HEAD & FACE", "HAND", "HOLISTIC"]
+        for item in menu:
+
+            listItem = QListWidgetItem(item)
+            listItem.setFlags(listItem.flags() | Qt.ItemFlag.ItemIsUserCheckable)  # make the item checkable
+            listItem.setCheckState(Qt.CheckState.Unchecked)  # initially unchecked
+            self.sideMenu.addItem(listItem)
+
+        # self.sideMenu.itemClicked.connect(self.menu_item_clicked)  # connect the click event
+
+        # Create the main view
+        self.mainView = MainView()
+
+        # Create the main layout (horizontal) and add the side menu and the main view to it
+        self.mainLayout = QHBoxLayout()
+        self.mainLayout.addWidget(self.sideMenu, 1)  # Sidebar takes less space
+        self.mainLayout.addWidget(self.mainView, 4)  # Main view takes more space
+
+        # Create a central widget, set the main layout on it, and set it as the central widget
+        self.centralWidget = QWidget()
+        self.centralWidget.setLayout(self.mainLayout)
+        self.setCentralWidget(self.centralWidget)
+
+
 class ProcessThread(QThread):
+
     finished = Signal()
 
     def run(self):
@@ -69,189 +390,130 @@ class ProcessThread(QThread):
                 self.finished.emit()
 
 
-class MainView(QWidget):
+# Model
+class CtrlAbilityModel:
     def __init__(self):
+        self.state = {}
+
+    def load_state(self):
+        try:
+            with open("project_state.yaml", "r") as file:
+                self.state = yaml.safe_load(file) or {}
+        except FileNotFoundError:
+            self.state = {}
+
+    def save_state(self):
+        with open("project_state.yaml", "w") as file:
+            yaml.dump(self.state, file)
+
+    def update_state(self, key, value):
+        self.state[key] = value
+        self.save_state()
+        CtrlAbilityStateObserver.notify(self.state)
+
+
+# Observer
+class CtrlAbilityStateObserver:
+    _observers = []
+
+    @classmethod
+    def register(cls, observer):
+        cls._observers.append(observer)
+
+    @classmethod
+    def notify(cls, state):
+        for observer in cls._observers:
+            observer.update(state)
+
+
+# Controller
+class CtrlAbilityController(QObject):
+    def __init__(self, model, view):
         super().__init__()
-        self.layout = QVBoxLayout(self)
+        self.model = model
+        self.view = view
+        CtrlAbilityStateObserver.register(self.view)
+        self.view.sideMenu.itemClicked.connect(self.on_side_menu_item_clicked)
 
-        # Create a QScrollArea
-        self.scrollArea = QScrollArea(self)
-        self.layout.addWidget(self.scrollArea)
+        ## Menu actions
+        self.view.aboutAction.triggered.connect(self.show_about_dialog)
+        self.view.loadAction.triggered.connect(self.load_file)
+        self.view.saveAction.triggered.connect(self.save_file)
+        self.view.helpAction.triggered.connect(self.show_help_dialog)
 
-        # Create a widget that will contain the content
-        self.contentWidget = QWidget()
-        self.scrollArea.setWidget(self.contentWidget)
-        self.scrollArea.setWidgetResizable(True)  # Allow the widget to be resized
+        ## HeadFaceView actions
+        self.view.mainView.headFaceView.cam_combo_box.currentIndexChanged.connect(self.head_face_view_on_cam_changed)
 
-        # Set the layout for the content widget
-        self.contentLayout = QVBoxLayout(self.contentWidget)
-
-        # Add a label as placeholder content (you can add more widgets here)
-        self.label = QLabel("Welcome @ CTRLABILITY ", self.contentWidget)
-        self.contentLayout.addWidget(self.label)
-
-        self.setMinimumSize(400, 300)  # Set a minimum size for the main view
-
-    def display_index(self, index):
-        # self.label.setText(f"Current Page: {index + 1}")  # Update the label to display the index
-        if index == 0:
-            self.showPreferences()
-        elif index == 1:
-            self.showHeadFace()
-        elif index == 2:
-            self.showHand()
-        elif index == 3:
-            self.showHolistic()
-        else:
-            self.label.setText("Select a page")
-
-    def showPreferences(self):
-        self.label.setText("Preferences")
-
-    def showHeadFace(self):
-        self.label.setText("head & face")
-
-    def showHand(self):
-        self.label.setText("hand")
-
-    def showHolistic(self):
-        self.label.setText("holistic")
-
-
-class CtrlAbilityApp(QMainWindow):
-    def __init__(self, app):
-        super().__init__()
-
-        self.app = app
-        self.setWindowTitle("CTRLABILITY")
-        # self.setGeometry(100, 100, 800, 600)
-        # self.setWindowIcon(QIcon("ctrlability/assets/icons/ctrlability_icon.png"))
+        # self.view.comboBox.currentIndexChanged.connect(self.on_combobox_changed)
+        self.model.load_state()
+        self.view.update(self.model.state)
 
         self.processThread = ProcessThread()
-        self.processThread.finished.connect(self.onProcessFinished)
+        self.processThread.finished.connect(self.on_process_thread_finished)
 
-        self.initMenu()
-        self.initUI()
+    # -----------------------------------
+    # LOAD/SAVE YAML PROCESS CONFIG FILE
+    # -----------------------------------
 
     def load_file(self):
-        # self.stopProcess()
+        # FIX_MK start/stop Thread when new file is loaded
+        self.stopProcessThread()
         from ctrlability.core.config_parser import ConfigParser
 
-        fileName, _ = QFileDialog.getOpenFileName(self, "Open File", "", "CTRLABILITY CONFIG YAML (*.yaml)")
+        fileName, _ = QFileDialog.getOpenFileName(self.view, "Open File", "", "CTRLABILITY CONFIG YAML (*.yaml)")
         if fileName:
             # Code to handle the file opening
             print(f"Loading {fileName}")
             ConfigParser.CONFIG_PATH = fileName
-            self.startProcess()
+            self.startProcessThread()
 
     def save_file(self):
-        fileName, _ = QFileDialog.getSaveFileName(self, "Save File", "", "All Files (*);;Text Files (*.txt)")
+        fileName, _ = QFileDialog.getSaveFileName(self.view, "Save File", "", "All Files (*);;Text Files (*.txt)")
         if fileName:
             # Code to handle the file saving
             print(f"Saving to {fileName}")
-            self.stopProcess()
+            # self.stopProcess()
 
-    def startProcess(self):
+    # ----------------------------
+    # UI Menu Actions
+    # ----------------------------
+    def on_side_menu_item_clicked(self, item):
+        index = self.view.sideMenu.row(item)
+        # Uncheck all other items
+        for i in range(self.view.sideMenu.count()):
+            if i != index:
+                self.view.sideMenu.item(i).setCheckState(Qt.CheckState.Unchecked)
+        self.view.mainView.display_index(index)
+        self.model.update_state("side_menu_selected_index", index)
+
+    def show_about_dialog(self):
+        QMessageBox.about(self.view, "About", "This is the About dialog.\nAdd information about your application here.")
+
+    def show_help_dialog(self):
+        QMessageBox.about(self.view, "Help", "This is the HELP dialog.\nAdd information about your application here.")
+
+    # ----------------------------
+    # UI HeadFaceView Actions
+    # ----------------------------
+    def head_face_view_on_cam_changed(self, index):
+        self.model.update_state("cam_selected_index", index)
+
+    # ----------------------------
+    # Thread Actions
+    # ----------------------------
+    def startProcessThread(self):
         print("Starting process")
         if not self.processThread.isRunning():
             self.processThread.start()
 
-    def stopProcess(self):
+    def stopProcessThread(self):
         print("Stopping process")
         if self.processThread.isRunning():
             self.processThread.terminate()  # or implement a more graceful stop if possible
             self.processThread.wait()
 
-    def onProcessFinished(self):
-        print("Process finished or stopped.")
-
-    def show_about_dialog(self):
-        QMessageBox.about(self, "About", "This is the About dialog.\nAdd information about your application here.")
-
-    def show_help_dialog(self):
-        QMessageBox.about(self, "Help", "This is the HELP dialog.\nAdd information about your application here.")
-
-    def initMenu(self):
-        # Create a menu bar
-        menuBar = self.menuBar()
-
-        # Create a About menu
-        aboutMenu = menuBar.addMenu("&About")
-        fileMenu = menuBar.addMenu("&File")
-
-        # Create an action for the About dialog
-        aboutAction = QAction("&About", self)
-        aboutAction.setStatusTip("Show the About dialog")
-        aboutAction.triggered.connect(self.show_about_dialog)
-        aboutMenu.addAction(aboutAction)
-
-        loadAction = QAction("&Load", self)
-        loadAction.setStatusTip("Load a file")
-        loadAction.triggered.connect(self.load_file)
-        fileMenu.addAction(loadAction)
-
-        saveAction = QAction("&Save", self)
-        saveAction.setStatusTip("Save the file")
-        saveAction.triggered.connect(self.save_file)
-        fileMenu.addAction(saveAction)
-
-        # Create Help menu
-        helpMenu = QMenu("&Help", self)
-        menuBar.addMenu(helpMenu)
-
-        # Create About action
-        helpAction = QAction("&Help", self)
-        helpAction.setStatusTip("Show the Help dialog")
-        helpAction.triggered.connect(self.show_help_dialog)
-        helpMenu.addAction(helpAction)
-        # Set the appropriate role for macOS (optional, for better macOS integration)
-        aboutAction.setMenuRole(QAction.MenuRole.AboutRole)
-
-    def initUI(self):
-        # Create the side menu (sidebar)
-        self.sideMenu = QListWidget()
-        self.sideMenu.setMinimumWidth(200)  # Set a minimum width for the sidebar
-
-        menu = ["PREFERENCES", "HEAD & FACE", "HAND", "HOLISTIC"]
-        for item in menu:
-
-            listItem = QListWidgetItem(item)
-            listItem.setFlags(listItem.flags() | Qt.ItemFlag.ItemIsUserCheckable)  # make the item checkable
-            listItem.setCheckState(Qt.CheckState.Unchecked)  # initially unchecked
-            self.sideMenu.addItem(listItem)
-
-        self.sideMenu.itemClicked.connect(self.menu_item_clicked)  # connect the click event
-
-        # Create the main view
-        self.mainView = MainView()
-
-        # Create the main layout (horizontal) and add the side menu and the main view to it
-        self.mainLayout = QHBoxLayout()
-        self.mainLayout.addWidget(self.sideMenu, 1)  # Sidebar takes less space
-        self.mainLayout.addWidget(self.mainView, 4)  # Main view takes more space
-
-        # Create a central widget, set the main layout on it, and set it as the central widget
-        self.centralWidget = QWidget()
-        self.centralWidget.setLayout(self.mainLayout)
-        self.setCentralWidget(self.centralWidget)
-
-    def menu_item_clicked(self, item):
-        # Get the index of the clicked item
-        index = self.sideMenu.row(item)
-        # Uncheck all other items
-        for i in range(self.sideMenu.count()):
-            if i != index:
-                self.sideMenu.item(i).setCheckState(Qt.CheckState.Unchecked)
-        # Display the index in the main view
-        self.mainView.display_index(index)
-
-    def start_button_clicked(self):
-        print("Start button clicked")
-        # self.hide()
-        # subprocess.Popen(["python3", "ctrlability/__main__.py"])
-
-    def quit_button_clicked(self):
-        self.app.quit()
+    def on_process_thread_finished(self):
+        print("Process finished.")
 
 
 def show_version():
@@ -289,8 +551,15 @@ def runAPP():
             theme = "dark_blue.xml"
     apply_stylesheet(app, theme=theme)
 
-    mainWin = CtrlAbilityApp(app)
-    mainWin.show()
+    # mainWin = CtrlAbilityApp(app)
+    # mainWin.show()
+
+    # app = QApplication(sys.argv)
+    model = CtrlAbilityModel()
+    view = CtrlAbilityView()
+    controller = CtrlAbilityController(model, view)
+    view.show()
+
     sys.exit(app.exec())
 
 
