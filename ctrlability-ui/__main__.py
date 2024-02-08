@@ -285,15 +285,6 @@ class CtrlAbilityView(QMainWindow):
         self.setWindowTitle("CTRLABILITY")
         # self.setGeometry(100, 100, 200, 100)
 
-        # self.comboBox = QComboBox()
-        # self.comboBox.addItems(["Option 1", "Option 2", "Option 3"])
-
-        # layout = QVBoxLayout()
-        # layout.addWidget(self.comboBox)
-        # container = QWidget()
-        # container.setLayout(layout)
-        # self.setCentralWidget(container)
-
         self.initMenu()
         self.initUI()
 
@@ -313,17 +304,14 @@ class CtrlAbilityView(QMainWindow):
         # Create an action for the About dialog
         self.aboutAction = QAction("&About", self)
         self.aboutAction.setStatusTip("Show the About dialog")
-        # self.aboutAction.triggered.connect(self.show_about_dialog)
         aboutMenu.addAction(self.aboutAction)
 
         self.loadAction = QAction("&Load", self)
         self.loadAction.setStatusTip("Load a file")
-        # self.loadAction.triggered.connect(self.load_file)
         fileMenu.addAction(self.loadAction)
 
         self.saveAction = QAction("&Save", self)
         self.saveAction.setStatusTip("Save the file")
-        # self.saveAction.triggered.connect(self.save_file)
         fileMenu.addAction(self.saveAction)
 
         # Create Help menu
@@ -333,7 +321,6 @@ class CtrlAbilityView(QMainWindow):
         # Create About action
         self.helpAction = QAction("&Help", self)
         self.helpAction.setStatusTip("Show the Help dialog")
-        # self.helpAction.triggered.connect(self.show_help_dialog)
         helpMenu.addAction(self.helpAction)
         # Set the appropriate role for macOS (optional, for better macOS integration)
         self.aboutAction.setMenuRole(QAction.MenuRole.AboutRole)
@@ -350,8 +337,6 @@ class CtrlAbilityView(QMainWindow):
             listItem.setFlags(listItem.flags() | Qt.ItemFlag.ItemIsUserCheckable)  # make the item checkable
             listItem.setCheckState(Qt.CheckState.Unchecked)  # initially unchecked
             self.sideMenu.addItem(listItem)
-
-        # self.sideMenu.itemClicked.connect(self.menu_item_clicked)  # connect the click event
 
         # Create the main view
         self.mainView = MainView()
@@ -444,12 +429,15 @@ class CtrlAbilityController(QObject):
         ## HeadFaceView actions
         self.view.mainView.headFaceView.cam_combo_box.currentIndexChanged.connect(self.head_face_view_on_cam_changed)
 
-        # self.view.comboBox.currentIndexChanged.connect(self.on_combobox_changed)
         self.model.load_state()
         self.view.update(self.model.state)
 
         self.processThread = ProcessThread()
         self.processThread.finished.connect(self.on_process_thread_finished)
+
+        # Use a QTimer to delay the centering by 500 milliseconds
+        # QTimer.singleShot(500, self.center_on_screen)
+        self.center_on_screen()
 
     # -----------------------------------
     # LOAD/SAVE YAML PROCESS CONFIG FILE
@@ -491,6 +479,14 @@ class CtrlAbilityController(QObject):
 
     def show_help_dialog(self):
         QMessageBox.about(self.view, "Help", "This is the HELP dialog.\nAdd information about your application here.")
+
+    def center_on_screen(self):
+        screen = QApplication.primaryScreen().geometry()  # Get screen geometry
+        window = self.view.geometry()  # Get window geometry
+        self.view.move(
+            (screen.width() - window.width()) / 2,
+            (screen.height() - window.height()) / 2,
+        )
 
     # ----------------------------
     # UI HeadFaceView Actions
@@ -551,10 +547,6 @@ def runAPP():
             theme = "dark_blue.xml"
     apply_stylesheet(app, theme=theme)
 
-    # mainWin = CtrlAbilityApp(app)
-    # mainWin.show()
-
-    # app = QApplication(sys.argv)
     model = CtrlAbilityModel()
     view = CtrlAbilityView()
     controller = CtrlAbilityController(model, view)
