@@ -1,0 +1,1 @@
+from ctrlability_ui.models.ctrlability_model import CtrlAbilityModel
