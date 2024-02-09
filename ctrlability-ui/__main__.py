@@ -4,7 +4,8 @@ import subprocess
 import platform
 
 # FIX_MK yaml should be imported from ctrlability.core.config_parser
-import yaml
+# import yaml
+from ruamel.yaml import YAML
 import pyautogui
 
 # from vidcontrol import VideoManager
@@ -391,7 +392,7 @@ class ProcessThread(QThread):
 
     @Slot()
     def update_stream_handlers(self):
-        print("Updating stream handlers...")
+        print("/////////////////////////////Updating stream handlers...")
         self.is_running = False
         from ctrlability.core import bootstrapper
 
@@ -403,6 +404,7 @@ class ProcessThread(QThread):
             tree_printer = TreePrinter(self.stream_handlers, bootstrapper._mapping_engine)
             tree_printer.print_representation()
         self.is_running = True
+        print("/////////////////////////////Updating stream handlers...DONE")
 
 
 # Model
@@ -410,24 +412,26 @@ class CtrlAbilityModel:
     def __init__(self):
         self.state = {}
         self.config = {}
+        self.yaml = YAML()
+        self.yaml.preserve_quotes = True
 
     def load_state(self):
         try:
             with open("project_state.yaml", "r") as file:
-                self.state = yaml.safe_load(file) or {}
+                self.state = self.yaml.load(file) or {}
         except FileNotFoundError:
             self.state = {}
 
     def save_state(self):
         with open("project_state.yaml", "w") as file:
-            yaml.dump(self.state, file)
+            self.yaml.dump(self.state, file)
 
     def save_config(self, config):
         print("---------------Saving config...")
         print(config)
         try:
             with open("config.yaml", "w") as file:
-                yaml.dump(config, file)
+                self.yaml.dump(config, file)
             # If an exception was not raised, the dump was successful
         except Exception as e:
             # Handle any errors that occurred during the file operation
@@ -553,6 +557,8 @@ class CtrlAbilityController(QObject):
             # self.model.update_state("cam_selected_index", index)
             # self.stopProcessThread()
             # self.startProcessThread()
+            print("===================PROCESS THREAD")
+            print(self.processThread.isRunning())
             self.processThread.update_required.emit()
             print("restart process thread")
 
