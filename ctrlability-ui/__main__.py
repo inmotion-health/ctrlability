@@ -5,8 +5,11 @@ import platform
 
 # FIX_MK yaml should be imported from ctrlability.core.config_parser
 import yaml
-
 import pyautogui
+
+# from vidcontrol import VideoManager
+
+
 from PySide6.QtCore import QObject, QRect, QSize, Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import (
     QAction,
@@ -20,6 +23,7 @@ from PySide6.QtGui import (
     QPixmap,
     QShortcut,
     QIcon,
+    QImage,
 )
 from PySide6.QtWidgets import (
     QApplication,
@@ -215,7 +219,7 @@ class MainView(QWidget):
         self.contentStack.addWidget(self.handView)
         self.contentStack.addWidget(self.holisticView)
 
-        self.setMinimumSize(400, 300)  # Set a minimum size for the main view
+        self.setMinimumSize(880, 495)  # Set a minimum size for the main view
 
     def display_index(self, index):
         if 0 <= index < self.contentStack.count():
@@ -236,8 +240,6 @@ class PreferencesView(QWidget):
 
 class HeadFaceView(QWidget):
 
-    # cam_changed = Signal(int)
-
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout(self)
@@ -245,19 +247,16 @@ class HeadFaceView(QWidget):
         self.cam_combo_box = QComboBox(self)
         self.cam_combo_box.addItem("CAM1")
         self.cam_combo_box.addItem("CAM2")
-        # self.cam_combo_box.currentIndexChanged.connect(self.on_select_cam)
         # self.cam_combo_box.setFixedWidth(250)
         layout.addWidget(self.cam_combo_box)
 
-        # Add sliders
-        for i in range(3):
-            layout.addWidget(QSlider())
+        self.webcam_roi_region = WebcamRoiWidget()
+        self.webcam_roi_region.setFixedSize(640, 480)
+        layout.addWidget(self.webcam_roi_region)
 
-    # @Slot(int)
-    # def on_select_cam(self, index):
-    #     selected_text = self.cam_combo_box.currentText()
-    #     log.debug(f"Selected cam: {selected_text}")
-    #     self.cam_changed.emit(index)
+        # Add sliders
+        # for i in range(3):
+        #    layout.addWidget(QSlider())
 
 
 class HandView(QWidget):
@@ -279,7 +278,6 @@ class HolisticView(QWidget):
 
 # View
 class CtrlAbilityView(QMainWindow):
-
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CTRLABILITY")
@@ -289,8 +287,8 @@ class CtrlAbilityView(QMainWindow):
         self.initUI()
 
     def update(self, state):
-        if "selected_index" in state:
-            self.comboBox.setCurrentIndex(state["selected_index"])
+        # if "selected_index" in state:
+        #     self.comboBox.setCurrentIndex(state["selected_index"])
         print(f"View updated with state: {state}")
 
     def initMenu(self):
@@ -355,30 +353,63 @@ class CtrlAbilityView(QMainWindow):
 class ProcessThread(QThread):
 
     finished = Signal()
+    update_required = Signal()  # for realtime changes in thread e.g. stream_handler (config dict)
+
+    def __init__(self, model):
+        super().__init__()
+
+        self.model = model
+        self.is_running = True
+        self.update_required.connect(self.update_stream_handlers)
+        self.stream_handlers = []
 
     def run(self):
+
         from ctrlability.core import bootstrapper
 
-        stream_handlers = bootstrapper.boot()
+        self.stream_handlers = bootstrapper.boot()
 
         if log.isEnabledFor(logging.DEBUG):
             from ctrlability.util.tree_print import TreePrinter
 
-            tree_printer = TreePrinter(stream_handlers, bootstrapper._mapping_engine)
+            tree_printer = TreePrinter(self.stream_handlers, bootstrapper._mapping_engine)
             tree_printer.print_representation()
-        while True:
+
+        while self.is_running:
             try:
-                for stream in stream_handlers:
+                for stream in self.stream_handlers:
                     stream.process(None)
             except KeyboardInterrupt:
                 log.info("KeyboardInterrupt: Exiting...")
-                self.finished.emit()
+                self.is_running = False
+            self.msleep(10)  # FIX_MK Reduce CPU Usage / Improve Responsiveness
+
+        self.finished.emit()
+
+    def stop(self):
+        self.is_running = False
+
+    @Slot()
+    def update_stream_handlers(self):
+        print("Updating stream handlers...")
+        self.is_running = False
+        from ctrlability.core import bootstrapper
+
+        self.stream_handlers = bootstrapper.boot()
+
+        if log.isEnabledFor(logging.DEBUG):
+            from ctrlability.util.tree_print import TreePrinter
+
+            tree_printer = TreePrinter(self.stream_handlers, bootstrapper._mapping_engine)
+            tree_printer.print_representation()
+        self.is_running = True
 
 
 # Model
 class CtrlAbilityModel:
     def __init__(self):
         self.state = {}
+        self.config = {}
 
     def load_state(self):
         try:
@@ -391,10 +422,70 @@ class CtrlAbilityModel:
         with open("project_state.yaml", "w") as file:
             yaml.dump(self.state, file)
 
+    def save_config(self, config):
+        print("---------------Saving config...")
+        print(config)
+        try:
+            with open("config.yaml", "w") as file:
+                yaml.dump(config, file)
+            # If an exception was not raised, the dump was successful
+        except Exception as e:
+            # Handle any errors that occurred during the file operation
+            log.error(f"Failed to save config: {e}")
+
+        print("---------------Config saved.")
+
     def update_state(self, key, value):
+        log.debug(f"--------------Updating state: {key} = {value}")
         self.state[key] = value
         self.save_state()
+        if key == "cam_selected_index":
+            self.update_processingunit_dict(["mapping", "VideoStream", "args", "webcam_id"], value)
         CtrlAbilityStateObserver.notify(self.state)
+
+    # def update_processingunit_dict(self, path, value):
+    #     # Updates the config dictionary based on a given path.
+    #     # e.g. update_config(['mapping', 'VideoStream', 'args', 'webcam_id'], 1)
+
+    #     from ctrlability.core.config_parser import ConfigParser
+
+    #     self.config = ConfigParser().get_config_as_dict()
+    #     temp_config = self.config
+
+    #     for key in path[:-1]:  # Gehe zum vorletzten Schlüssel
+    #         temp_config = temp_config[key]
+    #     temp_config[path[-1]] = value  # Setze den neuen Wert
+
+    #     print(self.config)
+
+    #     self.save_config(self.config)
+
+    def update_processingunit_dict(self, path, value):
+        from ctrlability.core.config_parser import ConfigParser
+
+        self.config = ConfigParser().get_config_as_dict()
+
+        print(self.config)
+
+        # Use a temporary pointer to navigate the dictionary without altering the original reference
+        temp_config = self.config
+        for key in path[:-1]:  # Navigate to the target container
+            if key not in temp_config:
+                # Optionally, handle missing keys (e.g., by creating them or logging an error)
+                print(f"Key {key} not found in configuration.")
+                return
+            temp_config = temp_config[key]
+
+        # Update the target value
+        if path[-1] in temp_config:
+            temp_config[path[-1]] = value
+        else:
+            # Optionally, handle the case where the final key is not found
+            print(f"Final key {path[-1]} not found in configuration.")
+            return
+
+        # Save the updated configuration
+        self.save_config(self.config)
 
 
 # Observer
@@ -417,10 +508,20 @@ class CtrlAbilityController(QObject):
         super().__init__()
         self.model = model
         self.view = view
-        CtrlAbilityStateObserver.register(self.view)
+
+        # INITIALIZE VIDEO MANAGER
+        # self.video_manager = VideoManager()
+        # print(self.video_manager.list_available_cameras())
+        # self.video_manager.set_preferred_height(480)
+
+        # self.webcam_source = self.video_manager.get_video_source(0)
+        # self.width = self.webcam_source.get_width()
+        # self.height = self.webcam_source.get_height()
+        # self.qImage = QImage(self.width, self.height, QImage.Format_RGB888)
+
         self.view.sideMenu.itemClicked.connect(self.on_side_menu_item_clicked)
 
-        ## Menu actions
+        ## Status Menu actions
         self.view.aboutAction.triggered.connect(self.show_about_dialog)
         self.view.loadAction.triggered.connect(self.load_file)
         self.view.saveAction.triggered.connect(self.save_file)
@@ -430,14 +531,32 @@ class CtrlAbilityController(QObject):
         self.view.mainView.headFaceView.cam_combo_box.currentIndexChanged.connect(self.head_face_view_on_cam_changed)
 
         self.model.load_state()
-        self.view.update(self.model.state)
+        # self.view.update(self.model.state)
+        # self.update(self.model.state)
 
-        self.processThread = ProcessThread()
-        self.processThread.finished.connect(self.on_process_thread_finished)
+        # select HeadFaceView in the side menu as the default view
+        self.on_side_menu_item_clicked(self.view.sideMenu.item(1))
+        self.view.sideMenu.setCurrentRow(1)
 
         # Use a QTimer to delay the centering by 500 milliseconds
-        # QTimer.singleShot(500, self.center_on_screen)
-        self.center_on_screen()
+        QTimer.singleShot(500, self.center_on_screen)
+
+        self.processThread = ProcessThread(model)
+        self.processThread.finished.connect(self.on_process_thread_finished)
+
+        # CtrlAbilityStateObserver.register(self.view)
+        CtrlAbilityStateObserver.register(self)
+
+    def update(self, state):
+        print(f"-----------Controller updated with state: {state}")
+        if "cam_selected_index" in state:
+            # self.model.update_state("cam_selected_index", index)
+            # self.stopProcessThread()
+            # self.startProcessThread()
+            self.processThread.update_required.emit()
+            print("restart process thread")
+
+        print(f"Controller updated with state: {state}")
 
     # -----------------------------------
     # LOAD/SAVE YAML PROCESS CONFIG FILE
@@ -449,6 +568,7 @@ class CtrlAbilityController(QObject):
         from ctrlability.core.config_parser import ConfigParser
 
         fileName, _ = QFileDialog.getOpenFileName(self.view, "Open File", "", "CTRLABILITY CONFIG YAML (*.yaml)")
+        print(fileName)
         if fileName:
             # Code to handle the file opening
             print(f"Loading {fileName}")
@@ -492,6 +612,7 @@ class CtrlAbilityController(QObject):
     # UI HeadFaceView Actions
     # ----------------------------
     def head_face_view_on_cam_changed(self, index):
+        print(f"************************Selected cam index: {index}")
         self.model.update_state("cam_selected_index", index)
 
     # ----------------------------

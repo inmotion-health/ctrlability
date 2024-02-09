@@ -23,7 +23,13 @@ class ConfigParser:
         try:
             with open(self.CONFIG_PATH) as f:
                 config: dict = load(f, Loader=Loader)
-
                 return config.get("mapping")
+        except FileNotFoundError:
+            raise RuntimeError(f"Config file {self.CONFIG_PATH} not found.")
+
+    def get_config_as_dict(self):
+        try:
+            with open(self.CONFIG_PATH) as f:
+                return load(f, Loader=Loader)
         except FileNotFoundError:
             raise RuntimeError(f"Config file {self.CONFIG_PATH} not found.")
