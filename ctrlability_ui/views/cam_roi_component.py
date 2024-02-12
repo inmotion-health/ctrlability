@@ -15,7 +15,7 @@ from PySide6.QtWidgets import QLabel
 log = logging.getLogger(__name__)
 
 
-class WebcamRoiWidget(QLabel):
+class CamRoiComponent(QLabel):
     roi_added = Signal(QRect)
 
     def __init__(self):

@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from ctrlability_ui.views.webcam_roi_widget import WebcamRoiWidget
+from ctrlability_ui.views.cam_roi_component import CamRoiComponent
 
 log = logging.getLogger(__name__)
 
@@ -21,9 +21,9 @@ class HeadFaceView(QWidget):
         # self.cam_combo_box.setFixedWidth(250)
         layout.addWidget(self.cam_combo_box)
 
-        self.webcam_roi_region = WebcamRoiWidget()
-        self.webcam_roi_region.setFixedSize(640, 480)
-        layout.addWidget(self.webcam_roi_region)
+        self.cam_roi_region = CamRoiComponent()
+        self.cam_roi_region.setFixedSize(640, 480)
+        layout.addWidget(self.cam_roi_region)
 
         # Add sliders
         # for i in range(3):

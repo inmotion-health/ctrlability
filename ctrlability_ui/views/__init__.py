@@ -4,4 +4,4 @@ from ctrlability_ui.views.head_face_view import HeadFaceView
 from ctrlability_ui.views.holistic_view import HolisticView
 from ctrlability_ui.views.main_view import MainView
 from ctrlability_ui.views.preferences_view import PreferencesView
-from ctrlability_ui.views.webcam_roi_widget import WebcamRoiWidget
+from ctrlability_ui.views.cam_roi_component import CamRoiComponent
