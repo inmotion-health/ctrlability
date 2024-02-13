@@ -16,6 +16,9 @@ class Bootstrapper:
         self._registered_classes = {}
         self.stream_handlers = []
 
+    def reset(self):
+        self.stream_handlers = []
+
     def boot(self):
         # let's delay these imports to the actual booting process to avoid not propagating changes to the logger since
         # we are creating a global singleton instance in a module.

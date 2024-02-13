@@ -46,11 +46,15 @@ class CtrlAbilityModel:
             return
 
         if key == "cam_selected_index":
-            config["mapping", "VideoStream", "args", "webcam_id"] = value
+            config["mapping"]["VideoStream"]["args"]["webcam_id"] = value
         elif key == "distance1_threshold":
             config["mapping"]["VideoStream"]["processors"][0]["FaceLandmarkProcessor"]["triggers"][1][
                 "LandmarkDistance"
             ]["args"]["threshold"] = value
+
+        print("---------------Updated config...")
+        print(config)
+        print("---------------Updated config...DONE")
 
         self.state[key] = value
         self.save_state()

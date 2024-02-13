@@ -49,6 +49,7 @@ class ProcessThread(QThread):
         self.is_running = False
         from ctrlability.core import bootstrapper
 
+        bootstrapper.reset()
         self.stream_handlers = bootstrapper.boot()
 
         if log.isEnabledFor(logging.DEBUG):
