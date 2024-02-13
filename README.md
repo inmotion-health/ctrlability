@@ -13,7 +13,7 @@ To read more, see the [project website](https://prototypefund.de/project/ctrlabi
 To use this project, you first need to install all our dependencies. You can do this by running the following command. We recommend using a virtual environment, such as [venv](https://docs.python.org/3/library/venv.html) or [conda](https://docs.conda.io/en/latest/), as well as Python 3.10.
 
 ```bash
-pip install -r requirements.txt
+pip install .
 ```
 
 Afterwards, you can start the application by running the following command:
