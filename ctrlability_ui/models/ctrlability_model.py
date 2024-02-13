@@ -40,9 +40,10 @@ class CtrlAbilityModel:
         from ctrlability.core.config_parser import ConfigParser
 
         config = ConfigParser().get_config_as_dict()
+        log.debug(f"--------------Updating state in model: {key} = {value}")
 
-        log.debug(f"--------------Updating state: {key} = {value}")
-        self.state[key] = value
+        if key == "side_menu_selected_index":
+            return
 
         if key == "cam_selected_index":
             config["mapping", "VideoStream", "args", "webcam_id"] = value
@@ -51,6 +52,7 @@ class CtrlAbilityModel:
                 "LandmarkDistance"
             ]["args"]["threshold"] = value
 
+        self.state[key] = value
         self.save_state()
         self.save_config(config)
         CtrlAbilityStateObserver.notify(self.state)

@@ -39,6 +39,8 @@ class CtrlAbilityController(QObject):
 
         ## HeadFaceView actions
         self.view.mainView.headFaceView.cam_combo_box.currentIndexChanged.connect(self.head_face_view_on_cam_changed)
+        self.view.mainView.headFaceView.face_expression_comp1.simulate_confidence_change(60)
+        self.view.mainView.headFaceView.face_expression_comp2.simulate_confidence_change(40)
 
         self.model.load_state()
         # self.view.update(self.model.state)
@@ -58,9 +60,8 @@ class CtrlAbilityController(QObject):
         CtrlAbilityStateObserver.register(self)
 
     def update(self, state):
-        print(f"-----------Controller updated with state: {state}")
         if "cam_selected_index" in state:
-            # self.model.update_state("cam_selected_index", index)
+            # self.model.update_state("cam_selected_index", state["cam_selected_index"])
             # self.stopProcessThread()
             # self.startProcessThread()
             print("===================PROCESS THREAD")
@@ -73,7 +74,6 @@ class CtrlAbilityController(QObject):
     # -----------------------------------
     # LOAD/SAVE YAML PROCESS CONFIG FILE
     # -----------------------------------
-
     def load_file(self):
         # FIX_MK start/stop Thread when new file is loaded
         self.stopProcessThread()
@@ -104,7 +104,6 @@ class CtrlAbilityController(QObject):
             if i != index:
                 self.view.sideMenu.item(i).setCheckState(Qt.CheckState.Unchecked)
         self.view.mainView.display_index(index)
-        self.model.update_state("side_menu_selected_index", index)
 
     def show_about_dialog(self):
         QMessageBox.about(self.view, "About", "This is the About dialog.\nAdd information about your application here.")
