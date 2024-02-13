@@ -56,6 +56,8 @@ def runAPP():
     controller = CtrlAbilityController(model, view)
     view.show()
 
+    # app.aboutToQuit.connect(controller.close)
+
     sys.exit(app.exec())
 
 

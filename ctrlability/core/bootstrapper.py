@@ -17,6 +17,7 @@ class Bootstrapper:
         self.stream_handlers = []
 
     def reset(self):
+        log.debug("Resetting bootstrapper...")
         self.stream_handlers = []
 
     def boot(self):

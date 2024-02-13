@@ -1,5 +1,5 @@
 import logging
-from PySide6.QtCore import QThread, Signal, Slot
+from PySide6.QtCore import QThread, Signal, Slot, QMutex, QMutexLocker
 
 log = logging.getLogger(__name__)
 
@@ -7,15 +7,14 @@ log = logging.getLogger(__name__)
 class ProcessThread(QThread):
 
     finished = Signal()
-    update_required = Signal()  # for realtime changes in thread e.g. stream_handler (config dict)
+    update_required = Signal()
 
     def __init__(self, model):
         super().__init__()
-
         self.model = model
-        self.is_running = True
         self.update_required.connect(self.update_stream_handlers)
         self.stream_handlers = []
+        self.mutex = QMutex()
 
     def run(self):
 
@@ -29,33 +28,32 @@ class ProcessThread(QThread):
             tree_printer = TreePrinter(self.stream_handlers, bootstrapper._mapping_engine)
             tree_printer.print_representation()
 
-        while self.is_running:
+        while True:
+            self.mutex.lock()
             try:
                 for stream in self.stream_handlers:
                     stream.process(None)
-            except KeyboardInterrupt:
-                log.info("KeyboardInterrupt: Exiting...")
-                self.is_running = False
+            finally:
+                self.mutex.unlock()
             self.msleep(10)  # FIX_MK Reduce CPU Usage / Improve Responsiveness
 
-        self.finished.emit()
-
     def stop(self):
-        self.is_running = False
+        log.debug("Stopping process thread...")
 
     @Slot()
     def update_stream_handlers(self):
-        print("/////////////////////////////Updating stream handlers...")
-        self.is_running = False
-        from ctrlability.core import bootstrapper
+        self.mutex.lock()
+        try:
+            from ctrlability.core import bootstrapper
 
-        bootstrapper.reset()
-        self.stream_handlers = bootstrapper.boot()
+            bootstrapper.reset()
+            self.stream_handlers = bootstrapper.boot()
 
-        if log.isEnabledFor(logging.DEBUG):
-            from ctrlability.util.tree_print import TreePrinter
+            if log.isEnabledFor(logging.DEBUG):
+                from ctrlability.util.tree_print import TreePrinter
 
-            tree_printer = TreePrinter(self.stream_handlers, bootstrapper._mapping_engine)
-            tree_printer.print_representation()
-        self.is_running = True
-        print("/////////////////////////////Updating stream handlers...DONE")
+                tree_printer = TreePrinter(self.stream_handlers, bootstrapper._mapping_engine)
+                tree_printer.print_representation()
+        finally:
+            self.mutex.unlock()
+        log.debug("Stream handlers updated.")
