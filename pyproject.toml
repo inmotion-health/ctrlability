@@ -7,7 +7,7 @@ name = "ctrlability"
 version = "0.1.0"
 description = "We translate gestures and speech from people with motor disabilities into control commands for computers."
 readme = "README.md"
-requires-python = ">3.8.0"
+requires-python = ">=3.8.0,<3.12"
 license = { file = "LICENSE.md" }
 authors = [
     { name = "Marco Kuhn", email = "marco.kuhn@inmotion.health" },
@@ -25,7 +25,7 @@ keywords = [
     "computer control",
 ]
 dependencies = [
-    "mediapipe >= 0.10.3",
+    "mediapipe>=0.10.3",
     "PyAutoGUI >= 0.9.54",
     "macmouse >= 0.7.4",
     "nbstripout >= 0.6.0",                                      # for removing notebook output from git

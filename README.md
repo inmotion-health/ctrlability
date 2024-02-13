@@ -10,13 +10,16 @@ To read more, see the [project website](https://prototypefund.de/project/ctrlabi
 
 ## Usage
 
-To use this project, you first need to install all our dependencies. You can do this by running the following command. We recommend using a virtual environment, such as [venv](https://docs.python.org/3/library/venv.html) or [conda](https://docs.conda.io/en/latest/), as well as Python 3.10.
+To use this project, you first need to install all our dependencies. You can do this by running the following command. We recommend using a virtual environment, such as [venv](https://docs.python.org/3/library/venv.html) or [conda](https://docs.conda.io/en/latest/), as well as Python 3.10 or higher (currently >=3.12 is not supported), also you need to have `ffmpeg` installed and added to your path.
 
 ```bash
-pip install -r requirements.txt
+pip install .
+# or us the -e flag so you can use and develop at the same time, without the need to reinstall https://stackoverflow.com/questions/42609943/what-is-the-use-case-for-pip-install-e
+pip install -e . 
 ```
 
-Afterwards, you can start the application by running the following command:
+Afterwards, you can start the application by running the following command:  
+(first startup can take a few seconds)
 
 ```bash
 python -m ctrlability
