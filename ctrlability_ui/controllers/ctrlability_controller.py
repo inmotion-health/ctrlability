@@ -144,6 +144,7 @@ class CtrlAbilityController(QObject):
         print("Process finished.")
 
     def close(self):
+        log.debug("Closing the application")
         # Stop the thread safely
         self.processThread.stop()
         # Wait for the thread to finish

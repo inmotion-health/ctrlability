@@ -11,6 +11,7 @@ class ProcessThread(QThread):
 
     def __init__(self, model):
         super().__init__()
+        self.is_running = True
         self.model = model
         self.update_required.connect(self.update_stream_handlers)
         self.stream_handlers = []
@@ -28,7 +29,7 @@ class ProcessThread(QThread):
             tree_printer = TreePrinter(self.stream_handlers, bootstrapper._mapping_engine)
             tree_printer.print_representation()
 
-        while True:
+        while self.is_running:
             self.mutex.lock()
             try:
                 for stream in self.stream_handlers:
@@ -39,6 +40,8 @@ class ProcessThread(QThread):
 
     def stop(self):
         log.debug("Stopping process thread...")
+        self.is_running = False
+        self.wait()  # Optionally wait for the thread to finish
 
     @Slot()
     def update_stream_handlers(self):
