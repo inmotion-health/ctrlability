@@ -1,5 +1,6 @@
 import logging
 from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedSeq
 from ctrlability_ui.patterns.state_observer import CtrlAbilityStateObserver
 
 log = logging.getLogger(__name__)
@@ -24,10 +25,12 @@ class CtrlAbilityModel:
             self.yaml.dump(self.state, file)
 
     def save_config(self, config):
+        from ctrlability.core.config_parser import ConfigParser
+
         log.debug("---------------Saving config...")
         log.debug(config)
         try:
-            with open("config.yaml", "w") as file:
+            with open(ConfigParser.CONFIG_PATH, "w") as file:
                 self.yaml.dump(config, file)
                 log.debug("---------------Config saved.")
         except Exception as e:
@@ -55,15 +58,46 @@ class CtrlAbilityModel:
                 "SignalDivider"
             ]["triggers"][0]["FacialExpressionTrigger"]["args"]["name"] = value[0]
             if value[2][0] == "key":
+                # print("--------------")
+                # print(value[2][1])
+                # print(type(value[2][1]))
+                # print("--------------BEFORE")
+                # print(
+                #     config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                #         "SignalDivider"
+                #     ]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["KeyCommand"]["args"]["command"]
+                # )
+                # print(
+                #     type(
+                #         config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][
+                #             0
+                #         ]["SignalDivider"]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["KeyCommand"]["args"][
+                #             "command"
+                #         ]
+                #     )
+                # )
+                # print("--------------")
+
                 config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                     "SignalDivider"
-                ]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["KeyCommand"]["args"]["command"] = value[2]
+                ]["triggers"][0]["FacialExpressionTrigger"]["action"][0] = {
+                    "KeyCommand": {"args": {"command": value[2][1]}}
+                }
+                # print(
+                #     config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                #         "SignalDivider"
+                #     ]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["KeyCommand"]["args"]["command"]
+                # )
+                # print("--------------")
             elif value[2][0] == "mouse":
                 config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                     "SignalDivider"
-                ]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["MouseClick"]["args"]["key_name"] = value[2]
+                ]["triggers"][0]["FacialExpressionTrigger"]["action"][0] = {
+                    "MouseClick": {"args": {"key_name": value[2][1]}}
+                }
             else:
                 log.error(f"Invalid action type: {value[2][0]}")
+                return
 
         # mouse settings
         elif key == "mouse_settings_velocity_compensation_x":

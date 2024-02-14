@@ -26,6 +26,7 @@ class CollapsibleSection(QWidget):
         self.toggleButton = QPushButton(title)
         self.toggleButton.setCheckable(True)
         self.toggleButton.setChecked(False)
+        # self.toggleButton.setEnabled(False)
         self.toggleButton.clicked.connect(self.toggle)
 
         self.contentArea = QFrame()
@@ -61,6 +62,33 @@ class HeadFaceView(QWidget):
         super().__init__()
         layout = QVBoxLayout(self)
         layout.setSpacing(2)
+
+        # FIX_MK: SUB_MENU STYLE
+        # sub_menu_layout = QHBoxLayout(self)
+        # self.facial_expressions_button = QPushButton("FACIAL EXPRESSIONS")
+        # self.facial_expressions_button.setCheckable(True)
+        # # self.facial_expressions_button.setFixedWidth(250)
+        # sub_menu_layout.addWidget(self.facial_expressions_button)
+        # self.facial_expressions_button.clicked.connect(self.toggle_facial_expressions)
+
+        # self.landmark_distance_button = QPushButton("LANDMARK DISTANCES")
+        # self.landmark_distance_button.setCheckable(True)
+        # # self.landmark_distance_button.setFixedWidth(250)
+        # sub_menu_layout.addWidget(self.landmark_distance_button)
+        # self.landmark_distance_button.clicked.connect(self.toggle_landmark_distance)
+
+        # self.roi_button = QPushButton("ROI`S")
+        # self.roi_button.setCheckable(True)
+        # # self.roi_button.setFixedWidth(2)
+        # sub_menu_layout.addWidget(self.roi_button)
+        # self.roi_button.clicked.connect(self.toggle_roi)
+        # layout.addLayout(sub_menu_layout)
+
+        # # Line separator
+        # line = QFrame()
+        # line.setFrameShape(QFrame.HLine)
+        # line.setFrameShadow(QFrame.Sunken)
+        # layout.addWidget(line)
 
         cam_setting_layout = QHBoxLayout(self)
         label = QLabel("INPUT:")
@@ -189,3 +217,15 @@ class HeadFaceView(QWidget):
 
     def resetCamRoiWindowReference(self):
         self.camRoiWindow = None
+
+    def toggle_facial_expressions(self):
+        log.debug("toggle_facial_expressions")
+        state = self.facial_expressions_button.isChecked()
+        self.facialExpressionSection.toggleButton.setChecked(state)
+        self.facialExpressionSection.toggle()
+
+    def toggle_landmark_distance(self):
+        self.landmark_distance_section.toggle()
+
+    def toggle_roi(self):
+        self.roi_section.toggle()

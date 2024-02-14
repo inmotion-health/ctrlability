@@ -1,3 +1,9 @@
-cam_selected_index: 0
-processed_data: Data processed
-side_menu_selected_index: 1
+cam_selected_index: 1
+expression1_name: eyeLookDownRight
+expression2_name: cheekSquintRight
+expression1_action: '[mouse][test]'
+expression1:
+- browOuterUpRight
+- 50
+- - mouse
+  - right

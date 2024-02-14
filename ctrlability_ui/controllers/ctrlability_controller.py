@@ -1,5 +1,5 @@
 import logging
-import json
+import re
 from ctrlability_ui.patterns.state_observer import CtrlAbilityStateObserver
 from ctrlability_ui.threads.process_thread import ProcessThread
 
@@ -40,22 +40,11 @@ class CtrlAbilityController(QObject):
 
         ## HeadFaceView actions
         self.view.mainView.headFaceView.cam_combo_box.currentIndexChanged.connect(self.head_face_view_on_cam_changed)
-
         self.view.mainView.headFaceView.face_expression_comp1.save_button.clicked.connect(
             self.head_face_view_on_expression1_save
         )
 
-        # self.view.mainView.headFaceView.face_expression_comp1.action_text_field.textChanged.connect(
-        #     self.head_face_view_on_expression1_action_changed
-        # )
-
-        # self.view.mainView.headFaceView.face_expression_comp2.expression_dropdown.currentIndexChanged.connect(
-        #     self.head_face_view_on_expression2_changed
-        # )
-        # self.view.mainView.headFaceView.face_expression_comp2.action_text_field.textChanged.connect(
-        #     self.head_face_view_on_expression2_action_changed
-        # )
-
+        # Simulate confidence change
         self.view.mainView.headFaceView.face_expression_comp1.simulate_confidence_change(60)
         self.view.mainView.headFaceView.face_expression_comp2.simulate_confidence_change(40)
 
@@ -146,8 +135,15 @@ class CtrlAbilityController(QObject):
     def head_face_view_on_expression1_save(self, index):
         log.debug(f"Expression1 save clicked")
         expression = self.view.mainView.headFaceView.face_expression_comp1.expression_dropdown.currentText()
-        threshold = self.view.mainView.headFaceView.face_expression_comp1.threshold_slider.value()
-        action = json.loads(self.view.mainView.headFaceView.face_expression_comp1.action_text_field.text())
+        threshold = self.view.mainView.headFaceView.face_expression_comp1.threshold.value()
+        action_type = self.view.mainView.headFaceView.face_expression_comp1.action_type.currentText()
+        if action_type == "key":
+            text_field = self.view.mainView.headFaceView.face_expression_comp1.action_text_field.text()
+            cmd = [item.strip() for item in re.split(",", text_field)]  # remove whitespaces and split by comma
+            action = [action_type, cmd]
+        else:
+            cmd = self.view.mainView.headFaceView.face_expression_comp1.action_text_field.text()
+            action = [action_type, cmd]
         log.debug(f"Expression1 save: {expression}, {threshold}, {action}")
         self.model.update_state("expression1", [expression, threshold, action])
 
