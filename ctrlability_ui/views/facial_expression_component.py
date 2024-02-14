@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QVBoxLayout,
     QFrame,
+    QPushButton,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPixmap, QPainter
@@ -99,12 +100,12 @@ class FacialExpressionComponent(QWidget):
         self.expression_dropdown = QComboBox()
         for expression in self.blendshapes:
             self.expression_dropdown.addItem(expression)
-        self.expression_dropdown.setFixedWidth(200)
+        self.expression_dropdown.setFixedWidth(300)
         form_layout.addRow(QLabel("Expression:"), self.expression_dropdown)
 
         confidence_layout = QHBoxLayout()
         self.confidence_progress_bar = QProgressBar()
-        self.confidence_progress_bar.setFixedWidth(200)
+        self.confidence_progress_bar.setFixedWidth(300)
         confidence_layout.addWidget(self.confidence_progress_bar)
         form_layout.addRow(QLabel("Confidence:"), confidence_layout)
 
@@ -112,17 +113,26 @@ class FacialExpressionComponent(QWidget):
         self.threshold_slider.setMinimum(0)
         self.threshold_slider.setMaximum(100)
         self.threshold_slider.setValue(50)  # Default threshold
-        self.threshold_slider.setFixedWidth(200)
+        self.threshold_slider.setFixedWidth(300)
         self.threshold_slider.valueChanged.connect(self.check_trigger_condition)
         form_layout.addRow(QLabel("Threshold:"), self.threshold_slider)
 
         action_layout = QHBoxLayout()
         self.led_indicator = LEDIndicator()
+        self.action_type = QComboBox()
+        self.action_type.addItems(["key", "mouse"])
+        self.action_type.setFixedWidth(100)
         self.action_text_field = QLineEdit()
         self.action_text_field.setFixedWidth(170)
+        action_layout.addWidget(self.action_type)
         action_layout.addWidget(self.action_text_field)
         action_layout.addWidget(self.led_indicator)
         form_layout.addRow(QLabel("Action:"), action_layout)
+
+        # Add Save Button
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.on_save_clicked)
+        form_layout.addRow(self.save_button)
 
         form_container.setLayout(form_layout)
         main_layout.addWidget(form_container)
@@ -135,3 +145,9 @@ class FacialExpressionComponent(QWidget):
         confidence = self.confidence_progress_bar.value()
         threshold = self.threshold_slider.value()
         self.led_indicator.set_indicator(confidence > threshold)
+
+    def on_save_clicked(self):
+        print("Save button clicked")
+        print(f"Expression: {self.expression_dropdown.currentText()}")
+        print(f"Threshold: {self.threshold_slider.value()}")
+        print(f"Action: {self.action_text_field.text()}")

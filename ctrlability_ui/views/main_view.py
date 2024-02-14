@@ -42,7 +42,7 @@ class MainView(QWidget):
         self.contentStack.addWidget(self.handView)
         self.contentStack.addWidget(self.holisticView)
 
-        self.setMinimumSize(880, 495)  # Set a minimum size for the main view
+        self.setMinimumSize(1000, 700)  # Set a minimum size for the main view
 
     def display_index(self, index):
         if 0 <= index < self.contentStack.count():

@@ -24,17 +24,14 @@ class CtrlAbilityModel:
             self.yaml.dump(self.state, file)
 
     def save_config(self, config):
-        print("---------------Saving config...")
-        print(config)
+        log.debug("---------------Saving config...")
+        log.debug(config)
         try:
             with open("config.yaml", "w") as file:
                 self.yaml.dump(config, file)
-            # If an exception was not raised, the dump was successful
+                log.debug("---------------Config saved.")
         except Exception as e:
-            # Handle any errors that occurred during the file operation
             log.error(f"Failed to save config: {e}")
-
-        print("---------------Config saved.")
 
     def update_state(self, key, value):
         from ctrlability.core.config_parser import ConfigParser
@@ -52,9 +49,42 @@ class CtrlAbilityModel:
                 "LandmarkDistance"
             ]["args"]["threshold"] = value
 
-        print("---------------Updated config...")
-        print(config)
-        print("---------------Updated config...DONE")
+        # expression settings
+        elif key == "expression1":
+            config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                "SignalDivider"
+            ]["triggers"][0]["FacialExpressionTrigger"]["args"]["name"] = value[0]
+            if value[2][0] == "key":
+                config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                    "SignalDivider"
+                ]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["KeyCommand"]["args"]["command"] = value[2]
+            elif value[2][0] == "mouse":
+                config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                    "SignalDivider"
+                ]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["MouseClick"]["args"]["key_name"] = value[2]
+            else:
+                log.error(f"Invalid action type: {value[2][0]}")
+
+        # mouse settings
+        elif key == "mouse_settings_velocity_compensation_x":
+            config["mapping"]["VideoStream"]["processors"][0]["processors"][1]["processors"][0]["triggers"][0]["args"][
+                "compensation_x"
+            ] = value
+        elif key == "mouse_settings_velocity_compensation_y":
+            config["mapping"]["VideoStream"]["processors"][0]["processors"][1]["processors"][0]["triggers"][0]["args"][
+                "compensation_y"
+            ] = value
+        elif key == "mouse_settings_x_threshold":
+            config["mapping"]["VideoStream"]["processors"][0]["processors"][1]["processors"][0]["triggers"][0]["args"][
+                "x_threshold"
+            ] = value
+        elif key == "mouse_settings_y_threshold":
+            config["mapping"]["VideoStream"]["processors"][0]["processors"][1]["processors"][0]["triggers"][0]["args"][
+                "y_threshold"
+            ] = value
+
+        log.debug("---------------Updated config...")
+        log.debug(config)
 
         self.state[key] = value
         self.save_state()
