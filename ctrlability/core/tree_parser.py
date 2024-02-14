@@ -2,6 +2,8 @@ import inspect
 import logging
 from uuid import uuid4
 
+from core.stream_handler import StreamHandler
+
 from ctrlability.core.mapping_engine import MappingEngine
 
 log = logging.getLogger(__name__)
@@ -12,7 +14,7 @@ class TreeParser:
         self._registered_classes = classes
         self._mapping_engine = mapping_engine
 
-    def parse_processor(self, processor: dict, stream_handler):
+    def parse_processor(self, processor: dict, stream_handler: StreamHandler):
         processor_name = self.block_name(processor)
 
         processor_instance = self.create_instance(processor, mapping_engine=self._mapping_engine)

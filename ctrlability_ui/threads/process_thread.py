@@ -1,6 +1,6 @@
 import logging
 from PySide6.QtCore import QThread, Signal, Slot, QMutex, QMutexLocker
-from ctrlability.processors import FrameScaper
+from ctrlability.processors.frame_scraper import FrameScraper
 
 log = logging.getLogger(__name__)
 
@@ -25,8 +25,11 @@ class ProcessThread(QThread):
 
         self.stream_handlers = bootstrapper.boot()
         _mapping_engine = bootstrapper._mapping_engine
-        frameScaper = FrameScaper(_mapping_engine,self.new_frame)
-        self.stream_handlers[0].connect_post_processor(frameScaper)
+        frameScraper = FrameScraper(_mapping_engine,self.new_frame)
+        self.stream_handlers[0].connect_post_processor(frameScraper)
+
+        print(type(self.stream_handlers[0]._post_processors[1]._post_processors[1]))
+
 
 
         if log.isEnabledFor(logging.DEBUG):

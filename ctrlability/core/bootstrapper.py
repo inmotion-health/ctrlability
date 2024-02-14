@@ -1,5 +1,8 @@
 import inspect
 import logging
+from typing import List
+
+from core.stream_handler import StreamHandler
 
 from ctrlability.core.mapping_engine import MappingEngine
 
@@ -20,7 +23,7 @@ class Bootstrapper:
         log.debug("Resetting bootstrapper...")
         self.stream_handlers = []
 
-    def boot(self):
+    def boot(self) -> List[StreamHandler]:
         # let's delay these imports to the actual booting process to avoid not propagating changes to the logger since
         # we are creating a global singleton instance in a module.
         from ctrlability.core.stream_handler import StreamHandler
