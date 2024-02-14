@@ -61,6 +61,7 @@ class CtrlAbilityController(QObject):
 
         self.processThread = ProcessThread(model)
         self.processThread.finished.connect(self.on_process_thread_finished)
+        
 
         # CtrlAbilityStateObserver.register(self.view)
         CtrlAbilityStateObserver.register(self)
