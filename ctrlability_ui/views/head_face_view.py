@@ -233,3 +233,9 @@ class HeadFaceView(QWidget):
     def set_frame(self, frame):
         if self.camRoiWindow is not None:
             self.camRoiWindow.camRoiComponent.set_image(frame)
+
+    def set_expression_scores(self, score1, score2, score3, score4):
+        self.face_expression_comp1.set_score(score1 * 100)
+        self.face_expression_comp2.set_score(score2 * 100)
+        self.face_expression_comp3.set_score(score3 * 100)
+        self.face_expression_comp4.set_score(score4 * 100)

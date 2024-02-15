@@ -1,4 +1,5 @@
 import logging
+import re
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedSeq
 from ctrlability_ui.patterns.state_observer import CtrlAbilityStateObserver
@@ -52,47 +53,24 @@ class CtrlAbilityModel:
                 "LandmarkDistance"
             ]["args"]["threshold"] = value
 
-        # expression settings
-        elif key == "expression1":
+        if key.__contains__("expression"):
+            expression_id = int(re.split("_", key)[1]) - 1
+            # change the expression name
             config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                 "SignalDivider"
-            ]["triggers"][0]["FacialExpressionTrigger"]["args"]["name"] = value[0]
+            ]["triggers"][expression_id]["FacialExpressionTrigger"]["args"]["name"] = value[0]
             if value[2][0] == "key":
-                # print("--------------")
-                # print(value[2][1])
-                # print(type(value[2][1]))
-                # print("--------------BEFORE")
-                # print(
-                #     config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
-                #         "SignalDivider"
-                #     ]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["KeyCommand"]["args"]["command"]
-                # )
-                # print(
-                #     type(
-                #         config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][
-                #             0
-                #         ]["SignalDivider"]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["KeyCommand"]["args"][
-                #             "command"
-                #         ]
-                #     )
-                # )
-                # print("--------------")
-
+                # change the key command
                 config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                     "SignalDivider"
-                ]["triggers"][0]["FacialExpressionTrigger"]["action"][0] = {
+                ]["triggers"][expression_id]["FacialExpressionTrigger"]["action"][0] = {
                     "KeyCommand": {"args": {"command": value[2][1]}}
                 }
-                # print(
-                #     config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
-                #         "SignalDivider"
-                #     ]["triggers"][0]["FacialExpressionTrigger"]["action"][0]["KeyCommand"]["args"]["command"]
-                # )
-                # print("--------------")
             elif value[2][0] == "mouse":
+                # change the mouse click
                 config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                     "SignalDivider"
-                ]["triggers"][0]["FacialExpressionTrigger"]["action"][0] = {
+                ]["triggers"][expression_id]["FacialExpressionTrigger"]["action"][0] = {
                     "MouseClick": {"args": {"key_name": value[2][1]}}
                 }
             else:

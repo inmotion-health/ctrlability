@@ -45,8 +45,8 @@ class CtrlAbilityController(QObject):
         )
 
         # Simulate confidence change
-        self.view.mainView.headFaceView.face_expression_comp1.simulate_confidence_change(60)
-        self.view.mainView.headFaceView.face_expression_comp2.simulate_confidence_change(40)
+        # self.view.mainView.headFaceView.face_expression_comp1.set_confidence(40)
+        # self.view.mainView.headFaceView.face_expression_comp2.simulate_confidence_change(40)
 
         self.model.load_state()
         # self.view.update(self.model.state)
@@ -62,6 +62,7 @@ class CtrlAbilityController(QObject):
         self.processThread = ProcessThread(model)
         self.processThread.finished.connect(self.on_process_thread_finished)
         self.processThread.new_frame.connect(self.on_new_frame)
+        self.processThread.expressions.connect(self.on_expression_update)
 
         # CtrlAbilityStateObserver.register(self.view)
         CtrlAbilityStateObserver.register(self)
@@ -146,7 +147,22 @@ class CtrlAbilityController(QObject):
             cmd = self.view.mainView.headFaceView.face_expression_comp1.action_text_field.text()
             action = [action_type, cmd]
         log.debug(f"Expression1 save: {expression}, {threshold}, {action}")
-        self.model.update_state("expression1", [expression, threshold, action])
+        self.model.update_state("expression_1", [expression, threshold, action])
+
+    def head_face_view_on_expression2_save(self, index):
+        log.debug(f"Expression2 save clicked")
+        expression = self.view.mainView.headFaceView.face_expression_comp2.expression_dropdown.currentText()
+        threshold = self.view.mainView.headFaceView.face_expression_comp2.threshold.value()
+        action_type = self.view.mainView.headFaceView.face_expression_comp2.action_type.currentText()
+        if action_type == "key":
+            text_field = self.view.mainView.headFaceView.face_expression_comp2.action_text_field.text()
+            cmd = [item.strip() for item in re.split(",", text_field)]  # remove whitespaces and split by comma
+            action = [action_type, cmd]
+        else:
+            cmd = self.view.mainView.headFaceView.face_expression_comp2.action_text_field.text()
+            action = [action_type, cmd]
+        log.debug(f"Expression2 save: {expression}, {threshold}, {action}")
+        self.model.update_state("expression_2", [expression, threshold, action])
 
     # def head_face_view_on_expression1_action_changed(self, text):
     #     log.debug(f"Expression1 action changed: {text}")
@@ -187,3 +203,6 @@ class CtrlAbilityController(QObject):
 
     def on_new_frame(self, frame):
         self.view.mainView.headFaceView.set_frame(frame)
+
+    def on_expression_update(self, score1, score2, score3, score4):
+        self.view.mainView.headFaceView.set_expression_scores(score1, score2, score3, score4)

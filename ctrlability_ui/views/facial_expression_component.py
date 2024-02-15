@@ -104,9 +104,9 @@ class FacialExpressionComponent(QWidget):
         form_layout.addRow(QLabel("Expression:"), self.expression_dropdown)
 
         confidence_layout = QHBoxLayout()
-        self.confidence_progress_bar = QProgressBar()
-        self.confidence_progress_bar.setFixedWidth(300)
-        confidence_layout.addWidget(self.confidence_progress_bar)
+        self.confidence = QProgressBar()
+        self.confidence.setFixedWidth(300)
+        confidence_layout.addWidget(self.confidence)
         form_layout.addRow(QLabel("Confidence:"), confidence_layout)
 
         self.threshold = QSlider(Qt.Horizontal)
@@ -141,12 +141,14 @@ class FacialExpressionComponent(QWidget):
         form_container.setLayout(form_layout)
         main_layout.addWidget(form_container)
 
-    def simulate_confidence_change(self, confidence):
-        self.confidence_progress_bar.setValue(confidence)
-        self.check_trigger_condition()
+    def set_score(self, value):
+        # type(value)
+        if value is not None:
+            self.confidence.setValue(value)
+            self.check_trigger_condition()
 
     def check_trigger_condition(self):
-        confidence = self.confidence_progress_bar.value()
+        confidence = self.confidence.value()
         threshold = self.threshold.value()
         self.led_indicator.set_indicator(confidence > threshold)
 

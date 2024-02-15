@@ -1,5 +1,3 @@
-import mediapipe as mp
-
 from ctrlability.core import Processor, MappingEngine, bootstrapper
 from ctrlability.core.data_types import FrameData
 

@@ -23,12 +23,14 @@ class FacialExpressionTrigger(Trigger):
         self.confidence_level = confidence
         self.trigger_once = trigger_once
         self.triggered = False
+        self.score = 0.0
 
     def check(self, data) -> dict | None:
         if data is None:
             return None
 
         for category in data:
+            self.score = category.score
             if category.category_name == self.blendshape_name:
                 if category.score >= self.confidence_level:
                     if self.trigger_once and self.triggered:
