@@ -6,3 +6,4 @@ from ctrlability.processors.landmark_eurofilter import LandmarkEuroFilter
 from ctrlability.processors.landmark_normal_vector import LandmarkNormalVector
 from ctrlability.processors.pose_landmarks import PoseLandmarkProcessor
 from ctrlability.processors.signal_divider import SignalDivider
+from ctrlability.processors.video_frame_grabber import VideoFrameGrabber

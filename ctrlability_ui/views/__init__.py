@@ -7,3 +7,4 @@ from ctrlability_ui.views.preferences_view import PreferencesView
 from ctrlability_ui.views.cam_roi_component import CamRoiComponent
 from ctrlability_ui.views.facial_expression_component import FacialExpressionComponent
 from ctrlability_ui.views.mouse_settings_component import MouseSettingsComponent
+from ctrlability_ui.views.log_view import LogViewer

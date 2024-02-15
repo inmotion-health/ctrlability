@@ -1,14 +1,9 @@
 import logging
 import pyautogui
+import numpy as np
 
 from PySide6.QtCore import QRect, QSize, Qt, QTimer, Signal
-from PySide6.QtGui import (
-    QBrush,
-    QColor,
-    QFontMetrics,
-    QPainter,
-    QPen,
-)
+from PySide6.QtGui import QBrush, QColor, QFontMetrics, QPainter, QPen, QImage, QPixmap
 
 from PySide6.QtWidgets import QLabel
 
@@ -21,13 +16,19 @@ class CamRoiComponent(QLabel):
     def __init__(self):
         super().__init__()
         self.rois = []  # List of QRect objects representing the ROIs
-        self.current_pixmap = None
+
         self.current_roi = None
         self.is_drawing = False
         self.edit_state = False
         self.collided_roi_index = -1
         self.toggle_state_last = 0
         self.demo_mode = "TOGGLE_KEYS"
+
+        self.current_pixmap = None
+        self.qImage = QImage(640, 480, QImage.Format_RGB888)
+        self.img_data = np.frombuffer(self.qImage.bits(), np.uint8).reshape(
+            (self.qImage.height(), self.qImage.width(), 3)
+        )
 
         self.msg = ""
         self.show_text = False
@@ -37,7 +38,8 @@ class CamRoiComponent(QLabel):
         self.roi_added.emit(roi)  # Emit the signal with the new ROI
 
     def set_image(self, pixmap):
-        self.current_pixmap = pixmap
+        np.copyto(self.img_data, pixmap.frame)  # Copy the frame data to the QImage
+        self.current_pixmap = QPixmap.fromImage(self.qImage)
         self.update()  # Schedule a repaint
 
     def mousePressEvent(self, event):
@@ -104,32 +106,32 @@ class CamRoiComponent(QLabel):
             painter.setPen(QPen(Qt.black, 2))
             painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # Semi-transparent green
 
-            for index, roi in enumerate(self.rois):
-                if index == self.collided_roi_index:  # Check if the current ROI is the collided one
-                    painter.setBrush(QBrush(QColor(255, 0, 0, 127)))  # red
-                else:
-                    painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # green
-                painter.drawRect(roi)
+            # for index, roi in enumerate(self.rois):
+            #     if index == self.collided_roi_index:  # Check if the current ROI is the collided one
+            #         painter.setBrush(QBrush(QColor(255, 0, 0, 127)))  # red
+            #     else:
+            #         painter.setBrush(QBrush(QColor(0, 255, 0, 127)))  # green
+            #     painter.drawRect(roi)
 
-            if self.demo_mode == "TOGGLE_KEYS":
-                if self.collided_roi_index == -1:
-                    self.toggle_state_last = 0
-                elif self.collided_roi_index == 0 and self.toggle_state_last == 0:
-                    pyautogui.keyDown("space")
-                    # pyautogui.scroll(10)
-                    print("space")
-                    self.toggle_state_last = 1
-                elif self.collided_roi_index == 1 and self.toggle_state_last == 0:
-                    # pyautogui.press("w")
-                    pyautogui.keyDown("w")
-                    # pyautogui.scroll(-10)
-                    self.toggle_state_last = 1
+            # if self.demo_mode == "TOGGLE_KEYS":
+            #     if self.collided_roi_index == -1:
+            #         self.toggle_state_last = 0
+            #     elif self.collided_roi_index == 0 and self.toggle_state_last == 0:
+            #         pyautogui.keyDown("space")
+            #         # pyautogui.scroll(10)
+            #         print("space")
+            #         self.toggle_state_last = 1
+            #     elif self.collided_roi_index == 1 and self.toggle_state_last == 0:
+            #         # pyautogui.press("w")
+            #         pyautogui.keyDown("w")
+            #         # pyautogui.scroll(-10)
+            #         self.toggle_state_last = 1
 
-            if self.demo_mode == "SCROLL":
-                if self.collided_roi_index == 0:
-                    pyautogui.scroll(-1)
-                elif self.collided_roi_index == 1:
-                    pyautogui.scroll(1)
+            # if self.demo_mode == "SCROLL":
+            #     if self.collided_roi_index == 0:
+            #         pyautogui.scroll(-1)
+            #     elif self.collided_roi_index == 1:
+            #         pyautogui.scroll(1)
 
             if self.is_drawing and self.current_roi:
                 painter.drawRect(self.current_roi)

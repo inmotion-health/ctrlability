@@ -61,6 +61,7 @@ class CtrlAbilityController(QObject):
 
         self.processThread = ProcessThread(model)
         self.processThread.finished.connect(self.on_process_thread_finished)
+        self.processThread.new_frame.connect(self.on_new_frame)
 
         # CtrlAbilityStateObserver.register(self.view)
         CtrlAbilityStateObserver.register(self)
@@ -183,3 +184,6 @@ class CtrlAbilityController(QObject):
         self.processThread.stop()
         # Wait for the thread to finish
         self.processThread.wait()
+
+    def on_new_frame(self, frame):
+        self.view.mainView.headFaceView.set_frame(frame)

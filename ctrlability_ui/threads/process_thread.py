@@ -1,5 +1,6 @@
 import logging
 from PySide6.QtCore import QThread, Signal, Slot, QMutex, QMutexLocker
+from ctrlability.processors import VideoFrameGrabber
 
 log = logging.getLogger(__name__)
 
@@ -8,6 +9,7 @@ class ProcessThread(QThread):
 
     finished = Signal()
     update_required = Signal()
+    new_frame = Signal(object)
 
     def __init__(self, model):
         super().__init__()
@@ -22,6 +24,9 @@ class ProcessThread(QThread):
         from ctrlability.core import bootstrapper
 
         self.stream_handlers = bootstrapper.boot()
+        _mapping_engine = bootstrapper._mapping_engine
+        video_frame_grabber = VideoFrameGrabber(_mapping_engine, self.new_frame)
+        self.stream_handlers[0].connect_post_processor(video_frame_grabber)
 
         if log.isEnabledFor(logging.DEBUG):
             from ctrlability.util.tree_print import TreePrinter

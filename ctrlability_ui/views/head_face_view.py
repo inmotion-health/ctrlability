@@ -229,3 +229,7 @@ class HeadFaceView(QWidget):
 
     def toggle_roi(self):
         self.roi_section.toggle()
+
+    def set_frame(self, frame):
+        if self.camRoiWindow is not None:
+            self.camRoiWindow.camRoiComponent.set_image(frame)
