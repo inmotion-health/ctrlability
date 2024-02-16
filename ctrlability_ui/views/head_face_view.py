@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 from ctrlability_ui.views.cam_roi_component import CamRoiComponent
 from ctrlability_ui.views.facial_expression_component import FacialExpressionComponent
+from vidcontrol import VideoManager
 
 log = logging.getLogger(__name__)
 
@@ -90,14 +91,15 @@ class HeadFaceView(QWidget):
         # line.setFrameShadow(QFrame.Sunken)
         # layout.addWidget(line)
 
+        # CAM SETTINGS
+        self.video_manager = VideoManager()
         cam_setting_layout = QHBoxLayout(self)
         label = QLabel("INPUT:")
         label.setFixedWidth(100)
         cam_setting_layout.addWidget(label)
         self.cam_combo_box = QComboBox(self)
-        self.cam_combo_box.addItem("CAM1")
-        self.cam_combo_box.addItem("CAM2")
-        # self.cam_combo_box.setFixedWidth(250)
+        for index, name in self.video_manager.list_available_cameras().items():
+            self.cam_combo_box.addItem(name)
         cam_setting_layout.addWidget(self.cam_combo_box)
 
         # Button to open the CamRoiWindow

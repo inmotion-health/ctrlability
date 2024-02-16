@@ -51,7 +51,7 @@ class CtrlAbilityModel:
             config["mapping"]["VideoStream"]["args"]["webcam_id"] = value
 
         # ------ TEST LANDMARK DISTANCE ------
-        elif key == "distance1_threshold":
+        if key == "distance1_threshold":
             config["mapping"]["VideoStream"]["processors"][0]["FaceLandmarkProcessor"]["triggers"][1][
                 "LandmarkDistance"
             ]["args"]["threshold"] = value
@@ -86,22 +86,34 @@ class CtrlAbilityModel:
                 return
 
         # ------ MOUSE SETTINGS ------
-        elif key == "mouse_settings_velocity_compensation_x":
-            config["mapping"]["VideoStream"]["processors"][0]["processors"][1]["processors"][0]["triggers"][0]["args"][
-                "compensation_x"
-            ] = value
-        elif key == "mouse_settings_velocity_compensation_y":
-            config["mapping"]["VideoStream"]["processors"][0]["processors"][1]["processors"][0]["triggers"][0]["args"][
-                "compensation_y"
-            ] = value
-        elif key == "mouse_settings_x_threshold":
-            config["mapping"]["VideoStream"]["processors"][0]["processors"][1]["processors"][0]["triggers"][0]["args"][
-                "x_threshold"
-            ] = value
-        elif key == "mouse_settings_y_threshold":
-            config["mapping"]["VideoStream"]["processors"][0]["processors"][1]["processors"][0]["triggers"][0]["args"][
-                "y_threshold"
-            ] = value
+        if key == "mouse_settings":
+            if value[0] == "relative":
+                print("----------relative")
+                config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
+                    "SignalDivider"
+                ]["processors"][0]["LandmarkEuroFilter"]["triggers"][0] = {
+                    "RelativeCursorControl": {
+                        "args": {
+                            "x_threshold": float(value[1]),
+                            "y_threshold": float(value[2]),
+                            "velocity_compensation_x": float(value[3]),
+                            "velocity_compensation_y": float(value[4]),
+                        },
+                        "action": ["MoveMouse"],
+                    }
+                }
+            elif value[0] == "absolute":
+                print("----------absolute")
+                config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
+                    "SignalDivider"
+                ]["processors"][0]["LandmarkEuroFilter"]["triggers"][0] = [
+                    {
+                        "LandmarkNormalVector": {
+                            "args": {"landmark": 1, "ref_landmarks": [33, 263, 61, 291, 199], "tip_scale": 4},
+                            "triggers": [{"AbsoluteCursorControl": {"action": ["MoveMouse"]}}],
+                        }
+                    }
+                ]
 
         log.debug("---------------Updated config...")
         log.debug(config)

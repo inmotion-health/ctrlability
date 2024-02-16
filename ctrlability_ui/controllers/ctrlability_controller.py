@@ -20,16 +20,6 @@ class CtrlAbilityController(QObject):
         self.model = model
         self.view = view
 
-        # INITIALIZE VIDEO MANAGER
-        # self.video_manager = VideoManager()
-        # print(self.video_manager.list_available_cameras())
-        # self.video_manager.set_preferred_height(480)
-
-        # self.webcam_source = self.video_manager.get_video_source(0)
-        # self.width = self.webcam_source.get_width()
-        # self.height = self.webcam_source.get_height()
-        # self.qImage = QImage(self.width, self.height, QImage.Format_RGB888)
-
         self.view.sideMenu.itemClicked.connect(self.on_side_menu_item_clicked)
 
         ## Status Menu actions
@@ -38,15 +28,17 @@ class CtrlAbilityController(QObject):
         self.view.saveAction.triggered.connect(self.save_file)
         self.view.helpAction.triggered.connect(self.show_help_dialog)
 
+        ## PreferenceView actions
+        self.view.mainView.preferenceView.mouse_settings.save_button.clicked.connect(self.save_mouse_settings)
+        self.view.mainView.preferenceView.mouse_settings.mode.currentIndexChanged.connect(
+            self.mouse_settings_on_mode_changed
+        )
+
         ## HeadFaceView actions
         self.view.mainView.headFaceView.cam_combo_box.currentIndexChanged.connect(self.head_face_view_on_cam_changed)
         self.view.mainView.headFaceView.face_expression_comp1.save_button.clicked.connect(
             self.head_face_view_on_expression1_save
         )
-
-        # Simulate confidence change
-        # self.view.mainView.headFaceView.face_expression_comp1.set_confidence(40)
-        # self.view.mainView.headFaceView.face_expression_comp2.simulate_confidence_change(40)
 
         self.model.load_state()
         # self.view.update(self.model.state)
@@ -128,7 +120,31 @@ class CtrlAbilityController(QObject):
         )
 
     # ----------------------------
-    # UI HeadFaceView Actions
+    # UI Preference View Actions
+    # ----------------------------
+    def mouse_settings_on_mode_changed(self, index):
+        if index == 0:
+            self.view.mainView.preferenceView.mouse_settings.x_threshold.setEnabled(True)
+            self.view.mainView.preferenceView.mouse_settings.y_threshold.setEnabled(True)
+            self.view.mainView.preferenceView.mouse_settings.x_velocity.setEnabled(True)
+            self.view.mainView.preferenceView.mouse_settings.y_velocity.setEnabled(True)
+        elif index == 1:
+            self.view.mainView.preferenceView.mouse_settings.x_threshold.setEnabled(False)
+            self.view.mainView.preferenceView.mouse_settings.y_threshold.setEnabled(False)
+            self.view.mainView.preferenceView.mouse_settings.x_velocity.setEnabled(False)
+            self.view.mainView.preferenceView.mouse_settings.y_velocity.setEnabled(False)
+
+    def save_mouse_settings(self):
+        log.debug("Save mouse settings clicked")
+        mode = self.view.mainView.preferenceView.mouse_settings.mode.currentText()
+        x_threshold = self.view.mainView.preferenceView.mouse_settings.x_threshold.text()
+        y_threshold = self.view.mainView.preferenceView.mouse_settings.y_threshold.text()
+        x_velocity = self.view.mainView.preferenceView.mouse_settings.x_velocity.text()
+        y_velocity = self.view.mainView.preferenceView.mouse_settings.y_velocity.text()
+        self.model.update_state("mouse_settings", [mode, x_threshold, y_threshold, x_velocity, y_velocity])
+
+    # ----------------------------
+    # UI HeadFace View Actions
     # ----------------------------
     def head_face_view_on_cam_changed(self, index):
         log.debug(f"Selected cam index: {index}")
