@@ -134,48 +134,38 @@ class CtrlAbilityController(QObject):
         log.debug(f"Selected cam index: {index}")
         self.model.update_state("cam_selected_index", index)
 
-    def head_face_view_on_expression1_save(self, index):
-        log.debug(f"Expression1 save clicked")
-        expression = self.view.mainView.headFaceView.face_expression_comp1.expression_dropdown.currentText()
-        threshold = self.view.mainView.headFaceView.face_expression_comp1.threshold.value()
-        action_type = self.view.mainView.headFaceView.face_expression_comp1.action_type.currentText()
+    # ------ EXPRESSIONS ------
+    def save_expression(self, component, expression_key):
+        log.debug(f"{expression_key} save clicked")
+        expression = component.expression_dropdown.currentText()
+        threshold = component.threshold.value() / 100
+        action_type = component.action_type.currentText()
+        text_field = component.action_text_field.text()
+
         if action_type == "key":
-            text_field = self.view.mainView.headFaceView.face_expression_comp1.action_text_field.text()
             cmd = [item.strip() for item in re.split(",", text_field)]  # remove whitespaces and split by comma
-            action = [action_type, cmd]
         else:
-            cmd = self.view.mainView.headFaceView.face_expression_comp1.action_text_field.text()
-            action = [action_type, cmd]
-        log.debug(f"Expression1 save: {expression}, {threshold}, {action}")
-        self.model.update_state("expression_1", [expression, threshold, action])
+            cmd = text_field.strip()
+
+        action = [action_type, cmd]
+        log.debug(f"{expression_key} save: {expression}, {threshold}, {action}")
+        self.model.update_state(expression_key, [expression, threshold, action])
+
+    def head_face_view_on_expression1_save(self, index):
+        component = self.view.mainView.headFaceView.face_expression_comp1
+        self.save_expression(component, "expression_1")
 
     def head_face_view_on_expression2_save(self, index):
-        log.debug(f"Expression2 save clicked")
-        expression = self.view.mainView.headFaceView.face_expression_comp2.expression_dropdown.currentText()
-        threshold = self.view.mainView.headFaceView.face_expression_comp2.threshold.value()
-        action_type = self.view.mainView.headFaceView.face_expression_comp2.action_type.currentText()
-        if action_type == "key":
-            text_field = self.view.mainView.headFaceView.face_expression_comp2.action_text_field.text()
-            cmd = [item.strip() for item in re.split(",", text_field)]  # remove whitespaces and split by comma
-            action = [action_type, cmd]
-        else:
-            cmd = self.view.mainView.headFaceView.face_expression_comp2.action_text_field.text()
-            action = [action_type, cmd]
-        log.debug(f"Expression2 save: {expression}, {threshold}, {action}")
-        self.model.update_state("expression_2", [expression, threshold, action])
+        component = self.view.mainView.headFaceView.face_expression_comp2
+        self.save_expression(component, "expression_2")
 
-    # def head_face_view_on_expression1_action_changed(self, text):
-    #     log.debug(f"Expression1 action changed: {text}")
-    #     self.model.update_state("expression1_action", json.loads(text))
+    def head_face_view_on_expression3_save(self, index):
+        component = self.view.mainView.headFaceView.face_expression_comp3
+        self.save_expression(component, "expression_3")
 
-    # def head_face_view_on_expression2_changed(self, index):
-    #     expression = self.view.mainView.headFaceView.face_expression_comp2.expression_dropdown.itemText(index)
-    #     log.debug(f"Selected expression2: {expression}")
-    #     self.model.update_state("expression2_name", expression)
-
-    # def head_face_view_on_expression2_action_changed(self, text):
-    #     log.debug(f"Expression2 action changed: {text}")
-    #     self.model.update_state("expression2_action", json.loads(text))
+    def head_face_view_on_expression4_save(self, index):
+        component = self.view.mainView.headFaceView.face_expression_comp4
+        self.save_expression(component, "expression_4")
 
     # ----------------------------
     # Thread Actions
@@ -201,6 +191,9 @@ class CtrlAbilityController(QObject):
         # Wait for the thread to finish
         self.processThread.wait()
 
+    # ----------------------------
+    # Get called from Thread via Signals
+    # ----------------------------
     def on_new_frame(self, frame):
         self.view.mainView.headFaceView.set_frame(frame)
 

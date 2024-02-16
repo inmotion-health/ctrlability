@@ -46,19 +46,27 @@ class CtrlAbilityModel:
         if key == "side_menu_selected_index":
             return
 
+        # ------ CAM CHANGED ------
         if key == "cam_selected_index":
             config["mapping"]["VideoStream"]["args"]["webcam_id"] = value
+
+        # ------ TEST LANDMARK DISTANCE ------
         elif key == "distance1_threshold":
             config["mapping"]["VideoStream"]["processors"][0]["FaceLandmarkProcessor"]["triggers"][1][
                 "LandmarkDistance"
             ]["args"]["threshold"] = value
 
+        # ------ EXPRESSION COMPONENT CHANGED ------
         if key.__contains__("expression"):
             expression_id = int(re.split("_", key)[1]) - 1
             # change the expression name
             config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                 "SignalDivider"
             ]["triggers"][expression_id]["FacialExpressionTrigger"]["args"]["name"] = value[0]
+            # change the expression confidence
+            config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                "SignalDivider"
+            ]["triggers"][expression_id]["FacialExpressionTrigger"]["args"]["confidence"] = value[1]
             if value[2][0] == "key":
                 # change the key command
                 config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
@@ -77,7 +85,7 @@ class CtrlAbilityModel:
                 log.error(f"Invalid action type: {value[2][0]}")
                 return
 
-        # mouse settings
+        # ------ MOUSE SETTINGS ------
         elif key == "mouse_settings_velocity_compensation_x":
             config["mapping"]["VideoStream"]["processors"][0]["processors"][1]["processors"][0]["triggers"][0]["args"][
                 "compensation_x"
