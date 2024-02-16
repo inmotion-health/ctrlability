@@ -20,6 +20,7 @@ class CtrlAbilityController(QObject):
         self.model = model
         self.view = view
 
+        self.view.mainView.process.clicked.connect(self.toggle_process_thread)
         self.view.sideMenu.itemClicked.connect(self.on_side_menu_item_clicked)
 
         ## Status Menu actions
@@ -38,6 +39,15 @@ class CtrlAbilityController(QObject):
         self.view.mainView.headFaceView.cam_combo_box.currentIndexChanged.connect(self.head_face_view_on_cam_changed)
         self.view.mainView.headFaceView.face_expression_comp1.save_button.clicked.connect(
             self.head_face_view_on_expression1_save
+        )
+        self.view.mainView.headFaceView.face_expression_comp2.save_button.clicked.connect(
+            self.head_face_view_on_expression2_save
+        )
+        self.view.mainView.headFaceView.face_expression_comp3.save_button.clicked.connect(
+            self.head_face_view_on_expression3_save
+        )
+        self.view.mainView.headFaceView.face_expression_comp4.save_button.clicked.connect(
+            self.head_face_view_on_expression4_save
         )
 
         self.model.load_state()
@@ -122,6 +132,14 @@ class CtrlAbilityController(QObject):
     # ----------------------------
     # UI Preference View Actions
     # ----------------------------
+    def toggle_process_thread(self, checked):
+        log.debug("Toggle process thread")
+        if self.processThread.isRunning():
+            if checked:
+                self.processThread.resume()
+            else:
+                self.processThread.pause()
+
     def mouse_settings_on_mode_changed(self, index):
         if index == 0:
             self.view.mainView.preferenceView.mouse_settings.x_threshold.setEnabled(True)

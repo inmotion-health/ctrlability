@@ -15,15 +15,16 @@ mapping:
                 action:
                 - MouseClick:
                     args:
-                      key_name: right
+                      key_name: left
             - FacialExpressionTrigger:
                 args:
-                  name: "cheekSquintRight"
-                  confidence: 0.4
+                  name: "mouthRight"
+                  confidence: 0.5
                 action:
                 - KeyCommand:
                     args:
-                      command: ["cmd", "n"]
+                      command:
+                      - o
             - FacialExpressionTrigger:
                 args:
                   name: "mouthClose"
@@ -106,4 +107,3 @@ mapping:
                       velocity_compensation_y: 0.5
                     action:
                     - MoveMouse
-

@@ -89,15 +89,23 @@ class CtrlAbilityModel:
         if key == "mouse_settings":
             if value[0] == "relative":
                 print("----------relative")
+                try:
+                    x_threshold = float(value[1])
+                    y_threshold = float(value[2])
+                    velocity_compensation_x = float(value[3])
+                    velocity_compensation_y = float(value[4])
+                except ValueError:
+                    log.debug("ERROR – Mouse Settings – Cannot convert to float.")
+
                 config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
                     "SignalDivider"
                 ]["processors"][0]["LandmarkEuroFilter"]["triggers"][0] = {
                     "RelativeCursorControl": {
                         "args": {
-                            "x_threshold": float(value[1]),
-                            "y_threshold": float(value[2]),
-                            "velocity_compensation_x": float(value[3]),
-                            "velocity_compensation_y": float(value[4]),
+                            "x_threshold": x_threshold,
+                            "y_threshold": y_threshold,
+                            "velocity_compensation_x": velocity_compensation_x,
+                            "velocity_compensation_y": velocity_compensation_y,
                         },
                         "action": ["MoveMouse"],
                     }
@@ -106,14 +114,19 @@ class CtrlAbilityModel:
                 print("----------absolute")
                 config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
                     "SignalDivider"
-                ]["processors"][0]["LandmarkEuroFilter"]["triggers"][0] = [
-                    {
-                        "LandmarkNormalVector": {
-                            "args": {"landmark": 1, "ref_landmarks": [33, 263, 61, 291, 199], "tip_scale": 4},
-                            "triggers": [{"AbsoluteCursorControl": {"action": ["MoveMouse"]}}],
-                        }
+                ]["processors"][0] = {
+                    "LandmarkEuroFilter": {
+                        "args": {"min_cutoff": 1, "beta": 0},
+                        "processors": [
+                            {
+                                "LandmarkNormalVector": {
+                                    "args": {"landmark": 1, "ref_landmarks": [33, 263, 61, 291, 199], "tip_scale": 4},
+                                    "triggers": [{"AbsoluteCursorControl": {"action": ["MoveMouse"]}}],
+                                }
+                            }
+                        ],
                     }
-                ]
+                }
 
         log.debug("---------------Updated config...")
         log.debug(config)

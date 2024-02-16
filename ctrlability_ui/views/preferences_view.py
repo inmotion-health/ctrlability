@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QWidget,
     QSpacerItem,
     QSizePolicy,
+    QPushButton,
 )
 
 from ctrlability_ui.views.mouse_settings_component import MouseSettingsComponent
@@ -16,6 +17,7 @@ class PreferencesView(QWidget):
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout(self)
+
         self.mouse_settings = MouseSettingsComponent()
         layout.addWidget(self.mouse_settings)
 

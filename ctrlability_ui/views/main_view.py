@@ -1,12 +1,6 @@
 import logging
 
-from PySide6.QtWidgets import (
-    QLabel,
-    QVBoxLayout,
-    QWidget,
-    QStackedWidget,
-    QScrollArea,
-)
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget, QStackedWidget, QScrollArea, QPushButton
 
 from ctrlability_ui.views.preferences_view import PreferencesView
 from ctrlability_ui.views.head_face_view import HeadFaceView
@@ -22,6 +16,11 @@ class MainView(QWidget):
     def __init__(self):
         super().__init__()
         self.layout = QVBoxLayout(self)
+
+        self.process = QPushButton("PROCESS", self)
+        self.process.setCheckable(True)
+        self.process.setChecked(True)
+        self.layout.addWidget(self.process)
 
         # Create a QScrollArea
         self.scrollArea = QScrollArea(self)
