@@ -29,12 +29,6 @@ class CtrlAbilityController(QObject):
         self.view.saveAction.triggered.connect(self.save_file)
         self.view.helpAction.triggered.connect(self.show_help_dialog)
 
-        ## PreferenceView actions
-        self.view.mainView.preferenceView.mouse_settings.save_button.clicked.connect(self.save_mouse_settings)
-        self.view.mainView.preferenceView.mouse_settings.mode.currentIndexChanged.connect(
-            self.mouse_settings_on_mode_changed
-        )
-
         ## HeadFaceView actions
         self.view.mainView.headFaceView.cam_combo_box.currentIndexChanged.connect(self.head_face_view_on_cam_changed)
         self.view.mainView.headFaceView.face_expression_comp1.save_button.clicked.connect(
@@ -48,6 +42,12 @@ class CtrlAbilityController(QObject):
         )
         self.view.mainView.headFaceView.face_expression_comp4.save_button.clicked.connect(
             self.head_face_view_on_expression4_save
+        )
+        self.view.mainView.headFaceView.mouse_settings.save_button.clicked.connect(
+            self.head_face_view_save_mouse_settings
+        )
+        self.view.mainView.headFaceView.mouse_settings.mode.currentIndexChanged.connect(
+            self.head_face_view_mouse_settings_on_mode_changed
         )
 
         self.model.load_state()
@@ -71,15 +71,13 @@ class CtrlAbilityController(QObject):
 
     def update(self, state):
         if "cam_selected_index" in state:
+            print("cam_selected_index")
             # self.model.update_state("cam_selected_index", state["cam_selected_index"])
             # self.stopProcessThread()
             # self.startProcessThread()
-            print("===================PROCESS THREAD")
-            print(self.processThread.isRunning())
-            self.processThread.update_required.emit()
-            print("restart process thread")
 
-        print(f"Controller updated with state: {state}")
+        self.processThread.update_required.emit()
+        log.debug(f"Update Processing and State: {state}")
 
     # -----------------------------------
     # LOAD/SAVE YAML PROCESS CONFIG FILE
@@ -140,33 +138,35 @@ class CtrlAbilityController(QObject):
             else:
                 self.processThread.pause()
 
-    def mouse_settings_on_mode_changed(self, index):
-        if index == 0:
-            self.view.mainView.preferenceView.mouse_settings.x_threshold.setEnabled(True)
-            self.view.mainView.preferenceView.mouse_settings.y_threshold.setEnabled(True)
-            self.view.mainView.preferenceView.mouse_settings.x_velocity.setEnabled(True)
-            self.view.mainView.preferenceView.mouse_settings.y_velocity.setEnabled(True)
-        elif index == 1:
-            self.view.mainView.preferenceView.mouse_settings.x_threshold.setEnabled(False)
-            self.view.mainView.preferenceView.mouse_settings.y_threshold.setEnabled(False)
-            self.view.mainView.preferenceView.mouse_settings.x_velocity.setEnabled(False)
-            self.view.mainView.preferenceView.mouse_settings.y_velocity.setEnabled(False)
+            self.head_face_view_mouse_settings_on_mode_changed
 
-    def save_mouse_settings(self):
+    def head_face_view_mouse_settings_on_mode_changed(self, index):
+        if index == 0:
+            self.view.mainView.headFaceView.mouse_settings.x_threshold.setEnabled(True)
+            self.view.mainView.headFaceView.mouse_settings.y_threshold.setEnabled(True)
+            self.view.mainView.headFaceView.mouse_settings.x_velocity.setEnabled(True)
+            self.view.mainView.headFaceView.mouse_settings.y_velocity.setEnabled(True)
+        elif index == 1:
+            self.view.mainView.headFaceView.mouse_settings.x_threshold.setEnabled(False)
+            self.view.mainView.headFaceView.mouse_settings.y_threshold.setEnabled(False)
+            self.view.mainView.headFaceView.mouse_settings.x_velocity.setEnabled(False)
+            self.view.mainView.headFaceView.mouse_settings.y_velocity.setEnabled(False)
+
+    def head_face_view_save_mouse_settings(self):
         log.debug("Save mouse settings clicked")
-        mode = self.view.mainView.preferenceView.mouse_settings.mode.currentText()
-        x_threshold = self.view.mainView.preferenceView.mouse_settings.x_threshold.text()
-        y_threshold = self.view.mainView.preferenceView.mouse_settings.y_threshold.text()
-        x_velocity = self.view.mainView.preferenceView.mouse_settings.x_velocity.text()
-        y_velocity = self.view.mainView.preferenceView.mouse_settings.y_velocity.text()
-        self.model.update_state("mouse_settings", [mode, x_threshold, y_threshold, x_velocity, y_velocity])
+        mode = self.view.mainView.headFaceView.mouse_settings.mode.currentText()
+        x_threshold = self.view.mainView.headFaceView.mouse_settings.x_threshold.text()
+        y_threshold = self.view.mainView.headFaceView.mouse_settings.y_threshold.text()
+        x_velocity = self.view.mainView.headFaceView.mouse_settings.x_velocity.text()
+        y_velocity = self.view.mainView.headFaceView.mouse_settings.y_velocity.text()
+        self.model.update_state("head_face", "mouse_settings", [mode, x_threshold, y_threshold, x_velocity, y_velocity])
 
     # ----------------------------
     # UI HeadFace View Actions
     # ----------------------------
     def head_face_view_on_cam_changed(self, index):
         log.debug(f"Selected cam index: {index}")
-        self.model.update_state("cam_selected_index", index)
+        self.model.update_state("head_face", "cam_selected_index", index)
 
     # ------ EXPRESSIONS ------
     def save_expression(self, component, expression_key):
@@ -183,7 +183,7 @@ class CtrlAbilityController(QObject):
 
         action = [action_type, cmd]
         log.debug(f"{expression_key} save: {expression}, {threshold}, {action}")
-        self.model.update_state(expression_key, [expression, threshold, action])
+        self.model.update_state("head_face", expression_key, [expression, threshold, action])
 
     def head_face_view_on_expression1_save(self, index):
         component = self.view.mainView.headFaceView.face_expression_comp1

@@ -14,10 +14,10 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QSlider
 log = logging.getLogger(__name__)
 
 
-class HolisticView(QWidget):
+class SpeechView(QWidget):
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout(self)
-        note = QLabel("TEMPLATE FOR SCELETON TRACKING")
+        note = QLabel("TEMPLATE FOR SPEECH TO KEY/MOUSE CONTROL")
         note.setStyleSheet("font-size: 20px; font-weight: bold;")
         layout.addWidget(note)

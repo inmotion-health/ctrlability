@@ -73,7 +73,7 @@ class CtrlAbilityView(QMainWindow):
         self.sideMenu = QListWidget()
         self.sideMenu.setMinimumWidth(200)  # Set a minimum width for the sidebar
 
-        menu = ["PREFERENCES", "HEAD & FACE", "HAND", "HOLISTIC", "LOG"]
+        menu = ["HOME", "HEAD & FACE", "HAND", "SKELETON", "SPEECH", "LOG"]
         for item in menu:
 
             listItem = QListWidgetItem(item)

@@ -37,96 +37,104 @@ class CtrlAbilityModel:
         except Exception as e:
             log.error(f"Failed to save config: {e}")
 
-    def update_state(self, key, value):
+    def update_state(self, category, key, value):
+        print("-----------------update_state")
+        print(category, key, value)
         from ctrlability.core.config_parser import ConfigParser
 
         config = ConfigParser().get_config_as_dict()
+
         log.debug(f"--------------Updating state in model: {key} = {value}")
 
         if key == "side_menu_selected_index":
             return
 
-        # ------ CAM CHANGED ------
-        if key == "cam_selected_index":
-            config["mapping"]["VideoStream"]["args"]["webcam_id"] = value
+        if category == "head_face":
+            # ------ CAM CHANGED ------
+            if key == "cam_selected_index":
+                config["mapping"]["VideoStream"]["args"]["webcam_id"] = value
 
-        # ------ TEST LANDMARK DISTANCE ------
-        if key == "distance1_threshold":
-            config["mapping"]["VideoStream"]["processors"][0]["FaceLandmarkProcessor"]["triggers"][1][
-                "LandmarkDistance"
-            ]["args"]["threshold"] = value
+            # ------ TEST LANDMARK DISTANCE ------
+            if key == "distance1_threshold":
+                config["mapping"]["VideoStream"]["processors"][0]["FaceLandmarkProcessor"]["triggers"][1][
+                    "LandmarkDistance"
+                ]["args"]["threshold"] = value
 
-        # ------ EXPRESSION COMPONENT CHANGED ------
-        if key.__contains__("expression"):
-            expression_id = int(re.split("_", key)[1]) - 1
-            # change the expression name
-            config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
-                "SignalDivider"
-            ]["triggers"][expression_id]["FacialExpressionTrigger"]["args"]["name"] = value[0]
-            # change the expression confidence
-            config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
-                "SignalDivider"
-            ]["triggers"][expression_id]["FacialExpressionTrigger"]["args"]["confidence"] = value[1]
-            if value[2][0] == "key":
-                # change the key command
+            # ------ EXPRESSION COMPONENT CHANGED ------
+            if key.__contains__("expression"):
+                expression_id = int(re.split("_", key)[1]) - 1
+                # change the expression name
                 config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                     "SignalDivider"
-                ]["triggers"][expression_id]["FacialExpressionTrigger"]["action"][0] = {
-                    "KeyCommand": {"args": {"command": value[2][1]}}
-                }
-            elif value[2][0] == "mouse":
-                # change the mouse click
+                ]["triggers"][expression_id]["FacialExpressionTrigger"]["args"]["name"] = value[0]
+                # change the expression confidence
                 config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                     "SignalDivider"
-                ]["triggers"][expression_id]["FacialExpressionTrigger"]["action"][0] = {
-                    "MouseClick": {"args": {"key_name": value[2][1]}}
-                }
-            else:
-                log.error(f"Invalid action type: {value[2][0]}")
-                return
-
-        # ------ MOUSE SETTINGS ------
-        if key == "mouse_settings":
-            if value[0] == "relative":
-                print("----------relative")
-                try:
-                    x_threshold = float(value[1])
-                    y_threshold = float(value[2])
-                    velocity_compensation_x = float(value[3])
-                    velocity_compensation_y = float(value[4])
-                except ValueError:
-                    log.debug("ERROR – Mouse Settings – Cannot convert to float.")
-
-                config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
-                    "SignalDivider"
-                ]["processors"][0]["LandmarkEuroFilter"]["triggers"][0] = {
-                    "RelativeCursorControl": {
-                        "args": {
-                            "x_threshold": x_threshold,
-                            "y_threshold": y_threshold,
-                            "velocity_compensation_x": velocity_compensation_x,
-                            "velocity_compensation_y": velocity_compensation_y,
-                        },
-                        "action": ["MoveMouse"],
+                ]["triggers"][expression_id]["FacialExpressionTrigger"]["args"]["confidence"] = value[1]
+                if value[2][0] == "key":
+                    # change the key command
+                    config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                        "SignalDivider"
+                    ]["triggers"][expression_id]["FacialExpressionTrigger"]["action"][0] = {
+                        "KeyCommand": {"args": {"command": value[2][1]}}
                     }
-                }
-            elif value[0] == "absolute":
-                print("----------absolute")
-                config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
-                    "SignalDivider"
-                ]["processors"][0] = {
-                    "LandmarkEuroFilter": {
-                        "args": {"min_cutoff": 1, "beta": 0},
-                        "processors": [
-                            {
-                                "LandmarkNormalVector": {
-                                    "args": {"landmark": 1, "ref_landmarks": [33, 263, 61, 291, 199], "tip_scale": 4},
-                                    "triggers": [{"AbsoluteCursorControl": {"action": ["MoveMouse"]}}],
+                elif value[2][0] == "mouse":
+                    # change the mouse click
+                    config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                        "SignalDivider"
+                    ]["triggers"][expression_id]["FacialExpressionTrigger"]["action"][0] = {
+                        "MouseClick": {"args": {"key_name": value[2][1]}}
+                    }
+                else:
+                    log.error(f"Invalid action type: {value[2][0]}")
+                    return
+
+            # ------ MOUSE SETTINGS ------
+            if key == "mouse_settings":
+                if value[0] == "relative":
+                    print("----------relative")
+                    try:
+                        x_threshold = float(value[1])
+                        y_threshold = float(value[2])
+                        velocity_compensation_x = float(value[3])
+                        velocity_compensation_y = float(value[4])
+                    except ValueError:
+                        log.debug("ERROR – Mouse Settings – Cannot convert to float.")
+
+                    config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
+                        "SignalDivider"
+                    ]["processors"][0]["LandmarkEuroFilter"]["triggers"][0] = {
+                        "RelativeCursorControl": {
+                            "args": {
+                                "x_threshold": x_threshold,
+                                "y_threshold": y_threshold,
+                                "velocity_compensation_x": velocity_compensation_x,
+                                "velocity_compensation_y": velocity_compensation_y,
+                            },
+                            "action": ["MoveMouse"],
+                        }
+                    }
+                elif value[0] == "absolute":
+                    print("----------absolute")
+                    config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
+                        "SignalDivider"
+                    ]["processors"][0] = {
+                        "LandmarkEuroFilter": {
+                            "args": {"min_cutoff": 1, "beta": 0},
+                            "processors": [
+                                {
+                                    "LandmarkNormalVector": {
+                                        "args": {
+                                            "landmark": 1,
+                                            "ref_landmarks": [33, 263, 61, 291, 199],
+                                            "tip_scale": 4,
+                                        },
+                                        "triggers": [{"AbsoluteCursorControl": {"action": ["MoveMouse"]}}],
+                                    }
                                 }
-                            }
-                        ],
+                            ],
+                        }
                     }
-                }
 
         log.debug("---------------Updated config...")
         log.debug(config)

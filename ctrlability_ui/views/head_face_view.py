@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QLabel,
 )
 from ctrlability_ui.views.cam_roi_component import CamRoiComponent
+from ctrlability_ui.views.mouse_settings_component import MouseSettingsComponent
 from ctrlability_ui.views.facial_expression_component import FacialExpressionComponent
 from vidcontrol import VideoManager
 
@@ -66,9 +67,15 @@ class HeadFaceView(QWidget):
 
         # FIX_MK: SUB_MENU STYLE
         # sub_menu_layout = QHBoxLayout(self)
-        # self.facial_expressions_button = QPushButton("FACIAL EXPRESSIONS")
+        # self.settings_button = QPushButton("SETTINGS")
+        # self.settings_button.setCheckable(True)
+        # # self.settings_button.setFixedWidth(50)
+        # sub_menu_layout.addWidget(self.settings_button)
+        # self.settings_button.clicked.connect(self.toggle_facial_expressions)
+
+        # self.facial_expressions_button = QPushButton("EXPRESSIONS")
         # self.facial_expressions_button.setCheckable(True)
-        # # self.facial_expressions_button.setFixedWidth(250)
+        # # self.facial_expressions_button.setFixedWidth(50)
         # sub_menu_layout.addWidget(self.facial_expressions_button)
         # self.facial_expressions_button.clicked.connect(self.toggle_facial_expressions)
 
@@ -85,11 +92,11 @@ class HeadFaceView(QWidget):
         # self.roi_button.clicked.connect(self.toggle_roi)
         # layout.addLayout(sub_menu_layout)
 
-        # # Line separator
-        # line = QFrame()
-        # line.setFrameShape(QFrame.HLine)
-        # line.setFrameShadow(QFrame.Sunken)
-        # layout.addWidget(line)
+        # Line separator
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(line)
 
         # CAM SETTINGS
         self.video_manager = VideoManager()
@@ -116,6 +123,11 @@ class HeadFaceView(QWidget):
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
         layout.addWidget(line)
+
+        # Create the collapsible section for the Settings
+        self.settingsSection = CollapsibleSection("SETTINGS")
+        self.initSettingsComponents()
+        layout.addWidget(self.settingsSection)
 
         # Create the collapsible section for the FacialExpressionComponents
         self.facialExpressionSection = CollapsibleSection("FACIAL EXPRESSIONS")
@@ -158,6 +170,17 @@ class HeadFaceView(QWidget):
         # Add sliders
         # for i in range(3):
         #    layout.addWidget(QSlider())
+
+    def initSettingsComponents(self):
+        # Container for the FacialExpressionComponents
+        container_widget = QWidget()
+        container_layout = QVBoxLayout(container_widget)
+        self.mouse_settings = MouseSettingsComponent()
+        container_layout.addWidget(self.mouse_settings)
+        # Add the container to the content area of the collapsible section
+        self.settingsSection.contentArea.setLayout(container_layout)
+        self.settingsSection.contentArea.setMaximumHeight(16777215)  # Ensure it can expand
+        self.settingsSection.toggle()  # Optionally start it as expanded
 
     def initFacialExpressionComponents(self):
         # Container for the FacialExpressionComponents
