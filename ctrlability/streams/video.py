@@ -6,6 +6,7 @@ from vidcontrol import VideoManager
 
 from ctrlability.core import bootstrapper, Stream
 from ctrlability.core.data_types import FrameData
+from ctrlability.helpers.video_manager import video_manager
 
 log = logging.getLogger(__name__)
 
@@ -39,9 +40,7 @@ class VideoStream(Stream):
 
         check_ffmpeg()
 
-        self.video_manager = VideoManager()
-
-        self.source = self.video_manager.get_video_source(webcam_id)
+        self.source = video_manager.get_video_source(webcam_id)
         self.source.set_mirror_frame(mirror)
         self.source.set_flip_frame_horizontal(mirror_horizontal)
 
