@@ -31,7 +31,6 @@ class Bootstrapper:
         _tree_parser = TreeParser(self._registered_classes, self._mapping_engine)
 
         log.debug("Bootstrapping...")
-        print(_config)
         for stream_config in _config:
             # Each stream_config is a dictionary with one key-value pair
             for stream_name, stream_info in stream_config.items():

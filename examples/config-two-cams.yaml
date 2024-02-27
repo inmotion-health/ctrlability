@@ -86,8 +86,8 @@ mapping:
       args:
         webcam_id: 1
       processors:
-        - HandLandmarks:
-          triggers:
-            - Throughput:
-                action:
-                  - Logger
+        - HandLandmarkProcessor:
+            triggers:
+              - Throughput:
+                  action:
+                    - Logger
