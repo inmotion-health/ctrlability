@@ -103,15 +103,22 @@ class CtrlAbilityModel:
 
                     config["mapping"]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
                         "SignalDivider"
-                    ]["processors"][0]["LandmarkEuroFilter"]["triggers"][0] = {
-                        "RelativeCursorControl": {
-                            "args": {
-                                "x_threshold": x_threshold,
-                                "y_threshold": y_threshold,
-                                "velocity_compensation_x": velocity_compensation_x,
-                                "velocity_compensation_y": velocity_compensation_y,
-                            },
-                            "action": ["MoveMouse"],
+                    ]["processors"][0] = {
+                        "LandmarkEuroFilter": {
+                            "args": {"min_cutoff": 1, "beta": 0},
+                            "triggers": [
+                                {
+                                    "RelativeCursorControl": {
+                                        "args": {
+                                            "x_threshold": x_threshold,
+                                            "y_threshold": y_threshold,
+                                            "velocity_compensation_x": velocity_compensation_x,
+                                            "velocity_compensation_y": velocity_compensation_y,
+                                        },
+                                        "action": ["MoveMouse"],
+                                    }
+                                }
+                            ],
                         }
                     }
                 elif value[0] == "absolute":
