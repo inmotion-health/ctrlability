@@ -48,34 +48,6 @@ mapping:
                   args:
                     index: 1
                   triggers:
-                    - RegionOfInterest: # nose in upper left corner
-                        args:
-                          position: [0, 0]
-                          size: [0.5, 0.5]
-                          landmarks: [1]
-                        action:
-                          - Logger
-                    - RegionOfInterest: # nose in upper right corner
-                        args:
-                          position: [0.5, 0]
-                          size: [0.5, 0.5]
-                          landmarks: [1]
-                        action:
-                          - Logger
-                    - RegionOfInterest: # nose in lower left corner
-                        args:
-                          position: [0, 0.5]
-                          size: [0.5, 0.5]
-                          landmarks: [1]
-                        action:
-                          - Logger
-                    - RegionOfInterest: # nose in lower right corner
-                        args:
-                          position: [0.5, 0.5]
-                          size: [0.5, 0.5]
-                          landmarks: [1]
-                        action:
-                          - Logger
                     - LandmarkDistance: # mouth open
                         args:
                           landmarks: [12, 15]
@@ -110,3 +82,12 @@ mapping:
                                 velocity_compensation_y: 2.0
                               action:
                                 - MoveMouse
+  - VideoStream:
+      args:
+        webcam_id: 1
+      processors:
+        - HandLandmarks:
+          triggers:
+            - Throughput:
+                action:
+                  - Logger
