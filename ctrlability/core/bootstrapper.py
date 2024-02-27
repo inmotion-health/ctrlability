@@ -31,17 +31,20 @@ class Bootstrapper:
         _tree_parser = TreeParser(self._registered_classes, self._mapping_engine)
 
         log.debug("Bootstrapping...")
-        for stream_name, stream_info in _config.items():
-            args = stream_info.get("args", {})
-            stream_instance = _tree_parser.create_instance_from_name(stream_name, args)
-            stream_handler = StreamHandler(stream_instance, self._mapping_engine)
-            self.stream_handlers.append(stream_handler)
+        print(_config)
+        for stream_config in _config:
+            # Each stream_config is a dictionary with one key-value pair
+            for stream_name, stream_info in stream_config.items():
+                args = stream_info.get("args", {})
+                stream_instance = _tree_parser.create_instance_from_name(stream_name, args)
+                stream_handler = StreamHandler(stream_instance, self._mapping_engine)
+                self.stream_handlers.append(stream_handler)
 
-            # Processors are a list of dictionaries
-            for processor_dict in stream_info.get("processors", []):
-                for processor_name, processor_info in processor_dict.items():
-                    processor = {processor_name: processor_info}
-                    _tree_parser.parse_processor(processor, stream_handler)
+                # Processors are a list of dictionaries
+                for processor_dict in stream_info.get("processors", []):
+                    for processor_name, processor_info in processor_dict.items():
+                        processor = {processor_name: processor_info}
+                        _tree_parser.parse_processor(processor, stream_handler)
 
         return self.stream_handlers
 
