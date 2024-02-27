@@ -64,23 +64,23 @@ class CtrlAbilityModel:
             if key.__contains__("expression"):
                 expression_id = int(re.split("_", key)[1]) - 1
                 # change the expression name
-                config["mapping"]["VideoStream"][0]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                config["mapping"][0]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                     "SignalDivider"
                 ]["triggers"][expression_id]["FacialExpressionTrigger"]["args"]["name"] = value[0]
                 # change the expression confidence
-                config["mapping"]["VideoStream"][0]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                config["mapping"][0]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                     "SignalDivider"
                 ]["triggers"][expression_id]["FacialExpressionTrigger"]["args"]["confidence"] = value[1]
                 if value[2][0] == "key":
                     # change the key command
-                    config["mapping"]["VideoStream"][0]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                    config["mapping"][0]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                         "SignalDivider"
                     ]["triggers"][expression_id]["FacialExpressionTrigger"]["action"][0] = {
                         "KeyCommand": {"args": {"command": value[2][1]}}
                     }
                 elif value[2][0] == "mouse":
                     # change the mouse click
-                    config["mapping"]["VideoStream"][0]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
+                    config["mapping"][0]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][0][
                         "SignalDivider"
                     ]["triggers"][expression_id]["FacialExpressionTrigger"]["action"][0] = {
                         "MouseClick": {"args": {"key_name": value[2][1]}}
@@ -101,7 +101,7 @@ class CtrlAbilityModel:
                     except ValueError:
                         log.debug("ERROR – Mouse Settings – Cannot convert to float.")
 
-                    config["mapping"]["VideoStream"][0]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
+                    config["mapping"][0]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
                         "SignalDivider"
                     ]["processors"][0] = {
                         "LandmarkEuroFilter": {
@@ -123,7 +123,7 @@ class CtrlAbilityModel:
                     }
                 elif value[0] == "absolute":
                     print("----------absolute")
-                    config["mapping"]["VideoStream"][0]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
+                    config["mapping"][0]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
                         "SignalDivider"
                     ]["processors"][0] = {
                         "LandmarkEuroFilter": {
