@@ -109,7 +109,9 @@ class CtrlAbilityController(QObject):
                             self.view.mainView.headFaceView.mouse_settings.x_velocity.setText(v[3])
                             self.view.mainView.headFaceView.mouse_settings.y_velocity.setText(v[4])
                         elif "expression" in k:
-                            index = int(k.split("_")[1])
+                            index = int(k.split("_")[1]) - 1
+                            print("********************************")
+                            print(f"index: {index}")
                             self.view.mainView.headFaceView.expressions[index].expression_dropdown.setCurrentText(v[0])
                             self.view.mainView.headFaceView.expressions[index].threshold.setValue(v[1] * 100)
                             self.view.mainView.headFaceView.expressions[index].action_type.setCurrentText(v[2][0])
