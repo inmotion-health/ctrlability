@@ -10,22 +10,21 @@ mapping:
             triggers:
             - FacialExpressionTrigger:
                 args:
+                  name: "_neutral"
+                  confidence: 0.5
+                action:
+                - KeyCommand:
+                    args:
+                      command:
+                      - ''
+            - FacialExpressionTrigger:
+                args:
                   name: "mouthRight"
                   confidence: 0.5
                 action:
                 - MouseClick:
                     args:
                       key_name: left
-            - FacialExpressionTrigger:
-                args:
-                  name: "cheekSquintRight"
-                  confidence: 0.67
-                action:
-                - KeyCommand:
-                    args:
-                      command:
-                      - cmd
-                      - c
             - FacialExpressionTrigger:
                 args:
                   name: "mouthRight"
@@ -101,12 +100,18 @@ mapping:
                 args:
                   min_cutoff: 1
                   beta: 0
-                triggers:
-                - RelativeCursorControl:
+                processors:
+                - LandmarkNormalVector:
                     args:
-                      x_threshold: 0.02
-                      y_threshold: 0.02
-                      velocity_compensation_x: 0.1
-                      velocity_compensation_y: 2.0
-                    action:
-                    - MoveMouse
+                      landmark: 1
+                      ref_landmarks:
+                      - 33
+                      - 263
+                      - 61
+                      - 291
+                      - 199
+                      tip_scale: 4
+                    triggers:
+                    - AbsoluteCursorControl:
+                        action:
+                        - MoveMouse

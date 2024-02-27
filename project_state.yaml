@@ -1,12 +1,17 @@
 head_face:
   expression_1:
+  - _neutral
+  - 0.5
+  - - key
+    - - ''
+  expression_2:
   - mouthRight
   - 0.5
   - - mouse
     - left
-  expression_2:
-  - cheekSquintRight
-  - 0.67
-  - - key
-    - - cmd
-      - c
+  mouse_settings:
+  - absolute
+  - ''
+  - ''
+  - ''
+  - ''
