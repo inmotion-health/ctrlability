@@ -1,9 +1,12 @@
-cam_selected_index: 1
-expression1_name: eyeLookDownRight
-expression2_name: cheekSquintRight
-expression1_action: '[mouse][test]'
-expression1:
-- browOuterUpRight
-- 50
-- - mouse
-  - right
+head_face:
+  expression_1:
+  - mouthRight
+  - 0.5
+  - - mouse
+    - left
+  expression_2:
+  - cheekSquintRight
+  - 0.67
+  - - key
+    - - cmd
+      - c

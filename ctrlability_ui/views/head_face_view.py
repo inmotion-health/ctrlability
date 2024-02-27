@@ -62,6 +62,8 @@ class HeadFaceView(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.expressions = []
+
         layout = QVBoxLayout(self)
         layout.setSpacing(2)
 
@@ -191,6 +193,13 @@ class HeadFaceView(QWidget):
         self.face_expression_comp2 = FacialExpressionComponent()
         self.face_expression_comp3 = FacialExpressionComponent()
         self.face_expression_comp4 = FacialExpressionComponent()
+
+        self.expressions = [
+            self.face_expression_comp1,
+            self.face_expression_comp2,
+            self.face_expression_comp3,
+            self.face_expression_comp4,
+        ]
 
         # First row of face_expression components
         first_row_layout = QHBoxLayout()

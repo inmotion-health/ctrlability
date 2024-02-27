@@ -34,7 +34,7 @@ class CtrlAbilityView(QMainWindow):
     def update(self, state):
         # if "selected_index" in state:
         #     self.comboBox.setCurrentIndex(state["selected_index"])
-        print(f"View updated with state: {state}")
+        print(f"-----------------------View updated with state: {state}")
 
     def initMenu(self):
         # Create a menu bar

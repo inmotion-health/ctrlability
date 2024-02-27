@@ -51,7 +51,7 @@ class CtrlAbilityController(QObject):
         )
 
         self.model.load_state()
-        # self.view.update(self.model.state)
+        self.view.update(self.model.state)
         # self.update(self.model.state)
 
         # select HeadFaceView in the side menu as the default view
@@ -93,6 +93,34 @@ class CtrlAbilityController(QObject):
             # Code to handle the file opening
             print(f"Loading {fileName}")
             ConfigParser.CONFIG_PATH = fileName
+            self.model.load_state()
+            for key, value in self.model.state.items():
+                print("----")
+                print(f"{key} = {value}")
+                if key == "head_face":
+                    for k, v in value.items():
+                        print(f"{k} = {v}")
+                        if k == "cam_selected_index":
+                            self.view.mainView.headFaceView.cam_combo_box.setCurrentIndex(v)
+                        elif k == "mouse_settings":
+                            self.view.mainView.headFaceView.mouse_settings.mode.setCurrentText(v[0])
+                            self.view.mainView.headFaceView.mouse_settings.x_threshold.setText(v[1])
+                            self.view.mainView.headFaceView.mouse_settings.y_threshold.setText(v[2])
+                            self.view.mainView.headFaceView.mouse_settings.x_velocity.setText(v[3])
+                            self.view.mainView.headFaceView.mouse_settings.y_velocity.setText(v[4])
+                        elif "expression" in k:
+                            index = int(k.split("_")[1])
+                            self.view.mainView.headFaceView.expressions[index].expression_dropdown.setCurrentText(v[0])
+                            self.view.mainView.headFaceView.expressions[index].threshold.setValue(v[1] * 100)
+                            self.view.mainView.headFaceView.expressions[index].action_type.setCurrentText(v[2][0])
+                            if v[2][1].__class__ == str:
+                                self.view.mainView.headFaceView.expressions[index].action_text_field.setText(v[2][1])
+                            else:
+                                cmd = ""
+                                for k in v[2][1]:
+                                    cmd += k + ","
+                                cmd = cmd[:-1]
+                                self.view.mainView.headFaceView.expressions[index].action_text_field.setText(str(cmd))
             self.startProcessThread()
 
     def save_file(self):

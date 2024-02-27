@@ -10,12 +10,22 @@ mapping:
             triggers:
             - FacialExpressionTrigger:
                 args:
-                  name: "browOuterUpRight"
+                  name: "mouthRight"
                   confidence: 0.5
                 action:
                 - MouseClick:
                     args:
                       key_name: left
+            - FacialExpressionTrigger:
+                args:
+                  name: "cheekSquintRight"
+                  confidence: 0.67
+                action:
+                - KeyCommand:
+                    args:
+                      command:
+                      - cmd
+                      - c
             - FacialExpressionTrigger:
                 args:
                   name: "mouthRight"
@@ -24,23 +34,16 @@ mapping:
                 - KeyCommand:
                     args:
                       command:
-                      - o
+                      - ''
             - FacialExpressionTrigger:
                 args:
-                  name: "mouthClose"
-                  confidence: 0.4
+                  name: "eyeBlinkLeft"
+                  confidence: 0.5
                 action:
                 - KeyCommand:
                     args:
-                      command: ["cmd", "tab"]
-            - FacialExpressionTrigger:
-                args:
-                  name: "mouthLeft"
-                  confidence: 0.4
-                action:
-                - KeyCommand:
-                    args:
-                      command: ["cmd", "space"]
+                      command:
+                      - ''
         - SignalDivider:     # landmarks
             args:
               index: 1
@@ -102,8 +105,8 @@ mapping:
                 - RelativeCursorControl:
                     args:
                       x_threshold: 0.02
-                      y_threshold: 0.03
-                      velocity_compensation_x: 0.05
-                      velocity_compensation_y: 0.5
+                      y_threshold: 0.02
+                      velocity_compensation_x: 0.1
+                      velocity_compensation_y: 2.0
                     action:
                     - MoveMouse

@@ -139,7 +139,7 @@ class CtrlAbilityModel:
         log.debug("---------------Updated config...")
         log.debug(config)
 
-        self.state[key] = value
+        self.state.setdefault(category, {})[key] = value
         self.save_state()
         self.save_config(config)
         CtrlAbilityStateObserver.notify(self.state)
