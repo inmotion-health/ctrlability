@@ -40,8 +40,10 @@ class ProcessThread(QThread):
         while self.is_running:
             self.mutex.lock()
             try:
-                while self.is_paused:
+                if self.is_paused:
                     self.pause_condition.wait(self.mutex)
+                    self.msleep(10)
+                    continue
 
                 for stream in self.stream_handlers:
                     stream.process(None)
