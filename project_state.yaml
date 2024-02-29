@@ -5,10 +5,10 @@ head_face:
   - - mouse
     - left
   expression_2:
-  - browOuterUpRight
-  - 0.97
+  - browDownRight
+  - 0.62
   - - key
-    - - a
+    - - space
   mouse_settings:
   - relative
   - '0.02'

@@ -18,13 +18,13 @@ mapping:
                       key_name: left
             - FacialExpressionTrigger:
                 args:
-                  name: "browOuterUpRight"
-                  confidence: 0.97
+                  name: "browDownRight"
+                  confidence: 0.62
                 action:
                 - KeyCommand:
                     args:
                       command:
-                      - a
+                      - space
             - FacialExpressionTrigger:
                 args:
                   name: "mouthLeft"
