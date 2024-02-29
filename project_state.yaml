@@ -1,12 +1,29 @@
 head_face:
   expression_1:
-  - mouthRight
-  - 0.5
+  - browOuterUpLeft
+  - 0.75
   - - mouse
     - left
   expression_2:
-  - cheekSquintRight
-  - 0.67
+  - browDownRight
+  - 0.5
+  - - mouse
+    - double
+  mouse_settings:
+  - relative
+  - '0.02'
+  - '0.02'
+  - '0.2'
+  - '2.5'
+  expression_3:
+  - mouthLeft
+  - 0.87
   - - key
     - - cmd
       - c
+  expression_4:
+  - mouthRight
+  - 0.21
+  - - key
+    - - n
+  cam_selected_index: 0

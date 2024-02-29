@@ -16,7 +16,7 @@ class ProcessThread(QThread):
     def __init__(self, model):
         super().__init__()
         self.is_running = True
-        self.is_paused = False
+        self.is_paused = True
         self.model = model
         self.update_required.connect(self.update_stream_handlers)
         self.stream_handlers = []

@@ -16,7 +16,6 @@ from ctrlability_ui.views.cam_roi_component import CamRoiComponent
 from ctrlability_ui.views.mouse_settings_component import MouseSettingsComponent
 from ctrlability_ui.views.facial_expression_component import FacialExpressionComponent
 from ctrlability.helpers.video_manager import video_manager
-from vidcontrol import VideoManager
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ class CamRoiWindow(QDialog):
         self.setWindowTitle("Cam ROI")
         self.setLayout(QVBoxLayout())
         self.camRoiComponent = CamRoiComponent()
-        self.camRoiComponent.setFixedSize(480, 270)
+        self.camRoiComponent.setFixedSize(640, 480)
         self.layout().addWidget(self.camRoiComponent)
         # Set additional window flags if needed, e.g., for a floating window
         self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
@@ -103,6 +102,7 @@ class HeadFaceView(QWidget):
 
         # CAM SETTINGS
         self.video_manager = video_manager
+
         cam_setting_layout = QHBoxLayout(self)
         label = QLabel("INPUT:")
         label.setFixedWidth(100)

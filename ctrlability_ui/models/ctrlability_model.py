@@ -28,23 +28,19 @@ class CtrlAbilityModel:
     def save_config(self, config):
         from ctrlability.core.config_parser import ConfigParser
 
-        log.debug("---------------Saving config...")
-        log.debug(config)
         try:
             with open(ConfigParser.CONFIG_PATH, "w") as file:
                 self.yaml.dump(config, file)
-                log.debug("---------------Config saved.")
+                log.debug("Config saved.")
         except Exception as e:
             log.error(f"Failed to save config: {e}")
 
     def update_state(self, category, key, value):
-        print("-----------------update_state")
-        print(category, key, value)
         from ctrlability.core.config_parser import ConfigParser
 
         config = ConfigParser().get_config_as_dict()
 
-        log.debug(f"--------------Updating state in model: {key} = {value}")
+        log.debug(f"Updating state in model: {key} = {value}")
 
         if key == "side_menu_selected_index":
             return
@@ -52,11 +48,11 @@ class CtrlAbilityModel:
         if category == "head_face":
             # ------ CAM CHANGED ------
             if key == "cam_selected_index":
-                config["mapping"]["VideoStream"][0]["args"]["webcam_id"] = value
+                config["mapping"][0]["VideoStream"]["args"]["webcam_id"] = value
 
             # ------ TEST LANDMARK DISTANCE ------
             if key == "distance1_threshold":
-                config["mapping"]["VideoStream"][0]["processors"][0]["FaceLandmarkProcessor"]["triggers"][1][
+                config["mapping"][0]["VideoStream"]["processors"][0]["FaceLandmarkProcessor"]["triggers"][1][
                     "LandmarkDistance"
                 ]["args"]["threshold"] = value
 
@@ -92,7 +88,6 @@ class CtrlAbilityModel:
             # ------ MOUSE SETTINGS ------
             if key == "mouse_settings":
                 if value[0] == "relative":
-                    print("----------relative")
                     try:
                         x_threshold = float(value[1])
                         y_threshold = float(value[2])
@@ -122,7 +117,6 @@ class CtrlAbilityModel:
                         }
                     }
                 elif value[0] == "absolute":
-                    print("----------absolute")
                     config["mapping"][0]["VideoStream"]["processors"][0]["FacialExpressionClassifier"]["processors"][1][
                         "SignalDivider"
                     ]["processors"][0] = {
@@ -142,10 +136,6 @@ class CtrlAbilityModel:
                             ],
                         }
                     }
-
-        log.debug("---------------Updated config...")
-        log.debug(config)
-
         self.state.setdefault(category, {})[key] = value
         self.save_state()
         self.save_config(config)

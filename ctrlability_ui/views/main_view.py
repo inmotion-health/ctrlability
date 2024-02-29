@@ -20,7 +20,6 @@ class MainView(QWidget):
 
         self.process = QPushButton("PROCESS", self)
         self.process.setCheckable(True)
-        self.process.setChecked(True)
         self.layout.addWidget(self.process)
 
         # Create a QScrollArea

@@ -56,16 +56,7 @@ class MouseSettingsComponent(QWidget):
         # Add Save Button
         self.save_button = QPushButton("Save")
         self.save_button.setFixedWidth(280)
-        self.save_button.clicked.connect(self.on_save_clicked)
         form_layout.addRow(self.save_button)
 
         form_container.setLayout(form_layout)
         main_layout.addWidget(form_container)
-
-    def on_save_clicked(self):
-        print("Save button clicked")
-        print(f"Mode: {self.mode.currentText()}")
-        print(f"ThresholdX: {self.x_threshold.text()}")
-        print(f"ThresholdY: {self.y_threshold.text()}")
-        print(f"VelocityX: {self.x_velocity.text()}")
-        print(f"VelocityY: {self.y_velocity.text()}")

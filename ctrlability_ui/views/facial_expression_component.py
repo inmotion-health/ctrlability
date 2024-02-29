@@ -135,7 +135,6 @@ class FacialExpressionComponent(QWidget):
 
         # Add Save Button
         self.save_button = QPushButton("Save")
-        self.save_button.clicked.connect(self.on_save_clicked)
         form_layout.addRow(self.save_button)
 
         form_container.setLayout(form_layout)
@@ -151,12 +150,6 @@ class FacialExpressionComponent(QWidget):
         confidence = self.confidence.value()
         threshold = self.threshold.value()
         self.led_indicator.set_indicator(confidence > threshold)
-
-    def on_save_clicked(self):
-        print("Save button clicked")
-        print(f"Expression: {self.expression_dropdown.currentText()}")
-        print(f"Threshold: {self.threshold.value()}")
-        print(f"Action: {self.action_text_field.text()}")
 
     def action_type_changed(self):
         print(f"Action Type changed to: {self.action_type.currentText()}")

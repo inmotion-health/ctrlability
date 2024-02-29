@@ -71,7 +71,7 @@ class CtrlAbilityController(QObject):
 
     def update(self, state):
         if "cam_selected_index" in state:
-            print("cam_selected_index")
+            log.debug("ctrlability_controller – update – cam_selected_index")
             # self.model.update_state("cam_selected_index", state["cam_selected_index"])
             # self.stopProcessThread()
             # self.startProcessThread()
@@ -88,18 +88,14 @@ class CtrlAbilityController(QObject):
         from ctrlability.core.config_parser import ConfigParser
 
         fileName, _ = QFileDialog.getOpenFileName(self.view, "Open File", "", "CTRLABILITY CONFIG YAML (*.yaml)")
-        print(fileName)
         if fileName:
             # Code to handle the file opening
-            print(f"Loading {fileName}")
+            log.debug(f"Loading {fileName}")
             ConfigParser.CONFIG_PATH = fileName
             self.model.load_state()
             for key, value in self.model.state.items():
-                print("----")
-                print(f"{key} = {value}")
                 if key == "head_face":
                     for k, v in value.items():
-                        print(f"{k} = {v}")
                         if k == "cam_selected_index":
                             self.view.mainView.headFaceView.cam_combo_box.setCurrentIndex(v)
                         elif k == "mouse_settings":
@@ -110,8 +106,6 @@ class CtrlAbilityController(QObject):
                             self.view.mainView.headFaceView.mouse_settings.y_velocity.setText(v[4])
                         elif "expression" in k:
                             index = int(k.split("_")[1]) - 1
-                            print("********************************")
-                            print(f"index: {index}")
                             self.view.mainView.headFaceView.expressions[index].expression_dropdown.setCurrentText(v[0])
                             self.view.mainView.headFaceView.expressions[index].threshold.setValue(v[1] * 100)
                             self.view.mainView.headFaceView.expressions[index].action_type.setCurrentText(v[2][0])
@@ -128,7 +122,7 @@ class CtrlAbilityController(QObject):
     def save_file(self):
         fileName, _ = QFileDialog.getSaveFileName(self.view, "Save File", "", "All Files (*);;Text Files (*.txt)")
         if fileName:
-            # Code to handle the file saving
+            # FIX_MK Code to handle the file saving
             print(f"Saving to {fileName}")
             # self.stopProcess()
 
@@ -195,7 +189,7 @@ class CtrlAbilityController(QObject):
     # UI HeadFace View Actions
     # ----------------------------
     def head_face_view_on_cam_changed(self, index):
-        log.debug(f"Selected cam index: {index}")
+        log.debug(f"-------------------------------Selected cam index: {index}")
         self.model.update_state("head_face", "cam_selected_index", index)
 
     # ------ EXPRESSIONS ------
@@ -235,21 +229,21 @@ class CtrlAbilityController(QObject):
     # Thread Actions
     # ----------------------------
     def startProcessThread(self):
-        print("Starting process")
+        log.info("Starting process")
         if not self.processThread.isRunning():
             self.processThread.start()
 
     def stopProcessThread(self):
-        print("Stopping process")
+        log.info("Stopping process")
         if self.processThread.isRunning():
             self.processThread.terminate()  # or implement a more graceful stop if possible
             self.processThread.wait()
 
     def on_process_thread_finished(self):
-        print("Process finished.")
+        log.info("Process finished.")
 
     def close(self):
-        log.debug("Closing the application")
+        log.info("Closing the application")
         # Stop the thread safely
         self.processThread.stop()
         # Wait for the thread to finish
