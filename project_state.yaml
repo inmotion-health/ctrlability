@@ -1,23 +1,23 @@
 head_face:
   expression_1:
   - browOuterUpLeft
-  - 0.75
+  - 0.37
   - - mouse
     - left
   expression_2:
-  - browDownRight
-  - 0.5
-  - - mouse
-    - double
+  - browOuterUpRight
+  - 0.97
+  - - key
+    - - a
   mouse_settings:
   - relative
   - '0.02'
   - '0.02'
-  - '0.2'
-  - '2.5'
+  - '0.15'
+  - '3'
   expression_3:
   - mouthLeft
-  - 0.87
+  - 0.51
   - - key
     - - cmd
       - c

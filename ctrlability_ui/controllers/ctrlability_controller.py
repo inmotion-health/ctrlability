@@ -69,6 +69,9 @@ class CtrlAbilityController(QObject):
         # CtrlAbilityStateObserver.register(self.view)
         CtrlAbilityStateObserver.register(self)
 
+        # load default config file on project start
+        self.load_file()
+
     def update(self, state):
         if "cam_selected_index" in state:
             log.debug("ctrlability_controller – update – cam_selected_index")
@@ -87,7 +90,11 @@ class CtrlAbilityController(QObject):
         self.stopProcessThread()
         from ctrlability.core.config_parser import ConfigParser
 
-        fileName, _ = QFileDialog.getOpenFileName(self.view, "Open File", "", "CTRLABILITY CONFIG YAML (*.yaml)")
+        # FIX_MK load and save individual projects
+        # fileName, _ = QFileDialog.getOpenFileName(self.view, "Open File", "", "CTRLABILITY CONFIG YAML (*.yaml)")
+        # print(fileName)
+        fileName = "config.yaml"
+
         if fileName:
             # Code to handle the file opening
             log.debug(f"Loading {fileName}")

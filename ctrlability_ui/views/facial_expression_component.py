@@ -141,7 +141,6 @@ class FacialExpressionComponent(QWidget):
         main_layout.addWidget(form_container)
 
     def set_score(self, value):
-        # type(value)
         if value is not None:
             self.confidence.setValue(value)
             self.check_trigger_condition()

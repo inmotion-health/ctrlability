@@ -48,11 +48,19 @@ class ProcessThread(QThread):
                 for stream in self.stream_handlers:
                     stream.process(None)
 
-                expression1 = self.stream_handlers[0]._post_processors[0]._post_processors[0]._triggers[0][0].score
-                expression2 = self.stream_handlers[0]._post_processors[0]._post_processors[0]._triggers[1][0].score
-                expression3 = self.stream_handlers[0]._post_processors[0]._post_processors[0]._triggers[2][0].score
-                expression4 = self.stream_handlers[0]._post_processors[0]._post_processors[0]._triggers[3][0].score
-                self.expressions.emit(expression1, expression2, expression3, expression4)
+                expression_score1 = (
+                    self.stream_handlers[0]._post_processors[0]._post_processors[0]._triggers[0][0].score
+                )
+                expression_score2 = (
+                    self.stream_handlers[0]._post_processors[0]._post_processors[0]._triggers[1][0].score
+                )
+                expression_score3 = (
+                    self.stream_handlers[0]._post_processors[0]._post_processors[0]._triggers[2][0].score
+                )
+                expression_score4 = (
+                    self.stream_handlers[0]._post_processors[0]._post_processors[0]._triggers[3][0].score
+                )
+                self.expressions.emit(expression_score1, expression_score2, expression_score3, expression_score4)
 
             finally:
                 self.mutex.unlock()

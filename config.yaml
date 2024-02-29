@@ -11,23 +11,24 @@ mapping:
             - FacialExpressionTrigger:
                 args:
                   name: "browOuterUpLeft"
-                  confidence: 0.75
+                  confidence: 0.37
                 action:
                 - MouseClick:
                     args:
                       key_name: left
             - FacialExpressionTrigger:
                 args:
-                  name: "browDownRight"
-                  confidence: 0.5
+                  name: "browOuterUpRight"
+                  confidence: 0.97
                 action:
-                - MouseClick:
+                - KeyCommand:
                     args:
-                      key_name: double
+                      command:
+                      - a
             - FacialExpressionTrigger:
                 args:
                   name: "mouthLeft"
-                  confidence: 0.87
+                  confidence: 0.51
                 action:
                 - KeyCommand:
                     args:
@@ -105,7 +106,7 @@ mapping:
                     args:
                       x_threshold: 0.02
                       y_threshold: 0.02
-                      velocity_compensation_x: 0.2
-                      velocity_compensation_y: 2.5
+                      velocity_compensation_x: 0.15
+                      velocity_compensation_y: 3.0
                     action:
                     - MoveMouse
