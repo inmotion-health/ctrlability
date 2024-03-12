@@ -43,14 +43,14 @@ dependencies = [
     'pyobjc-framework-Cocoa>=9.2; platform_system == "Darwin"',
 ]
 
+[tool.setuptools.packages.find]
+include = ["ctrlability*","ctrlability_ui*"]
+exclude = ["tests*", "examples*", "research*","docs*"] 
 [tool.setuptools]
-packages = { find = { where = [
-    "ctrlability",
-], exclude = [
-    "research",
-    "examples",
-    "tests",
-] } }
+include-package-data = true
+
+[tool.setuptools.package-data]
+mypkg = ["*.yaml"] # Include all .yaml files no need for MANIFEST.in // would be like this include */*.yaml
 
 
 [tool.black]
