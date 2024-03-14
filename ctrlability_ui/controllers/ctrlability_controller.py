@@ -93,7 +93,12 @@ class CtrlAbilityController(QObject):
         # FIX_MK load and save individual projects
         # fileName, _ = QFileDialog.getOpenFileName(self.view, "Open File", "", "CTRLABILITY CONFIG YAML (*.yaml)")
         # print(fileName)
-        fileName = "config.yaml"
+        module_location = __file__
+        # XXX this is hacky and should be fixed
+        import os 
+        fileName = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'config.yaml'))
+        
+        
 
         if fileName:
             # Code to handle the file opening

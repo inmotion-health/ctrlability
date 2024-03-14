@@ -20,7 +20,9 @@ class KeyCommand(Action):
             raise TypeError("command must be a list of strings")
 
     def execute(self, data):
+        print(f"Executing KeyCommand: {self.command}")
         pyautogui.hotkey(self.command)
+
 
     def __repr__(self):
         return f"KeyCommand(command: {self.command})"

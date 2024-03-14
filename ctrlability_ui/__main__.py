@@ -16,7 +16,6 @@ from ctrlability_ui.views.ctrlability_view import CtrlAbilityView
 log = logging.getLogger(__name__)
 
 
-
 def check_appearance():
     """Checks DARK/LIGHT mode of macos."""
     cmd = "defaults read -g AppleInterfaceStyle"
@@ -36,12 +35,16 @@ def runAPP():
     app = QApplication(sys.argv)
     app.setApplicationName("CTRLABILITY")  # Set the application name
     # app.setQuitOnLastWindowClosed(False)  # Keep the app running even if all windows are closed
-
-    theme = "light_blue.xml"
-    if platform.system() == "Darwin":
+    module_path = sys.modules["ctrlability_ui"]
+    print(f"module_path: {module_path}")
+    theme = module_path.__path__[0] + "/data/dark_blue.xml"
+    data = module_path.__path__[0] + "/data"
+    print(f"theme: {theme}")
+    """ if platform.system() == "Darwin":
         if check_appearance():
-            theme = "dark_blue.xml"
-    apply_stylesheet(app, theme=theme)
+            theme = "./data/dark_blue.xml" """
+    
+    apply_stylesheet(app, theme=theme, parent=data)
 
     model = CtrlAbilityModel()
     view = CtrlAbilityView()

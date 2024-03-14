@@ -7,7 +7,10 @@ log = logging.getLogger(__name__)
 
 
 class ConfigParser:
-    CONFIG_PATH = "config.yaml"
+    #get location of config file
+    module_location = __file__
+    CONFIG_PATH = module_location.replace("config_parser.py", "config.yaml")
+
 
     def __init__(self, config_path=None):
         if config_path is not None:

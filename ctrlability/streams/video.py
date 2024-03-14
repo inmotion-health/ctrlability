@@ -16,6 +16,9 @@ def check_ffmpeg():
         subprocess.check_output(["ffmpeg", "-version"])
     except OSError:
         raise RuntimeError("ffmpeg not found. Please install ffmpeg and add it to your PATH.")
+    except Exception as e:
+        log.error(e)
+        raise RuntimeError("ffmpeg not found. Please install ffmpeg and add it to your PATH.")
 
 
 @bootstrapper.add()
