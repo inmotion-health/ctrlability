@@ -12,13 +12,26 @@ log = logging.getLogger(__name__)
 
 
 def check_ffmpeg():
+    import os 
+    import sys
+    import shutil
+    print(os.getcwd())
+    current_path = os.getcwd()
+    error_log = f"{current_path}/error.log"
+    meipass = sys._MEIPASS
     try:
         subprocess.check_output(["ffmpeg", "-version"])
-    except OSError:
-        raise RuntimeError("ffmpeg not found. Please install ffmpeg and add it to your PATH.")
     except Exception as e:
-        log.error(e)
+        with open(error_log, "a") as f:
+            f.write(f"error while checking ffmpeg\n")
+            f.write(f"Error: {str(e)}\n")
+            f.write(f"PATH: {str(os.environ['PATH'])}\n")
+            f.write(f"meipass: {sys._MEIPASS}\n")
+            f.write(f"ffmpeg exist {os.path.exists(os.path.join(meipass,'lib','ffmpeg.exe'))}\n")
+            f.write(f"ffmpeg path: {shutil.which('ffmpeg')}\n")
+            f.write(f"ffmpeg path: {shutil.which('ffmpeg')}\n")
         raise RuntimeError("ffmpeg not found. Please install ffmpeg and add it to your PATH.")
+    
 
 
 @bootstrapper.add()
@@ -41,7 +54,9 @@ class VideoStream(Stream):
         self.webcam_id = webcam_id
         self.debug = debug
 
+        #BUG: This check is somehow broken wehn building the app
         check_ffmpeg()
+       
 
         self.source = video_manager.get_video_source(webcam_id)
         self.source.set_mirror_frame(mirror)
