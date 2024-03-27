@@ -1,0 +1,1 @@
+pyinstaller --add-binary="/opt/homebrew/bin/ffmpeg/:lib" --add-data="./ctrlability/processors/face_landmarker_v2_with_blendshapes.task:ctrlability/processors/" --add-data="./ctrlability_ui/config.yaml:ctrlability_ui" --add-data="./ctrlability_ui/data:ctrlability_ui/data" --runtime-hook="ffmpegPath.py" --onefile ./app.py

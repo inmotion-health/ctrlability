@@ -1,2 +1,20 @@
+PATH: /var/folders/vh/w925x78d1w78lq17tfc091s40000gn/T/_MEIO1wKPd/lib:/usr/bin:/bin:/usr/sbin:/sbin
+PATH: /var/folders/vh/w925x78d1w78lq17tfc091s40000gn/T/_MEI6TTHxj/lib:/usr/bin:/bin:/usr/sbin:/sbin
 PATH: /Users/sandi/codespace/ctrlability/dist/app.app/Contents/Frameworks/lib:/usr/bin:/bin:/usr/sbin:/sbin
-PATH: /Users/sandi/codespace/ctrlability/dist/app.app/Contents/Frameworks/lib:/Users/sandi/.nvm/versions/node/v21.6.1/bin:/Users/sandi/Library/pnpm:/Users/sandi/.miniconda3/bin:/Users/sandi/.miniconda3/condabin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin
+PATH: /Volumes/dmg.pKT8O4/app.app/Contents/Frameworks/lib:/usr/bin:/bin:/usr/sbin:/sbin
+PATH: /Volumes/dmg.KDXvXA/app.app/Contents/Frameworks/lib:/usr/bin:/bin:/usr/sbin:/sbin
+PATH: /Volumes/dmg.KDXvXA/app.app/Contents/Frameworks/lib:/usr/bin:/bin:/usr/sbin:/sbin
+PATH: /Volumes/dmg.fZpzGg/app.app/Contents/Frameworks/lib:/usr/bin:/bin:/usr/sbin:/sbin
+PATH: /Volumes/A/app.app/Contents/Frameworks/lib:/usr/bin:/bin:/usr/sbin:/sbin
+Error: [Errno 30] Read-only file system: '/Volumes/A/app.app/Contents/Frameworks/ctrlability_ui/data/disabled/base.svg'
+PATH: /Volumes/A/app.app/Contents/Frameworks/lib:/usr/bin:/bin:/usr/sbin:/sbin
+Error: [Errno 30] Read-only file system: '/Volumes/A/app.app/Contents/Frameworks/ctrlability_ui/data/disabled/base.svg'
+PATH: /Volumes/A/app.app/Contents/Frameworks/lib:/usr/bin:/bin:/usr/sbin:/sbin
+Error: [Errno 30] Read-only file system: '/Volumes/A/app.app/Contents/Frameworks/ctrlability_ui/data/disabled/base.svg'
+PATH: /Volumes/A 1/app.app/Contents/Frameworks/lib:/usr/bin:/bin:/usr/sbin:/sbin
+Error: [Errno 30] Read-only file system: '/Volumes/A 1/app.app/Contents/Frameworks/ctrlability_ui/data/disabled/base.svg'
+PATH: /var/folders/vh/w925x78d1w78lq17tfc091s40000gn/T/_MEIyi4lGq/lib:/usr/bin:/bin:/usr/sbin:/sbin
+PATH: /var/folders/vh/w925x78d1w78lq17tfc091s40000gn/T/_MEIti4OAN/lib:/Users/sandi/.nvm/versions/node/v21.6.1/bin:/Users/sandi/Library/pnpm:/Users/sandi/.miniconda3/bin:/Users/sandi/.miniconda3/condabin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin
+PATH: /var/folders/vh/w925x78d1w78lq17tfc091s40000gn/T/_MEI3kzZR8/lib:/Users/sandi/.nvm/versions/node/v21.6.1/bin:/Users/sandi/Library/pnpm:/Users/sandi/.miniconda3/bin:/Users/sandi/.miniconda3/condabin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin
+PATH: /var/folders/vh/w925x78d1w78lq17tfc091s40000gn/T/_MEIoGuqRm/lib:/Users/sandi/.nvm/versions/node/v21.6.1/bin:/Users/sandi/Library/pnpm:/Users/sandi/.miniconda3/bin:/Users/sandi/.miniconda3/condabin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin
+PATH: /var/folders/vh/w925x78d1w78lq17tfc091s40000gn/T/_MEIgWK1kS/lib:/Users/sandi/.nvm/versions/node/v21.6.1/bin:/Users/sandi/Library/pnpm:/Users/sandi/.miniconda3/bin:/Users/sandi/.miniconda3/condabin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin

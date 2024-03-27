@@ -2,9 +2,9 @@
 
 
 a = Analysis(
-    ['app.py'],
+    ['app.pyw'],
     pathex=[],
-    binaries=[('/opt/homebrew/bin/ffmpeg/', 'lib')],
+    binaries=[('/opt/homebrew/bin/ffmpeg', 'lib')],
     datas=[('./ctrlability/processors/face_landmarker_v2_with_blendshapes.task', 'ctrlability/processors/'), ('./ctrlability_ui/config.yaml', 'ctrlability_ui'), ('./ctrlability_ui/data', 'ctrlability_ui/data')],
     hiddenimports=[],
     hookspath=[],
@@ -18,13 +18,16 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.datas,
     [],
-    exclude_binaries=True,
     name='app',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -32,17 +35,8 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='app',
-)
 app = BUNDLE(
-    coll,
+    exe,
     name='app.app',
     icon=None,
     bundle_identifier=None,
